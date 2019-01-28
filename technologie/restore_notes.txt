@@ -1,0 +1,17 @@
+wmic.exe /Namespace:\\root\default Path SystemRestore Call CreateRestorePoint "My Shortcut Restore Point", 100, 7
+
+
+dism ...
+
+rstrui  //GUI Wiederherstellung
+
+
+### PowerShell:
+
+[https://mcpmag.com/articles/2012/02/21/powershell-windows-restore.aspx](https://mcpmag.com/articles/2012/02/21/powershell-windows-restore.aspx)
+
+
+Get-ComputerRestorePoint
+
+Enable-ComputerRestore -drive "c:\"
+

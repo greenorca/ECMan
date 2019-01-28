@@ -1,0 +1,7 @@
+---
+- hosts: windows
+  tasks:
+  - name: Copy file task
+    win_copy:
+      src: /home/sven/nextcloud_error_folder_open_2018-11-20_15-46-31.png
+      dest: c:\test.png

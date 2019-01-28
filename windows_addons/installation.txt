@@ -1,0 +1,23 @@
+
+1. install C++ Redistib (at least for PyInstaller!!!)
+
+1. install Python (python-3.6.8-webinstall)
+1. pip install PySide2==5.11.2, PyWinRm, 
+
+# Create distrib package:
+
+## Using PyInstaller
+
+```
+pip install PyInstaller  (used ==3.3 for install problems with latest pip)
+
+pyinstaller --distpath C:\Users\Sven\Desktop\ --workpath C:\Users\Sven\tmp\ -i green_orca.ico --add-data ./scripts;./scripts ECMan.py
+
+
+```
+
+see [http://www.pyinstaller.org/](http://www.pyinstaller.org/)
+
+## Using cx_Freeze
+
+see https://cx-freeze.readthedocs.io/en/latest/overview.html

@@ -1,0 +1,17 @@
+|  |Internal Logical File|External Logical File|External Input|External Output|External Inquiery |
+|:-|:--------------------|:--------------------|:-------------|:--------------|:-----------------|
+| Client PC Administration (detect, configure, getCandidateName)|1|1|1|1|1 |
+| LB Auswahl|||1||| 
+| LBs auf Client-PCs kopieren||||1|| 
+| LB Ergebnisse einsammeln |||||1| 
+| |||||| 
+| Gewichtung mit SimpleComplexityRating|7|7|3|3|3| 
+| gewichtete FPs (1)|7|7|6|6|6| 
+| Summe FPs|||||32| 
+| |||||| 
+| Aufwand (h/FP) für Python (2)|12.7||||| 
+| |||||| 
+| Gesamtaufwand (h)|406.4||||| 
+| Stundensatz (CHF)|80||||| 
+| Gesamtpreis (CHF)|32512||||| 
+
