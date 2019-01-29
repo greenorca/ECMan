@@ -285,11 +285,11 @@ class Computer(object):
                 script.append(command)
             
         p = Protocol(
-        endpoint='https://' + self.ip + ':5986/wsman',
-        transport='basic',
-        username=self.user,
-        password=self.passwd,
-        server_cert_validation='ignore')
+            endpoint='https://' + self.ip + ':5986/wsman',
+            transport='basic',
+            username=self.user,
+            password=self.passwd,
+            server_cert_validation='ignore')
     
         shell_id = p.open_shell()
         
@@ -320,6 +320,32 @@ class Computer(object):
      
     def isInternetBlocked(self):
         return self.__internetBlocked
+     
+    def isFirewallServiceEnabled(self):
+        '''
+        tests if windows defender firewall service is enabled for all network profiles
+        '''
+        testCommand = 'Get-NetFirewallProfile | Where-Object {$_.Enabled -ne "true"}'
+        std_out, std_err, status = self.runPowerShellCommand(command=testCommand)
+        
+        if status == self.STATUS_OK and std_out.rstrip() != "":
+            print("following firewalls are not active: "+ std_out)
+            return False
+        
+        return True
+    
+    def configureFirewallService(self, enable=True):
+        '''
+        enable or disable windows defender firewall service for all network profiles
+        '''
+        testCommand = 'Set-NetFirewallProfile -Enabled {}'.format(enable)
+        std_out, std_err, status = self.runPowerShellCommand(command=testCommand)
+        
+        if status != self.STATUS_OK:
+            print("error activating/deactivating firewalls: "+ std_err)
+            return False
+        
+        return True     
             
     def testInternetBlocked(self):        
         '''
@@ -330,7 +356,8 @@ class Computer(object):
         textCommandPing = 'try { if (Test-Connection "$1$" -Quiet -Count 1 )  { Write-Host PING_OK } else { Write-Host PING_NOK } } catch { Write-host DNS_FAIL }'.replace('$1$', testWebConnectivityHost) 
         testCommandHttp = 'try { $client = New-Object System.Net.WebClient; $res=$client.DownloadString("http://$1$"); write-host 1} catch{ write-host -1}'.replace("$1$", testWebConnectivityHost)
         
-        if self.runPowerShellCommand(command=textCommandPing) in ["PING_NOK", "DNS_FAIL"]:
+        std_out, std_err, status = self.runPowerShellCommand(command=textCommandPing)
+        if status == self.STATUS_OK and std_out.rstrip() in ["PING_NOK", "DNS_FAIL"]:
             self.__internetBlocked = True
             print("DNS is blocked")
         else:
@@ -619,11 +646,14 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.114', 'winrm', 'lalelu', True)
-    compi.getCandidateName()
-    blocked = False
-    compi.sendMessage("Internet is blocked: {}".format(str(blocked)))
-    compi.blockInternetAccess(blocked)
+    compi = Computer('192.168.0.67', 'winrm', 'lalelu', True)
+    print("Testing firewall status")
+    status = compi.isFirewallServiceEnabled()
+    print("result: "+str(status))
+    #compi.getCandidateName()
+    #blocked = False
+    #compi.sendMessage("Internet is blocked: {}".format(str(blocked)))
+    #compi.blockInternetAccess(blocked)
     #print("Hopefully blocked now: "+compi.isUsbBlocked())
     #compi.disableUsbAccess(False)
     #print("Hopefully enabled now: "+compi.isUsbBlocked())

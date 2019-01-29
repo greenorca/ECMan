@@ -2,6 +2,13 @@
 # observe firewall rules (omg):
 Get-NetFirewallRule | Where-Object {$_.Name -like '*http*'}
 
+# test and set global firewall status 
+
+cmd: netsh advfirewall show allprofiles 
+
+PS:> Set-NetFirewallProfile -Enabled true
+
+should be empty if firewall is enabled: Get-NetFirewallProfile | Where-Object {$_.Enabled -ne "true"}
 
 # conditional...
 $r = Get-NetFirewallRule -DisplayName 'Block Http' 2> $null; 

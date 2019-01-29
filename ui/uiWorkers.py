@@ -7,18 +7,24 @@ Created on Jan 19, 2019
 import socket, time
 from threading import Thread
 from PySide2 import QtCore
-from PySide2.QtCore import QThreadPool, QRunnable, QThread
+from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject, Signal
+from ui.lbClientButton import LbClient
 
-class ScannerThread(Thread):
+class MySignals(QObject):
+    addClient = Signal(int)
+    threadFinished = Signal(int)
+    
+class ScannerThread(QRunnable):
     '''
     scanning thread; see https://stackoverflow.com/questions/26174743/making-a-fast-port-scanner
     '''
-    def __init__(self, ip, port, timeout=5):
-        Thread.__init__(self)
+    def __init__(self, ip, port, timeout=1):
+        QRunnable.__init__(self)
         self.ip = ip
         self.port=port
         self.done=-1
         self.timeout=timeout
+        self.connector = MySignals()
     
     def run(self):
         TCPsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,26 +34,27 @@ class ScannerThread(Thread):
             #sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             #self.log("scanning "+self.ip)
             TCPsock.connect((self.ip, self.port))
-            print("done scanning "+self.ip)         
-            self.done=1            
+            print("done scanning "+self.ip)
+            ip = int(self.ip.split(".")[-1])
+            self.connector.addClient.emit(ip)          
             
         except Exception as ex:
-            print("crashed scanning IP {} because of {}".format(self.ip, ex))
-            # self.addClient.emit(-1)
-        
-        
+            #print("crashed scanning IP {} because of {}".format(self.ip, ex))
+            pass
+           
+        self.connector.threadFinished.emit(1)
 
 #Inherit from QThread
-class ScannerWorker(QtCore.QThread):
+class ScannerWorker(QThread):
     '''
     does threaded scanning of IP range and port,
     signals "done threads" and successful ips     
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
     '''
     
-    updateProgress = QtCore.Signal(int)
+    updateProgressSignal = QtCore.Signal(int)
     # signal returns only last byte of IP adress
-    addClient = QtCore.Signal(int)
+    addClientSignal = QtCore.Signal(int)
     
     def __init__(self, ipRange: str, ipAdress: str):
         '''
@@ -58,71 +65,78 @@ class ScannerWorker(QtCore.QThread):
         QtCore.QThread.__init__(self)
         self.ipRange = ipRange
         self.ipAdress = ipAdress
+        self.counter = 0
 
     #A QThread is run by calling it's start() function, which calls this run()
     #function in it's own "thread". 
     def run(self):
-        threads = []
         # searching for clients
+        threads = QThreadPool()
+        threads.setMaxThreadCount(20)
         for i in range(254):       
             remote_ip = self.ipRange.replace("*",str(i+1))
             tScanner = ScannerThread(remote_ip, 5986)
-            threads.append(tScanner)
-            tScanner.start()
-        
-        for t in threads:
-            try:
-                t.join()
-                if t.done==1:
-                    ip = int(t.ip.split(".")[-1])
-                    self.addClient.emit(ip)
-                    
-            except Exception as ex:
-                print(ex)
-            self.updateProgress.emit(i)
-                
+            tScanner.connector.addClient.connect(self.addClient)
+            tScanner.connector.threadFinished.connect(self.updateProgress)
             
-        self.updateProgress.emit(255)
+            threads.start(tScanner)
     
-    def relay(self, ip):
-        self.addClient.emit(ip)
+    def updateProgress(self, value):
+        self.counter = self.counter + 1
+        self.updateProgressSignal.emit(self.counter)     
+        
+    def addClient(self, ip):
+        self.addClientSignal.emit(ip)   
+    
 
+class RetrieveResultsThread(QRunnable):
+    def __init__(self, client:LbClient, dst: str ):
+        QRunnable.__init__(self)
+        self.client = client
+        self.dst = dst
+        self.connector = MySignals()
+    
+    def run(self):
+        try:
+            self.client.retrieveClientFiles(self.dst)        
+            
+        except Exception as ex:
+            #print("crashed scanning IP {} because of {}".format(self.ip, ex))
+            pass
+           
+        self.connector.threadFinished.emit(1)
+    
 #Inherit from QThread
-class RetrieveResultsWorker(QtCore.QThread):
+class RetrieveResultsWorker(QThread):
     '''
     does threaded retrieval of lb data,
     signals "done threads"    
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
-    '''
-    
-    updateProgress = QtCore.Signal(int)
-    
-    
+    '''    
+    updateProgressSignal = QtCore.Signal(int)
+        
     def __init__(self, clients: [], dst):
         '''
         ctor, required params:
-        clients: array of lbClient instances to copy data from
-        
+        clients: array of lbClient instances to copy data from    
         '''
         QtCore.QThread.__init__(self)
         self.clients = clients
         self.dst = dst
+        self.cnt = 0
 
-    #A QThread is run by calling it's start() function, which calls this run()
-    #function in it's own "thread". 
     def run(self):
-        threads = []
-        # searching for clients
+        threads = QThreadPool()
+        threads.setMaxThreadCount(10)
         for client in self.clients:       
-            thread = Thread(target=client.retrieveClientFiles(self.dst))
-            threads.append(thread)
-            thread.start()            
+            thread = RetrieveResultsThread(client, self.dst)
+            thread.connector.threadFinished.connect(self.updateProgress)
+            threads.start(thread)            
         
-        i=0
-        for t in threads:
-            t.join()
-            self.updateProgress.emit(i+1)
-            i=i+1;
+    def updateProgress(self, value):
+        self.cnt = self.cnt + 1
+        self.updateProgressSignal.emit(self.cnt)
+        
         
 #Inherit from QThread
 class CopyExamsWorker(QtCore.QThread):
@@ -147,7 +161,7 @@ class CopyExamsWorker(QtCore.QThread):
     #function in it's own "thread". 
     def run(self):
         threads = QThreadPool()
-        
+        threads.setMaxThreadCount(10)
         for client in self.clients:       
             thread = CopyExamsTask(client,self.src)
             threads.start(thread)

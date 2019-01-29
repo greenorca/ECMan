@@ -15,17 +15,31 @@ class TestComputer(unittest.TestCase):
         self.STATUS_OK=0
         pass
     
-    def test_enableFirewall(self):
+    def test_firewallService(self):
+        self.assertTrue(self.compi.configureFirewallService(enable=True), "firewall service activation failed")
+        self.assertTrue(self.compi.isFirewallServiceEnabled(), "firwall services might not be activated")
+        self.assertTrue(self.compi.configureFirewallService(enable=False), "firewall service deactivation failed")
+        self.assertFalse(self.compi.isFirewallServiceEnabled(), "firwall services might not be deactivated")
+        
+        
+    def test_firewallRules(self):    
         '''
         test web connectivity, then block internet (port 53,80,443), then assert no connectivity
         TODO: UNSOLVED: real DNS test? Ping doesn't really do that (for cached resources, ping still works)
+        TODO: test firewall status: netsh advfirewall show allprofiles state;
+        Set-NetFirewallProfile -Enabled true
         ''' 
         testCommand = 'if (Test-Connection $1$ -Quiet -Count 1) { Write-Host "1" } else { Write-Host "-1" }'.replace('$1$', testWebConnectivityHost)
         testCommandHttp = 'try { $client = New-Object System.Net.WebClient; $res=$client.DownloadString("http://$1$"); write-host 1} catch{ write-host -1}'.replace("$1$", testWebConnectivityHost)
         print(testCommandHttp)
         
-        if self.compi.runPowerShellCommand(command=testCommand)[0] != "1":
-            self.compi.blockInternetAccess(False)
+        # check firewall service is enabled
+        if not(self.compi.isFirewallServiceEnabled()):
+            self.compi.configureFirewallService(enable=True)
+        
+        # check previous rules are deleted
+        result = self.compi.blockInternetAccess(False)
+        self.assertTrue(result, "result of firewall turnoff operation should be True") 
             
         std_out, std_err, status = self.compi.runPowerShellCommand(command=testCommand)
         self.assertEqual(status, self.STATUS_OK, "initial staus problem: "+std_err)

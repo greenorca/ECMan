@@ -21,7 +21,7 @@ class LbClient(QPushButton):
         self.log = LbClient.Log()
         self.isSelected = False
         self.lastUpdate = None
-        myThread = LbClient.WorkerThread(self)
+        myThread = LbClient.GetHostnameThread(self)
         QThreadPool.globalInstance().start(myThread)
         
         menu = QMenu(self)
@@ -188,6 +188,7 @@ class LbClient(QPushButton):
     def blockUsbAccess(self):
         self.computer.disableUsbAccess(True)
         self.setOwnToolTip() 
+        #TODO: implelemt as QRunnable
         
         
     def allowUsbAccess(self):
@@ -195,23 +196,43 @@ class LbClient(QPushButton):
         self.setOwnToolTip() 
       
     def blockUsbAccessThread(self):
-            Thread(target=self.blockUsbAccess).start()
+        QThreadPool.globalInstance().start(LbClient.blockUsbAccess(self))
       
     def allowUsbAccessThread(self):
-            Thread(target=self.allowUsbAccess).start()
+        QThreadPool.globalInstance().start(LbClient.allowUsbAccess(self))
             
     def allowInternetAccessThread(self):
-        Thread(target=self.blockInternetAccess(block=False)).start()
+        QThreadPool.globalInstance().start(LbClient.AllowInternetThread(self))
 
     def blockInternetAccessThread(self):
-        Thread(target=self.blockInternetAccess(block=True)).start()
+        QThreadPool.globalInstance().start(LbClient.BlockInternetThread(self))
         
     def blockInternetAccess(self, block=True):
         print('blocking internet access: '+str(block))
         self.computer.blockInternetAccess(block)
         self.setOwnToolTip()
 
-    class WorkerThread(QRunnable):
+    class BlockInternetThread(QRunnable):
+        def __init__(self, widget):
+            QRunnable.__init__(self)
+            self.widget =widget
+            
+        def run(self):
+            self.widget.computer.blockInternetAccess()
+            self.widget.setOwnToolTip()
+
+    class AllowInternetThread(QRunnable):
+        def __init__(self, widget):
+            QRunnable.__init__(self)
+            self.widget =widget
+            
+        def run(self):
+            self.widget.computer.allowInternetAccess()
+            self.widget.setOwnToolTip()
+            
+
+
+    class GetHostnameThread(QRunnable):
         '''
         get the hostname asynchronously
         '''

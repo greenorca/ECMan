@@ -209,7 +209,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.log("save result files into: "+self.result_directory.replace("#","\\"))
             
         self.worker = RetrieveResultsWorker(clients, self.result_directory)
-        self.worker.updateProgress.connect(self.updateProgressBar)
+        self.worker.updateProgressSignal.connect(self.updateProgressBar)
         self.worker.start()        
         
     def prepareExam(self):
@@ -266,8 +266,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.progressBar.setMaximum(253)
         self.worker = ScannerWorker(self.ipRange, self.ip_address)
-        self.worker.updateProgress.connect(self.updateProgressBar)
-        self.worker.addClient.connect(self.addClient)
+        self.worker.updateProgressSignal.connect(self.updateProgressBar)
+        self.worker.addClientSignal.connect(self.addClient)
         self.worker.start()        
         
         

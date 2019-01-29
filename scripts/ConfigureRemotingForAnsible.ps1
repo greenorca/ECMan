@@ -236,7 +236,7 @@ New-NetFirewallRule -Name "AllowWinRM_Secure" -DisplayName "AllowWinRM_Secure" -
 # see https://redmondmag.com/articles/2016/01/22/powershell-to-manage-system-services.aspx
 
 Set-Service WinRM -StartupType Automatic
-Get-Service WinRM | Where {$_.status –eq 'Stopped'} |  Start-Service
+Get-Service WinRM | Where {$_.status -eq 'Stopped'} |  Start-Service
 
 # Addon Sven: add the famous winrm user:
 New-LocalUser -Name winrm -Password ("lalelu" | ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword -FullName "Allmighty" -Description "the heart of the sun"
