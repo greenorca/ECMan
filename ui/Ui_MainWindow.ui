@@ -78,7 +78,7 @@
       <item>
        <widget class="QPushButton" name="btnSelectAllClients">
         <property name="text">
-         <string>Alle auswählen</string>
+         <string>Alle Clients auswählen</string>
         </property>
        </widget>
       </item>
@@ -129,16 +129,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnSealClients">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Systeme versiegeln</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btnGetExams">
         <property name="enabled">
          <bool>false</bool>
@@ -172,9 +162,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="btnResetAllClients">
+        <property name="text">
+         <string>Alle Clients zurücksetzen</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="btnUnselectAllClients">
         <property name="text">
-         <string>Alle deaktivieren</string>
+         <string>Alle Clients deaktivieren</string>
         </property>
        </widget>
       </item>

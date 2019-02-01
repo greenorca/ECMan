@@ -1,18 +1,48 @@
 
 # Tune clean Win10-Installation (regular client)
 
-* Get-AppxPackage *OneNote* | Remove-AppxPackage
-* Get-AppxPackage *xbox* | Remove-AppxPackage
-* Get-AppxPackage *3d* | Remove-AppxPackage
+## Remove crap apps
+
+Get-AppxPackage *OneNote* | Remove-AppxPackage
+Get-AppxPackage *xbox* | Remove-AppxPackage
+Get-AppxPackage *3d* | Remove-AppxPackage
+Get-AppxPackage *bing* | Remove-AppxPackage
+Get-AppxPackage *people | Remove-AppxPackage
+Get-AppxPackage *wallet | Remove-AppxPackage
+Get-AppxPackage *sykpe* | Remove-AppxPackage
 
 * %SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall
+
+## stop and disable services
 
 * Set-Service -Name wuauserv -StartupType Disabled
 * Get-Service -Name wuauserv | Stop-Service
 * Set-Service -Name wsearch -StartupType Disabled
 * Get-Service -Name wsearch | Stop-Service
 
+# Powershell - Monitoring
 
+* free Memory (in GB)
+```
+$os=Get-CimInstance Win32_OperatingSystem
+write-host ([math]::Round($os.FreePhysicalMemory/(1024*1024),2)) "GB free Memory" 
+write-host ([math]::Round($os.TotalVisibleMemorySize/(1024*1024),2)) "GB total Memory" 
+```
+
+* free disk space
+```
+$disk = Get-WMIObject Win32_Logicaldisk -filter "deviceid='$($os.systemdrive)'"
+$disk.FreeSpace / (1024*1024*1024)
+
+//or even:
+write-host ([math]::Round($disk.FreeSpace / (1024*1024*1024),2)) "GB free on C:\"
+```
+
+* Powershell UNIX top
+
+```
+While(1) {ps | sort -des cpu | select -f 15 | ft -a; sleep 1; cls}
+```
 
 # Create distrib package:
 

@@ -59,13 +59,13 @@ class Computer(object):
         
         
     
-    def __init__(self, ipAddress, user, passwd, fetchHostname=False):
+    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False):
         '''
         Constructor
         '''
         self.debug=True
         self.ip = ipAddress
-        self.user = user
+        self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
         self.state = Computer.State.STATE_INIT
         self.hostname = "--unknown--"
@@ -78,7 +78,7 @@ class Computer(object):
         self.minSynTime = 5
         self.filepath=""
         self.candidateName = ""
-        self.defaultLogin = "Sven" # assuming one standard login for all client pcs (usually student/student)
+        self.candidateLogin = candidateLogin # assuming one standard login for all client pcs (usually student/student)
         
         self.__usbBlocked = "unbekannt"
         self.__internetBlocked = "unbekannt"
@@ -90,6 +90,23 @@ class Computer(object):
                 print("Couldn't get hostname: %s".format(str(ex)))
             pass
     
+    def reset(self, resetCandidateName=False):
+        '''
+        resets remote status file and internal status variables 
+        '''
+        candidateName=self.getCandidateName()
+        
+        command='$file = "C:\\Users\\'+ self.remoteAdminUser +'\\ecman.json";New-Item -Path $file -Force'
+        self.runPowerShellCommand(command=command)
+        
+        if not(resetCandidateName):
+            self.setCandidateName(candidateName)
+        else:
+            self.candidateName = ""
+            
+        self.state = Computer.State.STATE_INIT
+                
+    
     def __runRemoteCommand(self,command="ipconfig", params=['/all']):
         '''
         try to run a regular cmd program with given parameters on given winrm-host (ip)
@@ -99,7 +116,7 @@ class Computer(object):
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
-            username=self.user,
+            username=self.remoteAdminUser,
             password=self.passwd,
             server_cert_validation='ignore')
         shell_id = p.open_shell()
@@ -126,7 +143,7 @@ class Computer(object):
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
-            username=self.user,
+            username=self.remoteAdminUser,
             password=self.passwd,
             server_cert_validation='ignore')
         
@@ -153,12 +170,12 @@ class Computer(object):
             p = Protocol(
                 endpoint='https://' + self.ip + ':5986/wsman',
                 transport='basic',
-                username=self.user,
+                username=self.remoteAdminUser,
                 password=self.passwd,
                 server_cert_validation='ignore')
             
             shell_id = p.open_shell()
-            lbFileRoot = r"C:\Users\\"+self.defaultLogin +r"\Desktop\LB_Daten" 
+            lbFileRoot = r"C:\Users\\"+self.candidateLogin +r"\Desktop\LB_Daten" 
             command_id = p.run_command(shell_id, "dir", [lbFileRoot, "/S"])
             std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
             
@@ -203,7 +220,7 @@ class Computer(object):
         '''
         turn a line (like this one: 07.01.2019 15:59 23 local_client_test.txt)
         from windows-dir command into a file object
-        returns String for subdirectories (that should have been created before) e.g. "Verzeichnis von C:\\Users\\Sven\\Desktop\<<<\\\LB_Daten\\M104\\sub2"
+        returns String for subdirectories (that should have been created before) e.g. "Verzeichnis von C:\\Users\\"+self.candidateLogin+"\\Desktop\<<<\\\LB_Daten\\M104\\sub2"
         or None if a line did not matter ()e.g.  " 1 Datei(en), 28 Bytes"
         '''
         match=re.match("^(?P<date>[0-9]{2}\.[0-9]{2}\.[0-9]{4})\s+(?P<time>[0-9]{2}:[0-9]{2})\s+(?P<size>[0-9]+)\s+(?P<name>\S+)",line)
@@ -248,14 +265,17 @@ class Computer(object):
         
         if status != self.STATUS_OK:
             print("Error: "+std_err)
-            self.__internetBlocked = "unbekannt"
-            return self.__internetBlocked
+            self.__usbBlocked = "unbekannt"
+            return self.__usbBlocked
         
         self.__usbBlocked = True if std_out.rstrip()=="4" else False
                         
         return self.__usbBlocked
      
     def allowInternetAccess(self):
+        '''
+        convenience function to remove previously configured firewall rules 
+        '''
         return self.blockInternetAccess(block=False)
      
     def blockInternetAccess(self, block = True):
@@ -287,7 +307,7 @@ class Computer(object):
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
-            username=self.user,
+            username=self.remoteAdminUser,
             password=self.passwd,
             server_cert_validation='ignore')
     
@@ -347,22 +367,37 @@ class Computer(object):
         
         return True     
             
-    def testInternetBlocked(self):        
+    def testPing(self, dst):
         '''
-        testing web connectivity
+        simple ping test to a remote dst; use e.g before retrieving client files to make sure firewall allows access,
+        returns True on Success, False otherwise 
         '''
-            
-        testWebConnectivityHost = "www.wiss.ch"
-        textCommandPing = 'try { if (Test-Connection "$1$" -Quiet -Count 1 )  { Write-Host PING_OK } else { Write-Host PING_NOK } } catch { Write-host DNS_FAIL }'.replace('$1$', testWebConnectivityHost) 
-        testCommandHttp = 'try { $client = New-Object System.Net.WebClient; $res=$client.DownloadString("http://$1$"); write-host 1} catch{ write-host -1}'.replace("$1$", testWebConnectivityHost)
+                
+        textCommandPing = 'try { Clear-DNSClientCache; if (Test-Connection "$1$" -Quiet -Count 1 )  { Write-Host PING_OK } else { Write-Host PING_NOK } } catch { Write-host DNS_FAIL }'.replace('$1$', dst) 
         
         std_out, std_err, status = self.runPowerShellCommand(command=textCommandPing)
         if status == self.STATUS_OK and std_out.rstrip() in ["PING_NOK", "DNS_FAIL"]:
             self.__internetBlocked = True
             print("DNS is blocked")
+            return False
         else:
             self.__internetBlocked = False
             print("DNS unblocked, PING ok")
+        
+        return True
+    
+    def testInternetBlocked(self):        
+        '''
+        testing web connectivity (first clear local dns cache, then ping www.wiss.ch, then try http protocol 
+        fixed: cleared cached DNS 
+        '''
+            
+        testWebConnectivityHost = "www.wiss.ch"
+
+        testCommandHttp = 'try { $client = New-Object System.Net.WebClient; $res=$client.DownloadString("http://$1$"); write-host 1} catch{ write-host -1}'.replace("$1$", testWebConnectivityHost)
+        
+        if not (self.testPing(testWebConnectivityHost)):
+            return self.__internetBlocked
     
         std_out, std_err, status = self.runPowerShellCommand(command=testCommandHttp)
         if status == self.STATUS_OK:
@@ -379,50 +414,70 @@ class Computer(object):
     def setCandidateName(self,candidateName):
         '''
         sets given candidate name on remote machine 
-        by writing it to a file on the users home directory
+        by writing it to a file on the winrm user home directory
         '''
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.user,
-            password=self.passwd,
-            server_cert_validation='ignore')
-        shell_id = p.open_shell()
-        command_id = p.run_command(shell_id, 'echo', ["["+candidateName + r"] > C:\Users\\"+self.defaultLogin +r"\candidate.md"])
-        std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
+
+        command = '$file = "C:\\Users\\'+ self.remoteAdminUser +'\\ecman.json";$regex="(^candidate_name: .* ?)"; $content = Get-Content $file; if (!($content -match $regex)){ Add-Content -Path $file -Value "candidate_name: $1$;"} else { $content -replace $regex, "candidate_name: $1$;" | Set-Content $file}'.replace('$1$',candidateName)
         
-        p.cleanup_command(shell_id, command_id)
-        p.close_shell(shell_id)
+        std_out, std_err, status = self.runPowerShellCommand(command)
+        if status != self.STATUS_OK:
+            print(std_err)
+        else:
+            self.candidateName = candidateName
         
-        if status_code != self.STATUS_OK:
-            print("Error: "+std_err.decode("850"))
-        
-        self.candidateName = candidateName
-        return status_code
+        return status
     
-    def getCandidateName(self):
+    def getCandidateName(self, remote=False):
         '''
-        returns candidate name sitting on this client
+        returns candidate name configured for this client
         '''        
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.user,
-            password=self.passwd,
-            server_cert_validation='ignore')
-        shell_id = p.open_shell()
-        command_id = p.run_command(shell_id, 'more', [r"C:\Users\\"+self.defaultLogin +r"\candidate.md"])
-        std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
+        if remote == False:
+            return self.candidateName
         
-        p.cleanup_command(shell_id, command_id)
-        p.close_shell(shell_id)
+        self.checkStatusFile() # automatically retrieves remote candidate name (amongst bunch of other things) 
         
-        if status_code != self.STATUS_OK:
-            print("Error: "+std_err.decode("850"))
-            return None
-        
-        self.candidateName = std_out.decode("850").replace("\r\n","").replace("[","").replace("]","").rstrip()
         return self.candidateName
+      
+    def checkStatusFile(self):
+        '''
+        checks if file C:\\Users\\winrm\\ecman.json exists on client, 
+        creates it if it doesn't exists and retrieves its content
+        '''
+        command = '$file = "C:\\Users\\$1$\\ecman.json"; if (Get-Item $file 2> $null) { $content = Get-Content $file; foreach ($line in $content){ Write-Host $line } } else { New-Item $file; Write-Host ""}'.replace("$1$", self.remoteAdminUser)
+        print("CheckStatus command: "+command)
+        std_out, std_err, status = self.runPowerShellCommand(command)
+
+        if status  != self.STATUS_OK:
+            print("Error checking status file: "+std_err)
+            return False;
+        
+        self.statusFile = std_out;
+        
+        # parse std_out for status info
+        regex=re.compile(r'(candidate_name: (?P<name>[\w\d ]+);)' )
+        match = regex.match(std_out)
+        if match:
+            self.candidateName = match.group("name")
+        
+        self.state = Computer.State.STATE_INIT
+        match = re.search(r'(client_state: (?P<state>[\w_ ]+);)',std_out)
+        if match:
+            state = match.group("state")
+            for x in Computer.State:
+                if x.name == state:
+                    self.state = x
+        
+        match = re.search(r'(last_update: (?P<date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2});)', std_out)
+        if match:
+            self.last_update = match.group("date")
+        
+        match = re.search(r'(lb_src: (?P<lbsrc>[\w\d#]+);)',std_out.replace("\\","#"))
+        if match:
+            self.lb_dataDirectory = match.group("lbsrc")
+            self.lb_dataDirectory = self.lb_dataDirectory.split("#")[-1]
+            print("fetched previous data dir: "+self.lb_dataDirectory)
+                    
+        return True;
       
     def getHostName(self):
         '''
@@ -431,7 +486,7 @@ class Computer(object):
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
-            username=self.user,
+            username=self.remoteAdminUser,
             password=self.passwd,
             server_cert_validation='ignore')
         
@@ -455,7 +510,7 @@ class Computer(object):
         returns std_out, std_err and status (0 == good) instead of True and False  
         '''
         #=======================================================================
-        # s = Session(self.ip, auth=(self.user, self.passwd))
+        # s = Session(self.ip, auth=(self.remoteAdminUser, self.passwd))
         # r = s.run_ps(command)
         # print("std_out:")
         # for line in str(r.std_out).split(r"\r\n"):
@@ -465,7 +520,7 @@ class Computer(object):
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
-            username=self.user,
+            username=self.remoteAdminUser,
             password=self.passwd,
             server_cert_validation='ignore')
         
@@ -482,7 +537,7 @@ class Computer(object):
         doesn't work well as long as network shares are not mounted locally (and file permissions fit)
         '''
         #self.runPowerShellCommand(r'Remove-SmbShare -Name LB-DATA -Force -ErrorAction SilentlyContinue')
-        #self.runPowerShellCommand(r'New-SmbShare -Name LB-DATA -PATH C:\Users\sven\Desktop\LBX -FullAccess winrm')
+        #self.runPowerShellCommand(r'New-SmbShare -Name LB-DATA -PATH C:\Users\"+self.candidateLogin+"\Desktop\LBX -FullAccess winrm')
         #shutil.copytree(filepath, '//'+self.ip+'/LB-DATA/'+filepath.split('/')[-1])
         
         '''
@@ -490,19 +545,17 @@ class Computer(object):
         '''
         #self.runRemoteCommand(command="net use",params=["x:", filepath, r"/user:winrm lalelu", "/persistent:yes"])
         #self.runRemoteCommand("dir",["x:"])
-        #self.runRemoteCommand(command="robocopy", params=["x:/", r"C:/Users/Sven/Desktop/LBX"])
+        #self.runRemoteCommand(command="robocopy", params=["x:/", r"C:/Users/"+self.candidateLogin+"/Desktop/LBX"])
         #self.runRemoteCommand(command=r"net use x: /delete",params=[])
         pass
         
     def deployClientFiles(self, filepath, empty=True):
         '''
         copy the content of filepath (recursively) to this client machine 
+        Attention: effectively erases existing exam files if empty=True (default)
         prints std_out, std_err and status
         returns True on success, False otherwise
         '''
-        if self.state == Computer.State.STATE_DEPLOYED:
-            raise Exception("Client already in STATE_DEPLOYED: "+self.state.name)
-            
         script=""  
         try:
             with open("scripts/FileCopy.ps1") as file:
@@ -514,7 +567,8 @@ class Computer(object):
         # replace script parameters     
         script=script.replace("$src$",filepath.format('utf_16_le'))
         script=script.replace('$dst$','C:\\Users\\$user$\\Desktop\\LB_Daten\\')
-        script=script.replace('$user$', self.defaultLogin)
+        script=script.replace('$user$', self.candidateLogin)
+        # TODO: fixme
         script=script.replace('$server_user$',r'odroid\winrm lalelu')
         
         
@@ -552,8 +606,8 @@ class Computer(object):
             if self.getCandidateName()=="":
                 raise Exception("Candidate name not set")
             
-        #if self.lb_dataDirectory == "" or self.lb_dataDirectory == None:
-        #    raise Exception("lb_data path invalid")
+        if self.lb_dataDirectory == "" or self.lb_dataDirectory == None:
+            raise Exception("lb_data path invalid")
             
         script=""  
         try:
@@ -567,8 +621,9 @@ class Computer(object):
         script=script.replace("$dst$",filepath.format('utf_16_le'))
         script = script.replace("$module$", self.lb_dataDirectory)
         script=script.replace('$src$','C:\\Users\\$user$\\Desktop\\LB_Daten\\'+self.lb_dataDirectory+'\\*')
-        script=script.replace('$user$', self.defaultLogin)
+        script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$candidateName$', self.candidateName.replace(" ", "_"))
+        # TODO: fixme
         script=script.replace('$server_user$',r'odroid\winrm lalelu')
                 
         if self.debug:
@@ -588,13 +643,13 @@ class Computer(object):
             
     def runCopyScript(self,script):
             
-        #s = Session(self.ip, auth=(self.user, self.passwd)) #, transport="ssl") --> ssl option doesn't work here...
+        #s = Session(self.ip, auth=(self.remoteAdminUser, self.passwd)) #, transport="ssl") --> ssl option doesn't work here...
         #r = s.run_ps(script)
         
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
-            username=self.user,
+            username=self.remoteAdminUser,
             password=self.passwd,
             server_cert_validation='ignore')
         
@@ -633,7 +688,7 @@ class Computer(object):
         else:
             script = scriptfile
             
-        s = Session(self.ip, auth=(self.user, self.passwd))
+        s = Session(self.ip, auth=(self.remoteAdminUser, self.passwd))
         r = s.run_ps(script)
         if self.debug:
             print("std_out:")
@@ -646,10 +701,29 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.67', 'winrm', 'lalelu', True)
-    print("Testing firewall status")
-    status = compi.isFirewallServiceEnabled()
-    print("result: "+str(status))
+    compi = Computer('192.168.0.114', 'winrm', 'lalelu', True)
+    
+    server = "www.mastersong.de"
+    
+    print("Online: "+str(compi.testPing(server)))
+    
+    compi.blockInternetAccess()
+    
+    print("Online: "+str(compi.testPing(server)))
+    
+    compi.allowInternetAccess()
+
+    print("Online: "+str(compi.testPing(server)))
+    
+    #===========================================================================
+    # compi.setCandidateName("Emil Grünschnabel")
+    # print(compi.getCandidateName())
+    # 
+    # 
+    # print("Testing firewall status")
+    # status = compi.isFirewallServiceEnabled()
+    # print("result: "+str(status))
+    #===========================================================================
     #compi.getCandidateName()
     #blocked = False
     #compi.sendMessage("Internet is blocked: {}".format(str(blocked)))
@@ -674,12 +748,12 @@ if __name__=="__main__":
     #===========================================================================
     # print("**********************************")
     # print("running tree command:")
-    # compi.__runRemoteCommand("tree", [r"C:\Users\Sven\Desktop\LB_Daten", "/F"])
+    # compi.__runRemoteCommand("tree", [r"C:\Users\"+self.candidateLogin+"\Desktop\LB_Daten", "/F"])
     # print("**********************************")
     # print("running dir command:")
-    # compi.__runRemoteCommand("dir", [r"C:\Users\Sven\Desktop\LB_Daten", "/S"])
+    # compi.__runRemoteCommand("dir", [r"C:\Users\"+self.candidateLogin+"\Desktop\LB_Daten", "/S"])
     # print("**********************************")
     # print("running powershell Get-ChildItem command:")
-    # compi.runPowerShellCommand(command="Get-ChildItem -Path C:\\Users\\Sven\\Desktop\\LB_Daten\\ -Recurse")
+    # compi.runPowerShellCommand(command="Get-ChildItem -Path C:\\Users\\"+self.candidateLogin+"\\Desktop\\LB_Daten\\ -Recurse")
     #===========================================================================
-    #compi.runRemoteCommand(command="robocopy", params=[filepath.replace("#","\\"), r"C:\Users\Sven\Desktop\LBX"])
+    #compi.runRemoteCommand(command="robocopy", params=[filepath.replace("#","\\"), r"C:\Users\"+self.candidateLogin+"\Desktop\LBX"])

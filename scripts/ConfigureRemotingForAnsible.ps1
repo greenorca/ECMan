@@ -239,8 +239,19 @@ Set-Service WinRM -StartupType Automatic
 Get-Service WinRM | Where {$_.status -eq 'Stopped'} |  Start-Service
 
 # Addon Sven: add the famous winrm user:
+if (-not(Get-LocalUser -Name winrm 2> $null)) {
 New-LocalUser -Name winrm -Password ("lalelu" | ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword -FullName "Allmighty" -Description "the heart of the sun"
-Add-LocalGroupMember -Group administratoren -Member winrm
+Add-LocalGroupMember -Group administratoren -Member winrm;
+}
+
+if (-not(Get-LocalUser -Name student 2> $null)) {
+	Write-Host "Benutzer nicht vorhanden"; 
+	New-LocalUser -Name student -Password("tennesosse-42"| ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword
+	Add-LocalGroupMember -Group Hauptbenutzer -Member student;
+} 
+else { 
+	write-host "benutzer vorhanden" 
+	} 
 
 # Addon Sven: deaktiviere Dienste: WindowsUpdates, Windows Search und "Intelligenter Hintergrundübertragungsdienst"
 

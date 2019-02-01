@@ -8,22 +8,23 @@ from threading import Thread
 from time import asctime, clock
 from worker.computer import Computer
 from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog
-from PySide2.QtCore import Qt, QThread, QThreadPool, QRunnable
+from PySide2.QtCore import Qt, QThread, QThreadPool, QRunnable, Signal, QObject
 
 class LbClient(QPushButton):
     '''
     class to handle and visualize state of lb_client_computers
     '''
-    def __init__(self, ip, user, passwd, parentApp):
-        self.computer = Computer(ip, user, passwd)
+    def __init__(self, ip, remoteAdminUser, passwd, candidateLogin, parentApp):
+        self.computer = Computer(ip, remoteAdminUser=remoteAdminUser, passwd=passwd, candidateLogin=candidateLogin)
         QPushButton.__init__(self,self.computer.ip)
         self.parentApp = parentApp
         self.log = LbClient.Log()
         self.isSelected = False
         self.lastUpdate = None
-        myThread = LbClient.GetHostnameThread(self)
+        myThread = LbClient.CheckStatusThread(self)
+        myThread.connector.checkStateSignal.connect(self.setLabel)
+        myThread.connector.checkStateSignal.connect(self.setOwnToolTip)        
         QThreadPool.globalInstance().start(myThread)
-        
         menu = QMenu(self)
         
         act0 = menu.addAction("Ping-Message anzeigen")
@@ -50,8 +51,10 @@ class LbClient(QPushButton):
         act7 = menu.addAction("Internet freigeben")
         act7.triggered.connect(self.allowInternetAccessThread)
         
+        act8 = menu.addAction("Reset")
+        act8.triggered.connect(self.resetComputerStatusConfirm)
+        
         self.setMenu(menu)
-        self.setOwnToolTip()
         
     class Log:
         
@@ -83,8 +86,10 @@ class LbClient(QPushButton):
             errorLog = "<h4>Log: </h4>" + "</p><p>".join(self.log.getLog()) + "</p>"
         
         remoteFiles = ""
-        if self.computer.state != Computer.State.STATE_INIT:
-            remoteFiles = self.computer.getRemoteFileListing() 
+        #if self.computer.state != Computer.State.STATE_INIT:
+        remoteFiles = self.computer.getRemoteFileListing() 
+        if type(remoteFiles)==bytes:
+            remoteFiles = "ERROR: "+remoteFiles.decode()
         
         self.setToolTip("<h4>Status</h4>"
                         + self.computer.state.name+"<br>"
@@ -92,7 +97,22 @@ class LbClient(QPushButton):
                         + "Internet gesperrt: " + str(self.computer.isInternetBlocked())
                         + remoteFiles
                         + errorLog)
-               
+    
+    def resetComputerStatusConfirm(self):
+        self.resetComputerStatus(resetCandidateName=None)
+    
+    def resetComputerStatus(self, resetCandidateName=None):
+        if resetCandidateName==None: 
+            items = ["Nein","Ja"]
+            item, ok = QInputDialog().getItem(self, "Client-Status zurücksetzen", "Kandidat-Name zurücksetzen? ", items, 0, False) 
+            if ok == False:
+                return
+            resetCandidateName = True if item=="Ja" else False
+        
+        self.computer.reset(resetCandidateName) 
+        self.setLabel()
+        self.setOwnToolTip()       
+            
 
     def deployClientFiles(self, path=None):
         if path == None or path==False:
@@ -120,7 +140,7 @@ class LbClient(QPushButton):
                 self.log.append(" Internet gesperrt: "+str(success))
             
         self.setOwnToolTip() 
-        self.__colorizeWidgetByClientState()
+        self._colorizeWidgetByClientState()
 
     def retrieveClientFiles(self, filepath):
         try:
@@ -136,9 +156,9 @@ class LbClient(QPushButton):
             self.log.append(msg=" Exception retrieving client files: "+str(ex))
             
         self.setOwnToolTip() 
-        self.__colorizeWidgetByClientState()
+        self._colorizeWidgetByClientState()
     
-    def __colorizeWidgetByClientState(self):        
+    def _colorizeWidgetByClientState(self):        
         colorString = ""
         if self.computer.state == Computer.State.STATE_DEPLOYED:
             colorString = "background-color: yellow;"
@@ -157,12 +177,12 @@ class LbClient(QPushButton):
     def select(self):
         self.log.append(msg=" selecting client {}".format(self.computer.hostname))
         self.isSelected = True
-        self.__colorizeWidgetByClientState()
+        self._colorizeWidgetByClientState()
 
     def unselect(self):
         self.log.append(msg=" unselecting client {}".format(self.computer.hostname))
         self.isSelected = False
-        self.__colorizeWidgetByClientState()
+        self._colorizeWidgetByClientState()
 
     def toggleSelection(self):
         '''
@@ -177,13 +197,10 @@ class LbClient(QPushButton):
         label = self.computer.ip
         if self.computer.hostname != "":
             label = label +"\n"+ self.computer.hostname
-        try:
-            if self.computer.getCandidateName() != "":
-                label = label +"\n"+ self.computer.candidateName
-        except Exception:
-            self.log.append(msg=" Warning, couldnt get candidate name for {} // {}".format(self.computer.hostname,self.computer.ip))
         
+        label = label +"\n"+ self.computer.getCandidateName()        
         self.setText(label)
+        self._colorizeWidgetByClientState()
     
     def blockUsbAccess(self):
         self.computer.disableUsbAccess(True)
@@ -229,21 +246,28 @@ class LbClient(QPushButton):
         def run(self):
             self.widget.computer.allowInternetAccess()
             self.widget.setOwnToolTip()
-            
+
+    class StatusThreadSignal(QObject):
+        
+        checkStateSignal = Signal()
 
 
-    class GetHostnameThread(QRunnable):
+    class CheckStatusThread(QRunnable):
         '''
         get the hostname asynchronously
-        '''
+        '''        
+        
         def __init__(self, widget):
             QRunnable.__init__(self)
             self.widget =widget
             self.computer = widget.computer
+            self.connector = LbClient.StatusThreadSignal()
             
         def run(self):
             #sleep(random.randint(2,5))
             try:
+                self.computer.checkStatusFile()
+                self.connector.checkStateSignal.emit()
                 print("fetching this computers name")
                 self.computer.hostname = self.computer.getHostName()
                 print("finished fetching this computers name")

@@ -1,7 +1,7 @@
 import os, sys, socket
 import subprocess, ctypes, time
 #from time import sleep
-from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout #QInputDialog
+from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog
 from PySide2.QtGui import QTextDocument
 from PySide2.QtCore import QUrl, QEvent
 from threading import Thread
@@ -10,7 +10,7 @@ from pathlib import Path
 # import scripts.winrm_toolbox as remote_tools
 from worker.computer import Computer
 from ui.logger import Logger
-from ui.uiWorkers import ScannerWorker, CopyExamsWorker, RetrieveResultsWorker
+from ui.uiWorkers import ScannerWorker, CopyExamsWorker, RetrieveResultsWorker, ResetClientsWorker
 from ui.lbClientButton import LbClient
 from ui.Ui_MainWindow import Ui_MainWindow
 from ui.ecManConfigDialog import EcManConfigDialog
@@ -46,15 +46,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
         self.btnUnselectAllClients.clicked.connect(self.unselectAllCLients)
            
-        self.actionBearbeiten.triggered.connect(self.openConfigDialog)              
+        self.actionBearbeiten.triggered.connect(self.openConfigDialog)      
+        
+        self.btnResetAllClients.clicked.connect(self.resetClients)
+                
         #self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
-                                         
-        self.setWindowTitle('ECMan - Exam Client Manager')
+        self.appTitle = 'ECMan - Exam Client Manager'                             
+        self.setWindowTitle(self.appTitle)
         
         self.logger = Logger(self.textEdit)
         self.show()
         self.getConfig()
         #self.detectClients()
+    
+    def resetClients(self):
+        #TODO: sicherheitsabfrage
+        items = ["Nein","Ja"]
+        item, ok = QInputDialog().getItem(self, "Wirklich alle zurücksetzen?", "Kandidat-Name zurücksetzen? ", items, 0, False) 
+        if ok == False:
+            return
+        
+        resetCandidateName = True if item=="Ja" else False
+        
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+        
+        self.progressBar.setMaximum(len(clients))
+        self.progressBar.setValue(0)
+        
+        self.enableButtons(enable=False)
+        
+        self.worker = ResetClientsWorker(clients, resetCandidateName)
+        self.worker.updateProgress.connect(self.updateProgressBar)
+        self.worker.start()
     
     def closeEvent(self, event):
         '''
@@ -115,7 +138,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             parts = self.ip_address.split(".")[0:-1]
             self.ipRange=".".join(parts)+".*"
             self.lineEditIpRange.setText(self.ipRange)
-            self.setWindowTitle(self.windowTitle()+" on "+self.ip_address)
+            self.appTitle = self.windowTitle()+" on "+self.ip_address
+            self.setWindowTitle(self.appTitle)
         except Exception as ex:
             self.showMessageBox("Fehler", "Keine Verbindung zum Internet<br>Möglicherweise gelingt der Sichtflug.")
             self.log("no connection to internet:"+ex)
@@ -154,6 +178,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def updateProgressBar(self, value):
         self.progressBar.setValue(value)
+        if (value == self.progressBar.maximum()): 
+            self.enableButtons(True)
+    
+    def enableButtons(self, enable):
+        
+        if type(enable) != bool:
+            raise Exception("Invalid parameter, must be boolean")
+        
+        self.btnSelectAllClients.setEnabled(enable)           
+        self.btnPrepareExam.setEnabled(enable)
+        self.btnGetExams.setEnabled(enable)
+        self.btnResetAllClients.setEnabled(enable)
+        self.btnDetectClient.setEnabled(enable)        
+        
      
     def retrieveExamFiles(self):
         '''
@@ -162,11 +200,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # find all suitable clients (required array for later threading)
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count()) 
                    if self.grid_layout.itemAt(i).widget().isSelected and 
-                   self.grid_layout.itemAt(i).widget().computer.state in [Computer.State.STATE_DEPLOYED, Computer.State.STATE_FINISHED]]
+                   self.grid_layout.itemAt(i).widget().computer.state in [Computer.State.STATE_DEPLOYED, 
+                                                                          Computer.State.STATE_FINISHED,
+                                                                          Computer.State.STATE_RETRIVAL_FAIL]]
                 
         if len(clients) == 0:
-            self.showMessageBox("Warnung", "keine Clients ausgewählt bzw. deployed")
+            self.showMessageBox("Abbruch", "Keine Clients ausgewählt bzw. deployed")
             return 
+        
+        unknownClients = [c for c in clients if c.computer.getCandidateName()==""]
+        
+        for unknown in unknownClients:
+            unknown.computer.state = Computer.State.STATE_RETRIVAL_FAIL
+            unknown._colorizeWidgetByClientState()
+        
+        if unknownClients != []: 
+            choice = QMessageBox.critical(self, 
+                              "Achtung", 
+                              "{} clients ohne gültigen Kandidatennamen.<br>Rückholung für alle anderen fortsetzen?".format(str(len(unknownClients))),
+                              QMessageBox.Yes,QMessageBox.No ) 
+               
+            if choice == QMessageBox.No:
+                return;
+        
+        clients = [c for c in clients if c not in unknownClients]
         
         self.progressBar.setMaximum(len(clients))
         self.progressBar.setValue(0)
@@ -256,6 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.progressBar.setEnabled(True)
         self.progressBar.setValue(0)
         
+        self.enableButtons(enable=False)
         # clear previous client buttons
         try:
             for i in range(self.grid_layout.count()): 
@@ -277,7 +335,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         self.log("new client signal received: "+ str(ip))
         clientIp = self.ipRange.replace("*",str(ip))
-        button = LbClient(clientIp, self.user, self.passwd, self)
+        button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd, candidateLogin=self.client_lb_user, parentApp=self)
         button.setMinimumHeight(50)
         #button.installEventFilter(self)
         self.grid_layout.addWidget(button, self.grid_layout.count()/4, self.grid_layout.count()%4)  
@@ -324,6 +382,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     
                 self.lb_directory = self.lb_directory.replace("/","#" )    
                  
+            self.setWindowTitle(self.appTitle + " - Modul::"+self.lb_directory.split("#")[-1])
             self.log(self.lb_directory)
             self.btnPrepareExam.setEnabled(True)
         

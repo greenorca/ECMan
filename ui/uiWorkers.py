@@ -5,7 +5,6 @@ Created on Jan 19, 2019
 '''
 
 import socket, time
-from threading import Thread
 from PySide2 import QtCore
 from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject, Signal
 from ui.lbClientButton import LbClient
@@ -98,6 +97,11 @@ class RetrieveResultsThread(QRunnable):
     
     def run(self):
         try:
+            # test connectivity
+            if (self.client.computer.testPing(self.dst.split("#")[0])==False):
+                print("tear down firewall for client "+self.client.computer.hostname)
+                self.client.computer.allowInternetAccess()
+            
             self.client.retrieveClientFiles(self.dst)        
             
         except Exception as ex:
@@ -186,14 +190,61 @@ class CopyExamsTask(QtCore.QRunnable):
     def run(self):
         self.client.deployClientFiles(self.src)
 
+class ResetClientsWorker(QtCore.QThread):
+    '''
+    does threaded copying of lb data,
+    signals "done threads"    
+    source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
+    '''    
+    updateProgress = QtCore.Signal(int)
+        
+    def __init__(self, clients: [], resetCandidateNames=True):
+        '''
+        ctor, required params:
+        clients: array of lbClient instances to copy data to
+        
+        '''
+        QtCore.QThread.__init__(self)
+        self.clients = clients
+        self.resetCandidateNames = resetCandidateNames
+
+    #A QThread is run by calling it's start() function, which calls this run()
+    #function in it's own "thread". 
+    def run(self):
+        threads = QThreadPool()
+        threads.setMaxThreadCount(10)
+        for client in self.clients:       
+            thread = ResetClientTask(client,self.resetCandidateNames)
+            threads.start(thread)
+            print("reset thread started for "+client.computer.getHostName())
+        
+        maxThreads = threads.activeThreadCount()
+         
+        print("done thread setup, should all be running now")            
+        while threads.activeThreadCount() > 0:
+            self.updateProgress.emit(maxThreads - threads.activeThreadCount())
+            time.sleep(1)
+        self.updateProgress.emit(maxThreads)    
+            
+
+class ResetClientTask(QtCore.QRunnable):
+    
+    def __init__(self,client,resetCandidateName):
+        QtCore.QRunnable.__init__(self)
+        self.client = client
+        self.resetCandidateName = resetCandidateName        
+    
+    def run(self):
+        self.client.resetComputerStatus(self.resetCandidateName)
+
+
         
 if __name__ == "__main__":
     ip = "192.168.0.105"
     port = 5986
     scan = ScannerThread(ip, port)
     
-    scan.start()
-    
+    scan.start()    
     scan.join()
     
     print("done: "+str(scan.done))

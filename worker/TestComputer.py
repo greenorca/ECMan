@@ -2,16 +2,18 @@ import unittest, os
 from worker.computer import Computer
 import time
 
-ipAddress = "192.168.0.114"
+ipAddress = "192.168.0.67"
 user = "winrm"
 passwd = "Remote0815"
 
-targetHostname = "W10ACCL0"
+loginUser = "Sven"
+
+targetHostname = "W10AC-CL10"
 testWebConnectivityHost="www.wiss.ch"
 
 class TestComputer(unittest.TestCase):
     def setUp(self):
-        self.compi = Computer(ipAddress, user, passwd, False)
+        self.compi = Computer(ipAddress, remoteAdminUser=user, passwd=passwd, candidateLogin=loginUser, fetchHostname=False)
         self.STATUS_OK=0
         pass
     
@@ -20,8 +22,8 @@ class TestComputer(unittest.TestCase):
         self.assertTrue(self.compi.isFirewallServiceEnabled(), "firwall services might not be activated")
         self.assertTrue(self.compi.configureFirewallService(enable=False), "firewall service deactivation failed")
         self.assertFalse(self.compi.isFirewallServiceEnabled(), "firwall services might not be deactivated")
-        
-        
+         
+         
     def test_firewallRules(self):    
         '''
         test web connectivity, then block internet (port 53,80,443), then assert no connectivity
@@ -32,19 +34,19 @@ class TestComputer(unittest.TestCase):
         testCommand = 'if (Test-Connection $1$ -Quiet -Count 1) { Write-Host "1" } else { Write-Host "-1" }'.replace('$1$', testWebConnectivityHost)
         testCommandHttp = 'try { $client = New-Object System.Net.WebClient; $res=$client.DownloadString("http://$1$"); write-host 1} catch{ write-host -1}'.replace("$1$", testWebConnectivityHost)
         print(testCommandHttp)
-        
+         
         # check firewall service is enabled
         if not(self.compi.isFirewallServiceEnabled()):
             self.compi.configureFirewallService(enable=True)
-        
+         
         # check previous rules are deleted
         result = self.compi.blockInternetAccess(False)
         self.assertTrue(result, "result of firewall turnoff operation should be True") 
-            
+             
         std_out, std_err, status = self.compi.runPowerShellCommand(command=testCommand)
         self.assertEqual(status, self.STATUS_OK, "initial staus problem: "+std_err)
         self.assertEqual(std_out, "1", "inital connection failed, should have worked")
-        
+         
         result = self.compi.blockInternetAccess(True)
         self.assertTrue(result, "result of firewall operation should be True")
         time.sleep(1)
@@ -53,11 +55,11 @@ class TestComputer(unittest.TestCase):
         std_out, std_err, status = self.compi.runPowerShellCommand(command=testCommandHttp)
         self.assertEqual(status, self.STATUS_OK, "status after connection attempt: "+std_err)
         self.assertEqual(std_out, "-1", "HTTP should not be possible after blocking")
-        
+         
         result = self.compi.blockInternetAccess(False)
         self.assertTrue(result, "result of firewall turnoff operation should be True")        
         time.sleep(1)
-        
+         
         std_out, std_err, status = self.compi.runPowerShellCommand(command=testCommandHttp)
         self.assertEqual(status, self.STATUS_OK, "status after firewall down: "+std_err)
         self.assertEquals(std_out, "1", "HTTP should be possible after blocking")
@@ -70,11 +72,14 @@ class TestComputer(unittest.TestCase):
         self.assertEqual(targetHostname, hostname, "HostName doesn't match")
         
     def test_candidateNameFunctions(self):
-        STATUS_OK = 0
         candidateName = "Käptn Blaubär"
-        self.assertEquals(STATUS_OK, self.compi.setCandidateName(candidateName),"Setup Candidate name failed")
+        self.assertEquals(self.STATUS_OK, self.compi.setCandidateName(candidateName),"Setup Candidate name failed")
         self.assertEquals(candidateName, self.compi.getCandidateName(),"Candidate name retrieval failed or didn't match")
-                
+        
+        self.compi.reset(resetCandidateName=True)
+        
+        self.compi.checkStatusFile()
+        self.assertTrue(self.compi.candidateName=="", "remote candidate name after reset not cleared: "+self.compi.candidateName)
 
     def test_deployAndListFiles(self):
         '''
@@ -84,7 +89,10 @@ class TestComputer(unittest.TestCase):
               
         status, error = self.compi.deployClientFiles(filepath, empty=True)
         self.assertTrue( status, "Status Deployment Copy NOK: "+error)
-        self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer not in status 'DEPLOYED'")
+        self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer locally not in 'DEPLOYED' state")
+        self.compi.checkStatusFile()
+        self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "remote status file not in 'DEPLOYED' state")
+        
       
         if os.name !="nt":
             filepath = "/mnt/PiData/lb_share/M104" # sorry for the linux hack, just mount smb share before running the tests
@@ -100,18 +108,23 @@ class TestComputer(unittest.TestCase):
         test if file retrieval from client works, assumes static network location is valid
         (still buggy)
         '''
- 
         # first: deploy lb files     
         filepath=r"\\odroid\lb_share\M104"
         status, error = self.compi.deployClientFiles(filepath, empty=True)
         self.assertTrue(status, "Status Deployment Copy NOK: "+error)
-        self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer not in status 'DEPLOYED'")
-      
+        self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer not in 'DEPLOYED' state")
+        self.compi.checkStatusFile()
+        self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "remote status file not in 'DEPLOYED' state")
+        
       # second: rerieve lb files     
-        filepath=r"\\odroid\lb_share\Ergebnisse"         
+        filepath=r"\\odroid\lb_share\Ergebnisse"     
+        candidateName = "Käptn Blaubär"
+        self.assertEquals(self.STATUS_OK, self.compi.setCandidateName(candidateName),"Setup Candidate name failed")    
         status, error = self.compi.retrieveClientFiles(filepath)
         self.assertTrue(status, "Error retrieving files: "+error)
-        self.assertEqual(Computer.State.STATE_FINISHED, self.compi.state, "Computer not in status 'FINISHED'")  
+        self.assertEqual(Computer.State.STATE_FINISHED, self.compi.state, "Computer not in 'FINISHED' state")  
+        self.compi.checkStatusFile()
+        self.assertEqual(Computer.State.STATE_FINISHED, self.compi.state, "remote status file not in 'FINISHED' state")  
         
         # compare folder contents
         if os.name !="nt": # convert for Unix Test systems
@@ -124,7 +137,12 @@ class TestComputer(unittest.TestCase):
         files=os.listdir(filepath+self.compi.candidateName.replace(" ", "_"))
         for f in files:
             self.assertTrue(-1 < remoteResultFileListing.find(f),"file missing on result set: {}".format(f))  
-       
+            
+        
+        self.compi.reset()
+        self.compi.checkStatusFile()
+        self.assertTrue(self.compi.state == Computer.State.STATE_INIT, 
+                        "remote state after reset not cleared: "+self.compi.state.name)
 
 if __name__ == "__main__":
     unittest.main()

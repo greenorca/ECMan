@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'Ui_MainWindow.ui',
 # licensing of 'Ui_MainWindow.ui' applies.
 #
-# Created: Sun Jan 27 13:35:35 2019
+# Created: Thu Jan 31 09:03:34 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -75,10 +75,6 @@ class Ui_MainWindow(object):
         self.checkBoxBlockWebAccess.setChecked(True)
         self.checkBoxBlockWebAccess.setObjectName("checkBoxBlockWebAccess")
         self.verticalLayout_2.addWidget(self.checkBoxBlockWebAccess)
-        self.btnSealClients = QtWidgets.QPushButton(self.centralwidget)
-        self.btnSealClients.setEnabled(False)
-        self.btnSealClients.setObjectName("btnSealClients")
-        self.verticalLayout_2.addWidget(self.btnSealClients)
         self.btnGetExams = QtWidgets.QPushButton(self.centralwidget)
         self.btnGetExams.setEnabled(False)
         self.btnGetExams.setObjectName("btnGetExams")
@@ -88,6 +84,9 @@ class Ui_MainWindow(object):
         self.btnSendMessage = QtWidgets.QPushButton(self.centralwidget)
         self.btnSendMessage.setObjectName("btnSendMessage")
         self.verticalLayout_2.addWidget(self.btnSendMessage)
+        self.btnResetAllClients = QtWidgets.QPushButton(self.centralwidget)
+        self.btnResetAllClients.setObjectName("btnResetAllClients")
+        self.verticalLayout_2.addWidget(self.btnResetAllClients)
         self.btnUnselectAllClients = QtWidgets.QPushButton(self.centralwidget)
         self.btnUnselectAllClients.setObjectName("btnUnselectAllClients")
         self.verticalLayout_2.addWidget(self.btnUnselectAllClients)
@@ -166,17 +165,17 @@ class Ui_MainWindow(object):
         self.label.setText(QtWidgets.QApplication.translate("MainWindow", "IP-Bereich: ", None, -1))
         self.lineEditIpRange.setText(QtWidgets.QApplication.translate("MainWindow", "192.168.0.*", None, -1))
         self.btnDetectClient.setText(QtWidgets.QApplication.translate("MainWindow", "Clients erkennen", None, -1))
-        self.btnSelectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle auswählen", None, -1))
+        self.btnSelectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients auswählen", None, -1))
         self.btnSelectExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung auswählen", None, -1))
         self.btnPrepareExam.setToolTip(QtWidgets.QApplication.translate("MainWindow", "Achtung: bereits vorhandene Daten werden überschrieben", None, -1))
         self.btnPrepareExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung einspielen", None, -1))
         self.checkBoxBlockUsb.setText(QtWidgets.QApplication.translate("MainWindow", "USB blockieren", None, -1))
         self.checkBoxBlockWebAccess.setText(QtWidgets.QApplication.translate("MainWindow", "Web blockieren", None, -1))
-        self.btnSealClients.setText(QtWidgets.QApplication.translate("MainWindow", "Systeme versiegeln", None, -1))
         self.btnGetExams.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfungsdaten abholen", None, -1))
         self.btnSendMessage.setToolTip(QtWidgets.QApplication.translate("MainWindow", "sendet Nachricht an alle ausgewählten Clients.", None, -1))
         self.btnSendMessage.setText(QtWidgets.QApplication.translate("MainWindow", "Benutzer benachrichtigen", None, -1))
-        self.btnUnselectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle deaktivieren", None, -1))
+        self.btnResetAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients zurücksetzen", None, -1))
+        self.btnUnselectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients deaktivieren", None, -1))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_pcs), QtWidgets.QApplication.translate("MainWindow", "Client - PCs", None, -1))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_lb), QtWidgets.QApplication.translate("MainWindow", "LB", None, -1))
         self.labelProgress.setText(QtWidgets.QApplication.translate("MainWindow", "Fortschritt:", None, -1))
