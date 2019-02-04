@@ -4,6 +4,7 @@ from base64 import b64encode
 import time, re
 #import socket, shutil
 from enum import Enum
+from PySide2.QtCore import QRunnable
 
 #from base64 import *
 
@@ -502,6 +503,14 @@ class Computer(object):
             return None
         
         return std_out.decode("utf-8").replace("\r\n","")
+     
+    def shutdown(self):
+        try:
+            return self.__runRemoteCommand("shutdown /s /t 0", []) == self.STATUS_OK
+                
+        except Exception as ex:
+            print(ex) 
+            return False
         
     def runPowerShellCommand(self,command=""):
         '''

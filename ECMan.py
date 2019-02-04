@@ -1,5 +1,5 @@
 import os, sys, socket
-import subprocess, ctypes, time
+import subprocess, ctypes
 #from time import sleep
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog
 from PySide2.QtGui import QTextDocument

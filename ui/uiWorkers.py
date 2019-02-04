@@ -8,6 +8,7 @@ import socket, time
 from PySide2 import QtCore
 from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject, Signal
 from ui.lbClientButton import LbClient
+from worker.computer import Computer
 
 class MySignals(QObject):
     addClient = Signal(int)
@@ -228,7 +229,9 @@ class ResetClientsWorker(QtCore.QThread):
             
 
 class ResetClientTask(QtCore.QRunnable):
-    
+    '''
+    runnable thread to reset logical state of client (without restarting it)
+    '''
     def __init__(self,client,resetCandidateName):
         QtCore.QRunnable.__init__(self)
         self.client = client
@@ -236,12 +239,13 @@ class ResetClientTask(QtCore.QRunnable):
     
     def run(self):
         self.client.resetComputerStatus(self.resetCandidateName)
-
-
         
 if __name__ == "__main__":
-    ip = "192.168.0.105"
+    ip = "192.168.0.114"
     port = 5986
+    
+    #compi = Computer(ip, remoteAdminUser="winrm", passwd="lalelu", candidateLogin="Sven", fetchHostname=False)
+    
     scan = ScannerThread(ip, port)
     
     scan.start()    

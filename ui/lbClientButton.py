@@ -4,11 +4,10 @@ Created on Jan 20, 2019
 @author: sven
 '''
 
-from threading import Thread
 from time import asctime, clock
 from worker.computer import Computer
 from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog
-from PySide2.QtCore import Qt, QThread, QThreadPool, QRunnable, Signal, QObject
+from PySide2.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject
 
 class LbClient(QPushButton):
     '''
@@ -51,8 +50,10 @@ class LbClient(QPushButton):
         act7 = menu.addAction("Internet freigeben")
         act7.triggered.connect(self.allowInternetAccessThread)
         
-        act8 = menu.addAction("Reset")
+        act8 = menu.addAction("LB-Status zurücksetzen")
         act8.triggered.connect(self.resetComputerStatusConfirm)
+        
+        menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
         
         self.setMenu(menu)
         
@@ -74,7 +75,10 @@ class LbClient(QPushButton):
             self.setLabel()
             self.log.append(msg=" candidate name set: "+candidateName)
         pass
-
+    
+    def shutdownClient(self):
+        QThreadPool.globalInstance().start(LbClient.ShutdownTask(self))
+        
     def setOwnToolTip(self):
         if self.lastUpdate != None and clock() - self.lastUpdate < 0.05:
             return
@@ -85,7 +89,6 @@ class LbClient(QPushButton):
         if len(self.log.getLog()) > 0:    
             errorLog = "<h4>Log: </h4>" + "</p><p>".join(self.log.getLog()) + "</p>"
         
-        remoteFiles = ""
         #if self.computer.state != Computer.State.STATE_INIT:
         remoteFiles = self.computer.getRemoteFileListing() 
         if type(remoteFiles)==bytes:
@@ -250,6 +253,20 @@ class LbClient(QPushButton):
     class StatusThreadSignal(QObject):
         
         checkStateSignal = Signal()
+
+    class ShutdownTask(QRunnable):
+        '''
+        simple thread to shutdown given pc (respectively the pc attached to this widget) 
+        '''
+        def __init__(self, widget):
+            QRunnable.__init__(self)
+            self.widget = widget
+        
+        def run(self):
+            if self.widget.computer.shutdown() == True:
+                self.widget.setEnabled(False)
+                colorString = "background-color: grey;"
+                self.widget.setStyleSheet("QPushButton {"+ colorString + "}")
 
 
     class CheckStatusThread(QRunnable):
