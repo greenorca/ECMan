@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'Ui_MainWindow.ui',
 # licensing of 'Ui_MainWindow.ui' applies.
 #
-# Created: Thu Jan 31 09:03:34 2019
+# Created: Tue Feb  5 15:50:57 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(852, 592)
+        MainWindow.resize(865, 587)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("../green_orca.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -91,8 +91,8 @@ class Ui_MainWindow(object):
         self.btnUnselectAllClients.setObjectName("btnUnselectAllClients")
         self.verticalLayout_2.addWidget(self.btnUnselectAllClients)
         self.gridLayout_2.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
-        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName("tabWidget")
+        self.tabs = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabs.setObjectName("tabs")
         self.tab_pcs = QtWidgets.QWidget()
         self.tab_pcs.setObjectName("tab_pcs")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.tab_pcs)
@@ -119,14 +119,31 @@ class Ui_MainWindow(object):
         self._2.addItem(spacerItem2, 0, 0, 1, 1)
         self._2.setColumnStretch(0, 1)
         self.verticalLayout.addWidget(self.horizontalFrame)
-        self.tabWidget.addTab(self.tab_pcs, "")
-        self.tab_lb = QtWidgets.QWidget()
-        self.tab_lb.setObjectName("tab_lb")
-        self.textEdit = QtWidgets.QTextEdit(self.tab_lb)
-        self.textEdit.setGeometry(QtCore.QRect(10, 10, 581, 431))
-        self.textEdit.setObjectName("textEdit")
-        self.tabWidget.addTab(self.tab_lb, "")
-        self.gridLayout_2.addWidget(self.tabWidget, 0, 1, 1, 1)
+        self.tabs.addTab(self.tab_pcs, "")
+        self.tab_candidates = QtWidgets.QWidget()
+        self.tab_candidates.setObjectName("tab_candidates")
+        self.gridLayout = QtWidgets.QGridLayout(self.tab_candidates)
+        self.gridLayout.setObjectName("gridLayout")
+        self.btnApplyCandidateNames = QtWidgets.QPushButton(self.tab_candidates)
+        self.btnApplyCandidateNames.setObjectName("btnApplyCandidateNames")
+        self.gridLayout.addWidget(self.btnApplyCandidateNames, 1, 0, 1, 1)
+        self.checkBox_OverwriteExisitingNames = QtWidgets.QCheckBox(self.tab_candidates)
+        self.checkBox_OverwriteExisitingNames.setObjectName("checkBox_OverwriteExisitingNames")
+        self.gridLayout.addWidget(self.checkBox_OverwriteExisitingNames, 1, 1, 1, 1)
+        self.textEditCandidates = QtWidgets.QTextEdit(self.tab_candidates)
+        self.textEditCandidates.setAcceptRichText(False)
+        self.textEditCandidates.setObjectName("textEditCandidates")
+        self.gridLayout.addWidget(self.textEditCandidates, 0, 0, 1, 2)
+        self.tabs.addTab(self.tab_candidates, "")
+        self.tab_log = QtWidgets.QWidget()
+        self.tab_log.setObjectName("tab_log")
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.tab_log)
+        self.gridLayout_3.setObjectName("gridLayout_3")
+        self.textEditLog = QtWidgets.QTextEdit(self.tab_log)
+        self.textEditLog.setObjectName("textEditLog")
+        self.gridLayout_3.addWidget(self.textEditLog, 0, 0, 1, 1)
+        self.tabs.addTab(self.tab_log, "")
+        self.gridLayout_2.addWidget(self.tabs, 0, 1, 1, 1)
         self.labelProgress = QtWidgets.QLabel(self.centralwidget)
         self.labelProgress.setObjectName("labelProgress")
         self.gridLayout_2.addWidget(self.labelProgress, 2, 0, 1, 1)
@@ -137,7 +154,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.progressBar, 2, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 852, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 865, 23))
         self.menubar.setObjectName("menubar")
         self.menuKonfiguration = QtWidgets.QMenu(self.menubar)
         self.menuKonfiguration.setObjectName("menuKonfiguration")
@@ -157,7 +174,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuKonfiguration.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -176,8 +193,12 @@ class Ui_MainWindow(object):
         self.btnSendMessage.setText(QtWidgets.QApplication.translate("MainWindow", "Benutzer benachrichtigen", None, -1))
         self.btnResetAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients zurücksetzen", None, -1))
         self.btnUnselectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients deaktivieren", None, -1))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_pcs), QtWidgets.QApplication.translate("MainWindow", "Client - PCs", None, -1))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_lb), QtWidgets.QApplication.translate("MainWindow", "LB", None, -1))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_pcs), QtWidgets.QApplication.translate("MainWindow", "Client - PCs", None, -1))
+        self.btnApplyCandidateNames.setText(QtWidgets.QApplication.translate("MainWindow", "Kandidatennamen zuweisen", None, -1))
+        self.checkBox_OverwriteExisitingNames.setText(QtWidgets.QApplication.translate("MainWindow", "existierende Namen überschreiben", None, -1))
+        self.textEditCandidates.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "Copy / paste Kandidatennamen aus Excel (pro Zeile ein Name)", None, -1))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_candidates), QtWidgets.QApplication.translate("MainWindow", "Kandidaten", None, -1))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_log), QtWidgets.QApplication.translate("MainWindow", "Log", None, -1))
         self.labelProgress.setText(QtWidgets.QApplication.translate("MainWindow", "Fortschritt:", None, -1))
         self.menuKonfiguration.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Konfiguration", None, -1))
         self.actionBearbeiten.setText(QtWidgets.QApplication.translate("MainWindow", "&Bearbeiten", None, -1))

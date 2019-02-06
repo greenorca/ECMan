@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>852</width>
-    <height>592</height>
+    <width>865</width>
+    <height>587</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -178,7 +178,7 @@
      </layout>
     </item>
     <item row="0" column="1">
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tabs">
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -243,20 +243,46 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_lb">
+      <widget class="QWidget" name="tab_candidates">
        <attribute name="title">
-        <string>LB</string>
+        <string>Kandidaten</string>
        </attribute>
-       <widget class="QTextEdit" name="textEdit">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>581</width>
-          <height>431</height>
-         </rect>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="0">
+         <widget class="QPushButton" name="btnApplyCandidateNames">
+          <property name="text">
+           <string>Kandidatennamen zuweisen</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="checkBox_OverwriteExisitingNames">
+          <property name="text">
+           <string>existierende Namen überschreiben</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QTextEdit" name="textEditCandidates">
+          <property name="acceptRichText">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Copy / paste Kandidatennamen aus Excel (pro Zeile ein Name)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_log">
+       <attribute name="title">
+        <string>Log</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QTextEdit" name="textEditLog"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -284,7 +310,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>852</width>
+     <width>865</width>
      <height>23</height>
     </rect>
    </property>

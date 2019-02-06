@@ -3,14 +3,14 @@ import subprocess, ctypes
 #from time import sleep
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog
 from PySide2.QtGui import QTextDocument
-from PySide2.QtCore import QUrl, QEvent
+from PySide2.QtCore import QUrl, QEvent, Qt, QThreadPool
 from threading import Thread
 from configparser import ConfigParser
 from pathlib import Path
 # import scripts.winrm_toolbox as remote_tools
 from worker.computer import Computer
 from ui.logger import Logger
-from ui.uiWorkers import ScannerWorker, CopyExamsWorker, RetrieveResultsWorker, ResetClientsWorker
+from ui.uiWorkers import ScannerWorker, CopyExamsWorker, RetrieveResultsWorker, ResetClientsWorker, SetCandidateNamesWorker, SendMessageTask
 from ui.lbClientButton import LbClient
 from ui.Ui_MainWindow import Ui_MainWindow
 from ui.ecManConfigDialog import EcManConfigDialog
@@ -19,11 +19,9 @@ from ui.ecManProgressDialog import EcManProgressDialog
 '''
 Start app for exam deployment software
 author: Sven Schirmer
-last_revision: 2019-01-16
+last_revision: 2019-02-04
 
-TODO: 
-create Windows-Installer, e.g.: http://www.pyinstaller.org/#welcome-to-pyinstaller-official-website
-ping given share on windows-client before net use; perhaps add path to host file if ping doesn't work
+
 
 '''
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -48,13 +46,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
            
         self.actionBearbeiten.triggered.connect(self.openConfigDialog)      
         
+        self.btnSendMessage.clicked.connect(self.sendMessage)
         self.btnResetAllClients.clicked.connect(self.resetClients)
+               
+        self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
                 
         #self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
         self.appTitle = 'ECMan - Exam Client Manager'                             
         self.setWindowTitle(self.appTitle)
         
-        self.logger = Logger(self.textEdit)
+        self.logger = Logger(self.textEditLog)
         self.show()
         self.getConfig()
         #self.detectClients()
@@ -78,6 +79,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker = ResetClientsWorker(clients, resetCandidateName)
         self.worker.updateProgress.connect(self.updateProgressBar)
         self.worker.start()
+        
+        # TODO FIXME: programmabsturz, wenn Kandidatennamen ebenfalls zurückgesetzt werden!
     
     def closeEvent(self, event):
         '''
@@ -94,13 +97,59 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow,self).closeEvent(event) 
     
     def selectAllCLients(self):
+        '''
+        marks / selects all connected client pcs 
+        '''
         for i in range(self.grid_layout.count()): 
             self.grid_layout.itemAt(i).widget().select()            
             
     def unselectAllCLients(self):
+        '''
+        unmarks / unselects all connected client pcs 
+        '''
         for i in range(self.grid_layout.count()): 
             self.grid_layout.itemAt(i).widget().unselect()
+    
+    def sendMessage(self):
+        
+        message, ok = QInputDialog.getText(self, "Eingabe","Nachricht an Kandidaten eingeben")
+        if ok:
+            for i in range(self.grid_layout.count()): 
+                QThreadPool.globalInstance().start(
+                    SendMessageTask(self.grid_layout.itemAt(i).widget(), message)
+                    )
+     
+    def applyCandidateNames(self):
+        '''
+        reads candidate names from respective textEditField (line by line)
+        and applies these names to (random) client pcs
+        '''
+        names = self.textEditCandidates.toPlainText().rstrip().splitlines()
+        # cleanup and remove duplicate names
+        names = [x.strip() for x in names]
+        names = list(set(names))
+        
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+        
+        # select only the computers without candidate name
+        if self.checkBox_OverwriteExisitingNames.checkState()!=Qt.CheckState.Checked:
+            clients = [x for x in clients if x.computer.getCandidateName()==""]
             
+        if len(names) > len(clients):
+            self.showMessageBox("Fehler", 
+                                "Nicht genug Prüfungs-PCs für alle {} Kandidaten".format(str(len(names))),
+                                messageType=QMessageBox.Warning)
+            return 
+        
+        progressDialog = EcManProgressDialog(self, "Hello World")
+        progressDialog.setMaxValue(len(names))
+        progressDialog.setValue(0)
+        progressDialog.open()        
+        
+        self.worker = SetCandidateNamesWorker(clients, names)
+        self.worker.updateProgress.connect(progressDialog.setValue)
+        self.worker.start() 
+                
         
     def getConfig(self):
         '''
@@ -405,7 +454,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with f:
             data = f.read()
             doc = QTextDocument(data, None)
-            self.textEdit.setDocument(doc)
+            self.textEditLog.setDocument(doc)
     
     def saveFile(self):
         pass
@@ -426,12 +475,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #    pass
         return False
 
-    def showMessageBox(self, title, message):
+    def showMessageBox(self, title, message, messageType=QMessageBox.Information):
         '''
         convinence wrapper
         '''
-        msg = QMessageBox(QMessageBox.Information, title, message, parent=self) 
-        msg.setStandardButtons(QMessageBox.Ok)
+        msg = QMessageBox(messageType, title, message, parent=self) 
+        if messageType != QMessageBox.Information:
+            msg.setStandardButtons(QMessageBox.Abort)
         return msg.exec_()
 
 

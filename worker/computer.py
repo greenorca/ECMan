@@ -69,7 +69,7 @@ class Computer(object):
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
         self.state = Computer.State.STATE_INIT
-        self.hostname = "--unknown--"
+        self.__hostName = "--unknown--"
         self.STATUS_OK = 0
         
         self.lb_dataDirectory = ""
@@ -78,7 +78,7 @@ class Computer(object):
         self.last_sync = time.time()
         self.minSynTime = 5
         self.filepath=""
-        self.candidateName = ""
+        self.candidateName=""
         self.candidateLogin = candidateLogin # assuming one standard login for all client pcs (usually student/student)
         
         self.__usbBlocked = "unbekannt"
@@ -134,7 +134,7 @@ class Computer(object):
      
     def sendMessage(self, message = ""):
         '''
-        opens a little popup window on client computer
+        sends a message in a little popup window on client computer
         '''
         if message == "" or type(message) != str:
             message="Verbindungstest Kandidat: "+self.getCandidateName()
@@ -483,7 +483,11 @@ class Computer(object):
     def getHostName(self):
         '''
         returns hostname for given ip
+        fetches remote hostname only if local attribute is empty
         '''
+        if self.__hostName != "" and self.__hostName != "--unknown--":
+            return self.__hostName
+        
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
@@ -500,9 +504,12 @@ class Computer(object):
         
         if status_code != self.STATUS_OK:
             print("Error: "+std_err.decode("850"))
-            return None
+            self.__hostName = "--unknown--"
+            
+        else:    
+            self.__hostName = std_out.decode("utf-8").replace("\r\n","") 
         
-        return std_out.decode("utf-8").replace("\r\n","")
+        return self.__hostName
      
     def shutdown(self):
         try:

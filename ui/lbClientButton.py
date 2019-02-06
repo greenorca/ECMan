@@ -33,7 +33,7 @@ class LbClient(QPushButton):
         act1.triggered.connect(self.toggleSelection)
         
         act2 = menu.addAction("Kandidat-Namen setzen")
-        act2.triggered.connect(self.setCandidateName)
+        act2.triggered.connect(self.setCandidateNameDialog)
         
         act3 = menu.addAction("Dateien zum Client kopieren")
         act3.triggered.connect(self.deployClientFiles)
@@ -68,13 +68,24 @@ class LbClient(QPushButton):
         def getLog(self):
             return self.__log
 
-    def setCandidateName(self):
+    def setCandidateNameDialog(self):
+        '''
+        opens GUI dialog to enter a candidate name, call actual setter method
+        '''
         candidateName, ok = QInputDialog.getText(self, "Eingabe","Name des Kandidaten eingeben")
         if ok and (len(candidateName) !=0):
-            self.computer.setCandidateName(candidateName)
-            self.setLabel()
-            self.log.append(msg=" candidate name set: "+candidateName)
+            self.setCandidateName(candidateName)
         pass
+    
+    def setCandidateName(self, candidateName, doUpdate = True):
+        '''
+        sets candidate name on remote computer 
+        '''
+        self.computer.setCandidateName(candidateName)
+        if doUpdate:
+            self.setLabel()
+        
+        self.log.append(msg=" candidate name set: "+candidateName)
     
     def shutdownClient(self):
         QThreadPool.globalInstance().start(LbClient.ShutdownTask(self))
@@ -112,9 +123,12 @@ class LbClient(QPushButton):
                 return
             resetCandidateName = True if item=="Ja" else False
         
-        self.computer.reset(resetCandidateName) 
-        self.setLabel()
-        self.setOwnToolTip()       
+        try:
+            self.computer.reset(resetCandidateName) 
+            self.setLabel()
+            self.setOwnToolTip()
+        except Exception as ex:
+            print("Died reseting client: "+str(ex))       
             
 
     def deployClientFiles(self, path=None):
@@ -178,12 +192,12 @@ class LbClient(QPushButton):
         self.setStyleSheet("QPushButton {"+ colorString + fontStyle +"}")
             
     def select(self):
-        self.log.append(msg=" selecting client {}".format(self.computer.hostname))
+        self.log.append(msg=" selecting client {}".format(self.computer.getHostName()))
         self.isSelected = True
         self._colorizeWidgetByClientState()
 
     def unselect(self):
-        self.log.append(msg=" unselecting client {}".format(self.computer.hostname))
+        self.log.append(msg=" unselecting client {}".format(self.computer.getHostName()))
         self.isSelected = False
         self._colorizeWidgetByClientState()
 
@@ -198,8 +212,8 @@ class LbClient(QPushButton):
                 
     def setLabel(self):
         label = self.computer.ip
-        if self.computer.hostname != "":
-            label = label +"\n"+ self.computer.hostname
+        if self.computer.getHostName() != "":
+            label = label +"\n"+ self.computer.getHostName()
         
         label = label +"\n"+ self.computer.getCandidateName()        
         self.setText(label)
@@ -254,21 +268,6 @@ class LbClient(QPushButton):
         
         checkStateSignal = Signal()
 
-    class ShutdownTask(QRunnable):
-        '''
-        simple thread to shutdown given pc (respectively the pc attached to this widget) 
-        '''
-        def __init__(self, widget):
-            QRunnable.__init__(self)
-            self.widget = widget
-        
-        def run(self):
-            if self.widget.computer.shutdown() == True:
-                self.widget.setEnabled(False)
-                colorString = "background-color: grey;"
-                self.widget.setStyleSheet("QPushButton {"+ colorString + "}")
-
-
     class CheckStatusThread(QRunnable):
         '''
         get the hostname asynchronously
@@ -286,12 +285,27 @@ class LbClient(QPushButton):
                 self.computer.checkStatusFile()
                 self.connector.checkStateSignal.emit()
                 print("fetching this computers name")
-                self.computer.hostname = self.computer.getHostName()
+                self.computer.getHostName()
                 print("finished fetching this computers name")
                 
             except Exception as ex:
                 print("crashed fetching this computers name: "+str(ex))
-                self.computer.hostname = "--invalid--"
                 pass
+            
             self.widget.setLabel()
             
+    class ShutdownTask(QRunnable):
+        '''
+        simple thread to shutdown given pc (respectively the pc attached to this widget) 
+        '''
+        def __init__(self, widget):
+            QRunnable.__init__(self)
+            self.widget = widget
+        
+        def run(self):
+            if self.widget.computer.shutdown() == True:
+                self.widget.setEnabled(False)
+                colorString = "background-color: grey;"
+                self.widget.setStyleSheet("QPushButton {"+ colorString + "}")
+
+

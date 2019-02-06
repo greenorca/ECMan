@@ -4,11 +4,11 @@ Created on Jan 19, 2019
 @author: sven
 '''
 
-import socket, time
+import socket, time, random
 from PySide2 import QtCore
 from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject, Signal
 from ui.lbClientButton import LbClient
-from worker.computer import Computer
+#from worker.computer import Computer
 
 class MySignals(QObject):
     addClient = Signal(int)
@@ -40,7 +40,14 @@ class ScannerThread(QRunnable):
             
         except Exception as ex:
             #print("crashed scanning IP {} because of {}".format(self.ip, ex))
+            #===================================================================
+            # r = random.Random()
+            # if r.random() > 0.9:
+            #     ip = int(self.ip.split(".")[-1])
+            #     self.connector.addClient.emit(ip)
+            #===================================================================
             pass
+        
            
         self.connector.threadFinished.emit(1)
 
@@ -238,7 +245,76 @@ class ResetClientTask(QtCore.QRunnable):
         self.resetCandidateName = resetCandidateName        
     
     def run(self):
-        self.client.resetComputerStatus(self.resetCandidateName)
+        try:
+            self.client.resetComputerStatus(self.resetCandidateName)
+        except Exception as ex:
+            print("Died reseting client@{}, cause: ".format(self.client.computer.getHostName()) + str(ex))
+        
+############################################
+class SetCandidateNamesWorker(QtCore.QThread):
+    '''
+    does threaded candidate setup,
+    signals "done threads"    
+    source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
+    '''    
+    updateProgress = QtCore.Signal(int)
+        
+    def __init__(self, clients: list, candidateNames: list):
+        '''
+        ctor, required params:
+        clients: array of lbClient instances to copy data to
+        candidateNames: array of strings (no further string cleanup is done in here)        
+        '''
+        QtCore.QThread.__init__(self)
+        self.clients = clients
+        self.candidateNames = candidateNames
+
+    #A QThread is run by calling it's start() function, which calls this run()
+    #function in it's own "thread". 
+    def run(self):
+        threads = QThreadPool()
+        threads.setMaxThreadCount(10)
+        for i in range(len(self.candidateNames)):       
+            threads.start(SetCandidateNameTask(self.clients[i],self.candidateNames[i]))
+            print("candidate name setter thread started for "+self.candidateNames[i])
+        
+        maxThreads = threads.activeThreadCount()
+         
+        print("done thread setup, should all be running now")            
+        while threads.activeThreadCount() > 0:
+            self.updateProgress.emit(maxThreads - threads.activeThreadCount())
+            time.sleep(1)
+        self.updateProgress.emit(maxThreads)    
+            
+
+class SetCandidateNameTask(QtCore.QRunnable):
+    '''
+    runnable thread to set candidate name of client computer
+    '''
+    def __init__(self,client,candidateName):
+        QtCore.QRunnable.__init__(self)
+        self.client = client
+        self.candidateName = candidateName        
+    
+    def run(self):
+        try:
+            self.client.setCandidateName(self.candidateName, doUpdate=True)
+        except Exception as ex:
+            print("Died while setting candidate name: "+str(ex))
+
+############################################
+        
+class SendMessageTask(QtCore.QRunnable):
+    '''
+    runnable thread to send messages to a client computer
+    '''
+    def __init__(self, client, message):
+        QtCore.QRunnable.__init__(self)
+        self.client = client
+        self.message = message    
+    
+    def run(self):
+        self.client.computer.sendMessage(self.message)
         
 if __name__ == "__main__":
     ip = "192.168.0.114"
