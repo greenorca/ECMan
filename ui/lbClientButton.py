@@ -6,8 +6,9 @@ Created on Jan 20, 2019
 
 from time import asctime, clock
 from worker.computer import Computer
-from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog
+from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog, QWidget
 from PySide2.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject
+from PySide2.QtGui import QFont, QPalette
 
 class LbClient(QPushButton):
     '''
@@ -53,6 +54,7 @@ class LbClient(QPushButton):
         act8 = menu.addAction("LB-Status zurücksetzen")
         act8.triggered.connect(self.resetComputerStatusConfirm)
         
+        menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
         menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
         
         self.setMenu(menu)
@@ -126,7 +128,7 @@ class LbClient(QPushButton):
         try:
             self.computer.reset(resetCandidateName) 
             self.setLabel()
-            self.setOwnToolTip()
+            #self.setOwnToolTip()
         except Exception as ex:
             print("Died reseting client: "+str(ex))       
             
@@ -177,20 +179,47 @@ class LbClient(QPushButton):
     
     def _colorizeWidgetByClientState(self):        
         colorString = ""
+        pal = QPalette()
+        # set black background
+        
+        self.setAutoFillBackground(True);
+        pal.setColor(QPalette.Button, Qt.lightGray);
         if self.computer.state == Computer.State.STATE_DEPLOYED:
             colorString = "background-color: yellow;"
+            pal.setColor(QPalette.Button, Qt.yellow);
         elif self.computer.state == Computer.State.STATE_FINISHED:
             colorString = "background-color: green;"
+            pal.setColor(QPalette.Button, Qt.green);
         elif self.computer.state == Computer.State.STATE_COPY_FAIL or \
             self.computer.state == Computer.State.STATE_RETRIVAL_FAIL:
             colorString = "background-color: red;"
-            
-        fontStyle = "font-weight:normal";
-        if self.isSelected:
-            fontStyle = "font-weight:bold";
+            pal.setColor(QPalette.Button, Qt.red);
         
-        self.setStyleSheet("QPushButton {"+ colorString + fontStyle +"}")
+        
+        self.setPalette(pal);
             
+        fontStyle = "font-weight:normal;";
+        myFont=QFont()
+        myFont.setBold(False)
+        if self.isSelected:
+            fontStyle = "font-weight:bold;";
+            myFont.setBold(True)
+            
+        self.setFont(myFont)
+        
+        #self.setStyleSheet("QPushButton {"+ colorString + fontStyle +"}")
+     
+    #===========================================================================
+    # def paintEvent(self, event):
+    #      opt = QStyleOption() 
+    #      opt.init(self);
+    #      p = QPainter(self)
+    #      style()->drawPrimitive(QStyle::PE_Widget, opt, p, self);
+    #     
+    #      QPushButton.paintEvent(event);
+    #         
+    #===========================================================================
+    
     def select(self):
         self.log.append(msg=" selecting client {}".format(self.computer.getHostName()))
         self.isSelected = True

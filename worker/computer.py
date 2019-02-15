@@ -94,6 +94,8 @@ class Computer(object):
     def reset(self, resetCandidateName=False):
         '''
         resets remote status file and internal status variables 
+        by overwriting remote ecman.json file with an empty file 
+        (and eventually recreating the usename) 
         '''
         candidateName=self.getCandidateName()
         
@@ -150,7 +152,7 @@ class Computer(object):
         
         shell_id = p.open_shell()
         
-        command_id = p.run_command(shell_id, "msg", [r"*", message])
+        command_id = p.run_command(shell_id, "msg", [self.candidateLogin, message])
         std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
         
         if self.debug:
@@ -297,7 +299,8 @@ class Computer(object):
                 command = command.replace("{0}",entry['name'])
                 script.append(command)
                 
-        else:            
+        else:
+            self.configureFirewallService(True)            
             for entry in blockList:
                 command='$r = Get-NetFirewallRule -DisplayName "{0}" 2> $null; if ($r) { write-host "Rule exists, noting to do" } else { New-NetFirewallRule -Name "{0}" -DisplayName "{0}" -Enabled 1 -Direction Outbound -Action Block -RemotePort {1} -Protocol {2} }'
                 command = command.replace("{0}",entry['name'])
@@ -379,7 +382,7 @@ class Computer(object):
         std_out, std_err, status = self.runPowerShellCommand(command=textCommandPing)
         if status == self.STATUS_OK and std_out.rstrip() in ["PING_NOK", "DNS_FAIL"]:
             self.__internetBlocked = True
-            print("DNS is blocked")
+            print("DNS is blocked for dst: "+dst)
             return False
         else:
             self.__internetBlocked = False
@@ -518,6 +521,15 @@ class Computer(object):
         except Exception as ex:
             print(ex) 
             return False
+    
+    def blankScreen(self):
+        '''
+        suppoded to blank screen on WIN computer; doesn't work remote yet...
+        '''
+        command = r"powershell (Add-Type '[DllImport(\"user32.dll\")]^public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)"
+        command = r"%systemroot%\system32\scrnsave.scr /s"
+        command = r"runas /user:Sven runas /user:student%systemroot%\system32\scrnsave.scr /s"
+        self.__runRemoteCommand(command, [])
         
     def runPowerShellCommand(self,command=""):
         '''
@@ -585,7 +597,7 @@ class Computer(object):
         script=script.replace('$dst$','C:\\Users\\$user$\\Desktop\\LB_Daten\\')
         script=script.replace('$user$', self.candidateLogin)
         # TODO: fixme
-        script=script.replace('$server_user$',r'odroid\winrm lalelu')
+        script=script.replace('$server_user$',r'winrm lalelu')
         
         
         # clean previous data in LB_Daten?
@@ -619,7 +631,7 @@ class Computer(object):
         '''
         
         if self.candidateName=="":
-            if self.getCandidateName()=="":
+            if self.getCandidateName(True)=="":
                 raise Exception("Candidate name not set")
             
         if self.lb_dataDirectory == "" or self.lb_dataDirectory == None:
@@ -640,7 +652,7 @@ class Computer(object):
         script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$candidateName$', self.candidateName.replace(" ", "_"))
         # TODO: fixme
-        script=script.replace('$server_user$',r'odroid\winrm lalelu')
+        script=script.replace('$server_user$',r'winrm lalelu')
                 
         if self.debug:
             print("***********************************")
@@ -717,59 +729,53 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.114', 'winrm', 'lalelu', True)
+    compi = Computer('192.168.56.101', 'winrm', 'lalelu', fetchHostname=True)
     
-    server = "www.mastersong.de"
+    tests = ["deploy_retrieve", "testInternet", "setCandidateName", "testUsbBlocking"]
+    currentTest = tests[0]
     
-    print("Online: "+str(compi.testPing(server)))
     
-    compi.blockInternetAccess()
+    if currentTest == "testInternet":
+        compi.configureFirewallService()
     
-    print("Online: "+str(compi.testPing(server)))
+        server = "www.mastersong.de"
+        print("Online: "+str(compi.testPing(server)))
+        compi.blockInternetAccess()
+        print("Online: "+str(compi.testPing(server)))
+        compi.allowInternetAccess()
+        print("Online: "+str(compi.testPing(server)))
+        
+        print("Testing firewall status")
+        status = compi.isFirewallServiceEnabled()
+        print("result: "+str(status))
+        blocked = False
+        compi.sendMessage("Internet is blocked: {}".format(str(blocked)))
+        compi.blockInternetAccess(blocked)
+        
+        exit(0)
+        
+    if currentTest == "testUsbBlocking":
+        print("Hopefully blocked now: "+compi.isUsbBlocked())
+        compi.disableUsbAccess(False)
+        print("Hopefully enabled now: "+compi.isUsbBlocked())
     
-    compi.allowInternetAccess()
+        exit(0)
+    if currentTest == "setCandidateName":
+        compi.setCandidateName("Emil Grünschnabel")
+        print(compi.getCandidateName())
+        exit(0)
+      
+    if currentTest == "deploy_retrieve": 
+        # thats the local stuff on tuxedo machine
+        filepath=r"\\SVEN-N13XWU\lbs\M120"
+        
+        compi.deployClientFiles(filepath, True)
+        assert(compi.state == Computer.State.STATE_DEPLOYED)
+        print(compi.getRemoteFileListing())
+        print(compi.lb_files) 
 
-    print("Online: "+str(compi.testPing(server)))
+        filepath = r"//192.168.56.1/lb_ergebnisse"
+        x = compi.retrieveClientFiles(filepath)
+        print(x)
+        exit()
     
-    #===========================================================================
-    # compi.setCandidateName("Emil Grünschnabel")
-    # print(compi.getCandidateName())
-    # 
-    # 
-    # print("Testing firewall status")
-    # status = compi.isFirewallServiceEnabled()
-    # print("result: "+str(status))
-    #===========================================================================
-    #compi.getCandidateName()
-    #blocked = False
-    #compi.sendMessage("Internet is blocked: {}".format(str(blocked)))
-    #compi.blockInternetAccess(blocked)
-    #print("Hopefully blocked now: "+compi.isUsbBlocked())
-    #compi.disableUsbAccess(False)
-    #print("Hopefully enabled now: "+compi.isUsbBlocked())
-    
-    #filepath=r"\\odroid\lb_share\M104"
-    #compi.state = Computer.State.STATE_DEPLOYED
-    #print(compi.getRemoteFileListing())
-    #print(compi.lb_files) 
-    #print(compi.getCandidateName())
-    
-    exit()
-    #filepath=r"\\odroid\lb_share\Ergebnisse"
-    #x = compi.retrieveClientFiles(filepath)
-    #print(x)
-    
-    
-    
-    #===========================================================================
-    # print("**********************************")
-    # print("running tree command:")
-    # compi.__runRemoteCommand("tree", [r"C:\Users\"+self.candidateLogin+"\Desktop\LB_Daten", "/F"])
-    # print("**********************************")
-    # print("running dir command:")
-    # compi.__runRemoteCommand("dir", [r"C:\Users\"+self.candidateLogin+"\Desktop\LB_Daten", "/S"])
-    # print("**********************************")
-    # print("running powershell Get-ChildItem command:")
-    # compi.runPowerShellCommand(command="Get-ChildItem -Path C:\\Users\\"+self.candidateLogin+"\\Desktop\\LB_Daten\\ -Recurse")
-    #===========================================================================
-    #compi.runRemoteCommand(command="robocopy", params=[filepath.replace("#","\\"), r"C:\Users\"+self.candidateLogin+"\Desktop\LBX"])

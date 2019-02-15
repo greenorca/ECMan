@@ -12,6 +12,7 @@ from ui.lbClientButton import LbClient
 
 class MySignals(QObject):
     addClient = Signal(int)
+    updateClientLabel = Signal(int)
     threadFinished = Signal(int)
     
 class ScannerThread(QRunnable):
@@ -96,7 +97,7 @@ class ScannerWorker(QThread):
         self.addClientSignal.emit(ip)   
     
 
-class RetrieveResultsThread(QRunnable):
+class RetrieveResultsTask(QRunnable):
     def __init__(self, client:LbClient, dst: str ):
         QRunnable.__init__(self)
         self.client = client
@@ -106,14 +107,15 @@ class RetrieveResultsThread(QRunnable):
     def run(self):
         try:
             # test connectivity
-            if (self.client.computer.testPing(self.dst.split("#")[0])==False):
-                print("tear down firewall for client "+self.client.computer.hostname)
+            
+            if (self.client.computer.testPing(self.dst.replace("##","").replace("\\\\","").split("#")[0])==False):
+                print("tear down firewall for client ")
                 self.client.computer.allowInternetAccess()
             
             self.client.retrieveClientFiles(self.dst)        
             
         except Exception as ex:
-            #print("crashed scanning IP {} because of {}".format(self.ip, ex))
+            print("crashed retrieving results into dst: {} because of {}".format(self.dst, ex))
             pass
            
         self.connector.threadFinished.emit(1)
@@ -141,7 +143,7 @@ class RetrieveResultsWorker(QThread):
         threads = QThreadPool()
         threads.setMaxThreadCount(10)
         for client in self.clients:       
-            thread = RetrieveResultsThread(client, self.dst)
+            thread = RetrieveResultsTask(client, self.dst)
             thread.connector.threadFinished.connect(self.updateProgress)
             threads.start(thread)            
         
@@ -205,6 +207,8 @@ class ResetClientsWorker(QtCore.QThread):
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
     '''    
     updateProgress = QtCore.Signal(int)
+    # signal returns only last byte of IP adress
+    updateClientSignal = QtCore.Signal(int)
         
     def __init__(self, clients: [], resetCandidateNames=True):
         '''
@@ -223,6 +227,7 @@ class ResetClientsWorker(QtCore.QThread):
         threads.setMaxThreadCount(10)
         for client in self.clients:       
             thread = ResetClientTask(client,self.resetCandidateNames)
+            thread.connector.updateClientLabel.connect(self.updateProgress)
             threads.start(thread)
             print("reset thread started for "+client.computer.getHostName())
         
@@ -234,21 +239,30 @@ class ResetClientsWorker(QtCore.QThread):
             time.sleep(1)
         self.updateProgress.emit(maxThreads)    
             
+    def updateClientLabel(self):
+        self.updateClientSignal.emit(self)
 
 class ResetClientTask(QtCore.QRunnable):
     '''
     runnable thread to reset logical state of client (without restarting it)
-    '''
+    '''   
+    
     def __init__(self,client,resetCandidateName):
         QtCore.QRunnable.__init__(self)
         self.client = client
-        self.resetCandidateName = resetCandidateName        
+        self.resetCandidateName = resetCandidateName
+        self.connector = MySignals()        
     
     def run(self):
         try:
             self.client.resetComputerStatus(self.resetCandidateName)
+            self.client.allowUsbAccess()
+            self.client.blockInternetAccess(block=False)
+            
         except Exception as ex:
             print("Died reseting client@{}, cause: ".format(self.client.computer.getHostName()) + str(ex))
+            
+        self.connector.updateClientLabel.emit(self)
         
 ############################################
 class SetCandidateNamesWorker(QtCore.QThread):

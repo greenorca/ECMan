@@ -63,7 +63,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def resetClients(self):
         #TODO: sicherheitsabfrage
         items = ["Nein","Ja"]
-        item, ok = QInputDialog().getItem(self, "Wirklich alle zurücksetzen?", "Kandidat-Name zurücksetzen? ", items, 0, False) 
+        item, ok = QInputDialog().getItem(self, "Alles zurücksetzen?", "USB-Sticks und Internet werden freigeben.\nKandidaten-Namen ebenfalls zurücksetzen? ", items, 0, False) 
         if ok == False:
             return
         
@@ -71,13 +71,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
         
-        self.progressBar.setMaximum(len(clients))
-        self.progressBar.setValue(0)
-        
-        self.enableButtons(enable=False)
+        progressDialog = EcManProgressDialog(self, "Reset Clients")
+        progressDialog.setMaxValue(self.grid_layout.count())
+        progressDialog.setValue(0)
+        progressDialog.open()        
         
         self.worker = ResetClientsWorker(clients, resetCandidateName)
-        self.worker.updateProgress.connect(self.updateProgressBar)
+        self.worker.updateProgress.connect(progressDialog.setValue)
         self.worker.start()
         
         # TODO FIXME: programmabsturz, wenn Kandidatennamen ebenfalls zurückgesetzt werden!
@@ -190,10 +190,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.appTitle = self.windowTitle()+" on "+self.ip_address
             self.setWindowTitle(self.appTitle)
         except Exception as ex:
-            self.showMessageBox("Fehler", "Keine Verbindung zum Internet<br>Möglicherweise gelingt der Sichtflug.")
-            self.log("no connection to internet:"+ex)
-            pass
-        
+            self.ip_address, ok = QInputDialog.getText(self, "Keine Verbindung zum Internet", 
+                                                       "Möglicherweise gelingt der Sichtflug. Bitte geben Sie die lokale IP-Adresse ein:")
+            
+            self.log("no connection to internet:"+str(ex))
+            
     def refreshConfig(self):
         '''
         reads config file into class variables
@@ -486,7 +487,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == '__main__':
-    os.chdir(os.path.dirname(sys.argv[0]))
+    if os.name == "posix":
+        os.chdir(os.path.dirname(__file__))
+    else:
+        os.chdir(os.path.dirname(sys.path[0]))
+    
     app = QApplication(sys.argv)
     mainWin = MainWindow()
     ret = app.exec_()

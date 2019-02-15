@@ -8,6 +8,7 @@ $src="$src$"
 $dst="$dst$"
 
 $src=$src.replace('#', '\').trim()
+$src=$src.replace('/', '\').replace('smb:','').trim()
 echo $src
 
 net use x: $src /user:$server_user$
