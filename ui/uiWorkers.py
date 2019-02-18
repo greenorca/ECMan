@@ -98,11 +98,13 @@ class ScannerWorker(QThread):
     
 
 class RetrieveResultsTask(QRunnable):
-    def __init__(self, client:LbClient, dst: str ):
+    def __init__(self, client:LbClient, dst: str, server_user, server_passwd):
         QRunnable.__init__(self)
         self.client = client
         self.dst = dst
         self.connector = MySignals()
+        self.server_user = server_user 
+        self.server_passwd = server_passwd
     
     def run(self):
         try:
@@ -112,7 +114,7 @@ class RetrieveResultsTask(QRunnable):
                 print("tear down firewall for client ")
                 self.client.computer.allowInternetAccess()
             
-            self.client.retrieveClientFiles(self.dst)        
+            self.client.retrieveClientFiles(self.dst, self.server_user, self.server_passwd)        
             
         except Exception as ex:
             print("crashed retrieving results into dst: {} because of {}".format(self.dst, ex))
@@ -129,7 +131,7 @@ class RetrieveResultsWorker(QThread):
     '''    
     updateProgressSignal = QtCore.Signal(int)
         
-    def __init__(self, clients: [], dst):
+    def __init__(self, clients: [], dst, server_user, server_passwd):
         '''
         ctor, required params:
         clients: array of lbClient instances to copy data from    
@@ -138,12 +140,14 @@ class RetrieveResultsWorker(QThread):
         self.clients = clients
         self.dst = dst
         self.cnt = 0
+        self.server_user = server_user 
+        self.server_passwd = server_passwd
 
     def run(self):
         threads = QThreadPool()
         threads.setMaxThreadCount(10)
         for client in self.clients:       
-            thread = RetrieveResultsTask(client, self.dst)
+            thread = RetrieveResultsTask(client, self.dst, self.server_user, self.server_passwd)
             thread.connector.threadFinished.connect(self.updateProgress)
             threads.start(thread)            
         
@@ -161,7 +165,7 @@ class CopyExamsWorker(QtCore.QThread):
     '''    
     updateProgress = QtCore.Signal(int)
         
-    def __init__(self, clients: [], src):
+    def __init__(self, clients: [], src, server_user, server_passwd):
         '''
         ctor, required params:
         clients: array of lbClient instances to copy data to
@@ -170,6 +174,8 @@ class CopyExamsWorker(QtCore.QThread):
         QtCore.QThread.__init__(self)
         self.clients = clients
         self.src = src
+        self.server_user = server_user 
+        self.server_passwd = server_passwd
 
     #A QThread is run by calling it's start() function, which calls this run()
     #function in it's own "thread". 
@@ -177,7 +183,7 @@ class CopyExamsWorker(QtCore.QThread):
         threads = QThreadPool()
         threads.setMaxThreadCount(10)
         for client in self.clients:       
-            thread = CopyExamsTask(client,self.src)
+            thread = CopyExamsTask(client,self.src, self.server_user, self.server_passwd)
             threads.start(thread)
             print("copy thread started for "+client.computer.getHostName())
         
@@ -192,13 +198,15 @@ class CopyExamsWorker(QtCore.QThread):
 
 class CopyExamsTask(QtCore.QRunnable):
     
-    def __init__(self,client,src):
+    def __init__(self,client,src, server_user, server_passwd):
         QtCore.QRunnable.__init__(self)
         self.client = client
         self.src = src        
-    
+        self.server_user = server_user 
+        self.server_passwd = server_passwd
+         
     def run(self):
-        self.client.deployClientFiles(self.src)
+        self.client.deployClientFiles(self.server_user, self.server_passwd, self.src)
 
 class ResetClientsWorker(QtCore.QThread):
     '''

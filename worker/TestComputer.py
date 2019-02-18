@@ -2,13 +2,17 @@ import unittest, os
 from worker.computer import Computer
 import time
 
-ipAddress = "192.168.0.67"
+ipAddress = "192.168.0.114"
 user = "winrm"
 passwd = "Remote0815"
 
-loginUser = "Sven"
+server_user = "odroid\\winrm"
+server_passwd = "Remote0815"
 
-targetHostname = "W10AC-CL10"
+loginUser = "Sven"
+candidateName = "Käptn Blaubär"
+
+targetHostname = "W10ACCL0"
 testWebConnectivityHost="www.wiss.ch"
 
 class TestComputer(unittest.TestCase):
@@ -72,36 +76,66 @@ class TestComputer(unittest.TestCase):
         self.assertEqual(targetHostname, hostname, "HostName doesn't match")
         
     def test_candidateNameFunctions(self):
-        candidateName = "Käptn Blaubär"
         self.assertEquals(self.STATUS_OK, self.compi.setCandidateName(candidateName),"Setup Candidate name failed")
-        self.assertEquals(candidateName, self.compi.getCandidateName(),"Candidate name retrieval failed or didn't match")
+        self.assertEquals(candidateName, self.compi.getCandidateName(remote=True),"Candidate name retrieval failed or didn't match")
         
         self.compi.reset(resetCandidateName=True)
         
         self.compi.checkStatusFile()
-        self.assertTrue(self.compi.candidateName=="", "remote candidate name after reset not cleared: "+self.compi.candidateName)
+        self.assertTrue(self.compi.getCandidateName(remote=True)=="", "remote candidate name after reset not cleared: "+self.compi.getCandidateName())
+
+    def test_deployWrongPassword(self):
+        module_name = "M104"
+        filepath="//odroid/lb_share/"+module_name
+        self.compi.reset(True)
+        self.compi.setCandidateName(candidateName)
+              
+        status, error = self.compi.deployClientFiles(filepath,"server_user", "server_passwd", empty=True)
+        self.assertFalse( status, "Status Deployment Copy NOK: "+error)
+        self.assertTrue(error.startswith("ERROR copying files from network share to client:  Cannot map network"), 
+                        "expected error message:: ERROR copying files from network share to client:  Cannot map network, got:: "+error)
+        self.assertEqual(Computer.State.STATE_COPY_FAIL, self.compi.state, "Computer locally not in 'STATE_COPY_FAIL' state")
+
+    def test_deployInvalidServerPath(self):
+        module_name = "M111104"
+        filepath="//odroid/lb_share/"+module_name
+        self.compi.reset(True)
+        self.compi.setCandidateName(candidateName)
+              
+        status, error = self.compi.deployClientFiles(filepath, server_user, server_passwd, empty=True)
+        self.assertFalse( status, "Status Deployment Copy NOK: "+error)
+        self.assertTrue(error.startswith("ERROR copying files from network share to client"), 
+                        "missing error message:: ERROR copying files from network share to client, got:: "+error)
+        self.assertEqual(Computer.State.STATE_COPY_FAIL, self.compi.state, "Computer locally not in 'STATE_COPY_FAIL' state")
 
     def test_deployAndListFiles(self):
         '''
         actually deploys files to given client, assumes static network location is valid
         '''
-        filepath=r"\\odroid\lb_share\M104"
+        module_name = "M104"
+        filepath="//odroid/lb_share/"+module_name
+        self.compi.reset(True)
+        self.compi.setCandidateName(candidateName)
               
-        status, error = self.compi.deployClientFiles(filepath, empty=True)
+        status, error = self.compi.deployClientFiles(filepath,server_user, server_passwd, empty=True)
         self.assertTrue( status, "Status Deployment Copy NOK: "+error)
         self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer locally not in 'DEPLOYED' state")
         self.compi.checkStatusFile()
         self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "remote status file not in 'DEPLOYED' state")
-        
+        self.assertEqual(self.compi.lb_dataDirectory, module_name)
       
         if os.name !="nt":
-            filepath = "/mnt/PiData/lb_share/M104" # sorry for the linux hack, just mount smb share before running the tests
+            filepath = "/mnt/PiData/lb_share/"+module_name # sorry for the linux hack, just mount smb share before running the tests
           
         remoteFileListing = self.compi.getRemoteFileListing()
         # print("received RemoteFilesListing: \n"+remoteFileListing)
           
         for f in os.listdir(filepath):
             self.assertTrue(-1 < remoteFileListing.find(f),"file missing on client: {}".format(f))
+            
+        self.compi.checkStatusFile()
+        self.assertEqual(self.compi.lb_dataDirectory,module_name, 
+                         "modul name incorrectly stored on client: "+ self.compi.lb_dataDirectory+" vs. "+ module_name)
  
     def test_deployAndRetrieveFiles(self):
         '''
@@ -109,18 +143,21 @@ class TestComputer(unittest.TestCase):
         (still buggy)
         '''
         # first: deploy lb files     
-        filepath=r"\\odroid\lb_share\M104"
-        status, error = self.compi.deployClientFiles(filepath, empty=True)
+        module_name = "M104"
+        filepath="//odroid/lb_share/"+module_name
+        self.compi.reset(True)
+        self.compi.setCandidateName(candidateName)
+        
+        status, error = self.compi.deployClientFiles(filepath,server_user, server_passwd, empty=True)
         self.assertTrue(status, "Status Deployment Copy NOK: "+error)
         self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer not in 'DEPLOYED' state")
         self.compi.checkStatusFile()
         self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "remote status file not in 'DEPLOYED' state")
-        
-      # second: rerieve lb files     
-        filepath=r"\\odroid\lb_share\Ergebnisse"     
-        candidateName = "Käptn Blaubär"
+        self.assertEqual(self.compi.lb_dataDirectory, module_name)
+        # second: retrieve lb files     
+        filepath=r"//odroid/lb_share/Ergebnisse"     
         self.assertEquals(self.STATUS_OK, self.compi.setCandidateName(candidateName),"Setup Candidate name failed")    
-        status, error = self.compi.retrieveClientFiles(filepath)
+        status, error = self.compi.retrieveClientFiles(filepath,server_user, server_passwd)
         self.assertTrue(status, "Error retrieving files: "+error)
         self.assertEqual(Computer.State.STATE_FINISHED, self.compi.state, "Computer not in 'FINISHED' state")  
         self.compi.checkStatusFile()

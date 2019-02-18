@@ -6,44 +6,72 @@
 $src="$src$"
 $dst="$dst$"
 
-$dst=$dst.replace('#', '\').trim()
+$server_user = "$server_user$"
+$server_pwd = "$server_pwd$"
+
+$dst=$dst.replace('#', '\')
+$dst=$dst.replace('smb:','')
+$dst=$dst.replace('/','\').trim()
+
 echo $dst
 
-net use x: $dst /user:$server_user$
+Try{
+	Remove-PSDrive -Name x
+	$Error.Clear()
+	
+	$pwd = ConvertTo-SecureString -String $server_pwd -AsPlainText -Force
+    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $server_user, $pwd
 
-# Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
-New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
-New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
-Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
+    New-PSDrive -Name x -PSProvider FileSystem -Root $dst -Credential $cred
 
-net use x: /delete
-
-$file = 'c:\Users\winrm\ecman.json';
-if (Get-Item $file 2> $null) { Write-Host "File found, OK" } 
-else { Write-Host "Status file not found"; exit; }
-
-$regex='(^last_update: .* ?)';
-$d = date;
-
-$content = Get-Content $file
-if (($content -match $regex).Length -eq 0){
-    Add-Content -Path $file -Value ('last_update: ' + $d+';')
-} else {
-    $content -replace $regex, ('last_update: '+$d+';') | Set-Content $file
+    if ($Error[0].Exception.Message)
+    {
+        throw [System.IO.FileNotFoundException]::new("Cannot map network (copy back to server): "+$Error[0].Exception.Message)
+    }
+	    
+	# Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
+	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
+	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
+	Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
+	
+	if ($Error[0].Exception.Messsage){ 
+	    	throw [System.IO.FileNotFoundException]::new("Crashed copying files back to server: "+$Error[0].Exception.Message)
+	    }
+	    
+	net use x: /delete
+	
+	$file = 'c:\Users\winrm\ecman.json';
+	if (Get-Item $file 2> $null) { Write-Host "File found, OK" } 
+	else { Write-Host "Status file not found"; exit; }
+	
+	$regex='(^last_update: .* ?)';
+	$d = date;
+	
+	$content = Get-Content $file
+	if (($content -match $regex).Length -eq 0){
+	    Add-Content -Path $file -Value ('last_update: ' + $d+';')
+	} else {
+	    $content -replace $regex, ('last_update: '+$d+';') | Set-Content $file
+	}
+	
+	$regex='(^lb_dst: .* ?)';
+	$content = Get-Content $file
+	if (($content -match $regex).Length -eq 0){
+	    Add-Content -Path $file -Value ("lb_dst: " + $dst+";")
+	} else {
+	    $content -replace $regex, ('lb_dst: '+$dst+';') | Set-Content $file
+	}
+	
+	$regex='(^client_state: .* ?)';
+	$content = Get-Content $file
+	if (($content -match $regex).Length -eq 0){
+	    Add-Content -Path $file -Value "client_state: STATE_FINISHED;"
+	} else {
+	    $content -replace $regex, "client_state: STATE_FINISHED;" | Set-Content $file
+	}
+	
+	Write-Host "SUCCESS"
 }
-
-$regex='(^lb_dst: .* ?)';
-$content = Get-Content $file
-if (($content -match $regex).Length -eq 0){
-    Add-Content -Path $file -Value ("lb_dst: " + $dst+";")
-} else {
-    $content -replace $regex, ('lb_dst: '+$dst+';') | Set-Content $file
-}
-
-$regex='(^client_state: .* ?)';
-$content = Get-Content $file
-if (($content -match $regex).Length -eq 0){
-    Add-Content -Path $file -Value "client_state: STATE_FINISHED;"
-} else {
-    $content -replace $regex, "client_state: STATE_FINISHED;" | Set-Content $file
+catch {
+	Write-Host $_.Exception.Message
 }

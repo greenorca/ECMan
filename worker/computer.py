@@ -367,6 +367,7 @@ class Computer(object):
         
         if status != self.STATUS_OK:
             print("error activating/deactivating firewalls: "+ std_err)
+            print("std_out:: "+std_out)
             return False
         
         return True     
@@ -470,15 +471,16 @@ class Computer(object):
             for x in Computer.State:
                 if x.name == state:
                     self.state = x
+                    break
         
         match = re.search(r'(last_update: (?P<date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2});)', std_out)
         if match:
             self.last_update = match.group("date")
         
-        match = re.search(r'(lb_src: (?P<lbsrc>[\w\d#]+);)',std_out.replace("\\","#"))
+        match = re.search(r'(lb_src: (?P<lbsrc>[\w\d#]+);)',std_out.replace("\\","/"))
         if match:
             self.lb_dataDirectory = match.group("lbsrc")
-            self.lb_dataDirectory = self.lb_dataDirectory.split("#")[-1]
+            self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
             print("fetched previous data dir: "+self.lb_dataDirectory)
                     
         return True;
@@ -577,7 +579,7 @@ class Computer(object):
         #self.runRemoteCommand(command=r"net use x: /delete",params=[])
         pass
         
-    def deployClientFiles(self, filepath, empty=True):
+    def deployClientFiles(self, filepath, server_user, server_passwd, empty=True):
         '''
         copy the content of filepath (recursively) to this client machine 
         Attention: effectively erases existing exam files if empty=True (default)
@@ -596,8 +598,8 @@ class Computer(object):
         script=script.replace("$src$",filepath.format('utf_16_le'))
         script=script.replace('$dst$','C:\\Users\\$user$\\Desktop\\LB_Daten\\')
         script=script.replace('$user$', self.candidateLogin)
-        # TODO: fixme
-        script=script.replace('$server_user$',r'winrm lalelu')
+        script=script.replace('$server_user$', server_user)
+        script=script.replace('$server_pwd$',server_passwd)
         
         
         # clean previous data in LB_Daten?
@@ -613,8 +615,8 @@ class Computer(object):
         status, error = self.runCopyScript(script)
 
         if status == self.STATUS_OK:        
-            self.lb_dataDirectory = filepath.split("\\")[-1]
-            self.lb_dataDirectory = self.lb_dataDirectory.split("#")[-1]
+            self.lb_dataDirectory = filepath.split("/")[-1]
+            self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
             self.filepath = filepath
             self.state = Computer.State.STATE_DEPLOYED
             return True, "" 
@@ -622,7 +624,7 @@ class Computer(object):
             self.state = Computer.State.STATE_COPY_FAIL
             return False, error.decode("850")
 
-    def retrieveClientFiles(self, filepath):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd):
         '''
         copy LB-data files from this machine to destination (which has to be a writable SMB share) 
         within a folder with the candidates name that will be created on destination; 
@@ -652,7 +654,8 @@ class Computer(object):
         script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$candidateName$', self.candidateName.replace(" ", "_"))
         # TODO: fixme
-        script=script.replace('$server_user$',r'winrm lalelu')
+        script=script.replace('$server_user$',server_user)
+        script=script.replace('$server_pwd$', server_passwd)
                 
         if self.debug:
             print("***********************************")
@@ -694,10 +697,10 @@ class Computer(object):
             for line in str(std_out).split(r"\r\n"):
                 print(line)
             
-        if status_code!=self.STATUS_OK:            
+        if status_code!=self.STATUS_OK or not(std_out.rstrip().endswith(b"SUCCESS")):            
             print("status_code: " + str(status_code))
             print("error_code: " + str(std_err))
-            
+            return -1, b"ERROR"+std_out.rstrip().split(b"ERROR")[-1]
                         
         return status_code, std_err
                 
@@ -729,7 +732,8 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.56.101', 'winrm', 'lalelu', fetchHostname=True)
+    compi = Computer('192.168.0.114', 'winrm', 'lalelu', fetchHostname=True)
+    compi.reset(True)
     
     tests = ["deploy_retrieve", "testInternet", "setCandidateName", "testUsbBlocking"]
     currentTest = tests[0]
@@ -767,15 +771,23 @@ if __name__=="__main__":
       
     if currentTest == "deploy_retrieve": 
         # thats the local stuff on tuxedo machine
-        filepath=r"\\SVEN-N13XWU\lbs\M120"
-        
-        compi.deployClientFiles(filepath, True)
+        from time import sleep
+        filepath="//192.168.56.1/"
+        filepath="//odroid/" 
+        module = "M101"
+        compi.setCandidateName("Emil Grünschnabel")
+        retval, msg = compi.deployClientFiles(filepath+"lb_share/"+module, "odroid\\winrm123", "lalelu", True)
+        if retval == False:
+            print("Error copying: "+msg)
         assert(compi.state == Computer.State.STATE_DEPLOYED)
+        assert(compi.lb_dataDirectory == module)
         print(compi.getRemoteFileListing())
         print(compi.lb_files) 
-
-        filepath = r"//192.168.56.1/lb_ergebnisse"
-        x = compi.retrieveClientFiles(filepath)
+        print("now wait a bit...")
+        sleep(5)
+        x = compi.retrieveClientFiles(filepath+"lb_share/Ergebnisse", "odroid\\winrm", "lalelu")
         print(x)
+        assert(compi.state == Computer.State.STATE_FINISHED)
         exit()
+    
     

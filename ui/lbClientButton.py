@@ -133,15 +133,19 @@ class LbClient(QPushButton):
             print("Died reseting client: "+str(ex))       
             
 
-    def deployClientFiles(self, path=None):
+    def deployClientFiles(self, server_user = "odroid\\winrm", server_passwd = "lalelu", path=None):
         if path == None or path==False:
             path=self.parentApp.getExamPath()
+            
+        if server_user == "" or server_passwd == "":
+            self.parentApp.showMessageBox("grober Fehler","TODO implement: Anmeldecredentials für LB-Share fehlen")
+            return 
             
         if path == "":
             self.parentApp.showMessageBox("grober Fehler","LB-Verzeichnispfad leer")
             return 
         
-        status, error = self.computer.deployClientFiles(filepath=path, empty=True)
+        status, error = self.computer.deployClientFiles(path, server_user, server_passwd, empty=True)
         
         if status != True:
             self.log.append(" error: deploying client: "+path+", cause: "+error)
@@ -161,9 +165,9 @@ class LbClient(QPushButton):
         self.setOwnToolTip() 
         self._colorizeWidgetByClientState()
 
-    def retrieveClientFiles(self, filepath):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd):
         try:
-            status, error = self.computer.retrieveClientFiles(filepath)
+            status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd)
             if status != True:
                 self.log.append(msg=" error: retrieving files from client: "+filepath+", cause: "+error)
             else:
