@@ -401,6 +401,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         opens a file chooser dialog to select an exam directory 
         POSIX: file:///run/user/1000/gvfs/smb-share:server=odroid,share=lb_share/m104
         Windows: file://vboxsvr/Nextcloud/IPA/muster_kriterien_2018.odt
+        
+        TODO: get login credentials with QWizard dialog, populate possible LB choices
+        https://doc-snapshots.qt.io/qtforpython/PySide2/QtWidgets/QWizard.html#qwizard;
+        then list LB folders usin pysmb library (and actually, do the same for the result stuff 
+        https://pysmb.readthedocs.io/en/latest/api/smb_SMBConnection.html
+        * conn=SMBConnection(userId,password,os.uname().nodename, "odroid") 
+        * conn.connect("odroid")
+        * "; ".join([x.name for x in conn.listShares()])
         '''
         #fname = QFileDialog.getOpenFileUrl(self, 'LB-Daten auswählen', QUrl.fromUserInput(self.lb_server), options=QFileDialog.ShowDirsOnly)
         #fname = QFileDialog.getOpenFileName(self, 'LB-Daten auswählen', self.lb_server, options=QFileDialog.ShowDirsOnly)
@@ -412,7 +420,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.debug: 
                     self.log(self.lb_directory)
                 self.lb_directory = self.lb_directory.replace("file:///run/user/1000/gvfs/smb-share:server=", "##")
-                self.lb_directory = self.lb_directory.replace(",share=","#" ).replace("/","#" )
+                self.lb_directory = self.lb_directory.replace(",share=","/" )
             else:
                 self.lb_directory = self.lb_directory.replace("file:","")
                 # if local directory was selected (e.g. C:\ or D:\), create Share with PowerShell
@@ -421,7 +429,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     smbShareCreateCommand="New-SmbShare -Name {} -Path {} -ReadAccess winrm,sven".format(sharename, self.lb_directory.replace("///",""))
                     self.log("Creating new share: "+smbShareCreateCommand)
                     try:
-                        self.runLocalPowerShellAsRoot(smbShareCreateCommand)
+                        self.__runLocalPowerShellAsRoot(smbShareCreateCommand)
                         self.sharenames.append(sharename)
                         self.lb_directory = "//"+socket.gethostname() + "/" + sharename # important: update directory string to match smb-path
                     except Exception as ex:
@@ -436,7 +444,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.log(self.lb_directory)
             self.btnPrepareExam.setEnabled(True)
         
-    def runLocalPowerShellAsRoot(self, command):
+    def __runLocalPowerShellAsRoot(self, command):
         # see https://docs.microsoft.com/en-us/windows/desktop/api/shellapi/nf-shellapi-shellexecutew#parameters
         retval = ctypes.windll.shell32.ShellExecuteW(None ,"runas",  # runas admin, 
             "C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",  #file to run

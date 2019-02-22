@@ -133,7 +133,7 @@ class LbClient(QPushButton):
             print("Died reseting client: "+str(ex))       
             
 
-    def deployClientFiles(self, server_user = "odroid\\winrm", server_passwd = "lalelu", path=None):
+    def deployClientFiles(self, server_user, server_passwd, path=None):
         if path == None or path==False:
             path=self.parentApp.getExamPath()
             
