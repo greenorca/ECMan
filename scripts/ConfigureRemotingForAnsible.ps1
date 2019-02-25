@@ -227,10 +227,14 @@ Trap
 $ErrorActionPreference = "Stop"
 
 # Addon Sven: Firewall-Rules for Win-Remote
+$message = "Regel vorhanden, alles gut"
 
+$r = Get-NetFirewallRule -DisplayName "AllowWinRM" 2> $null; if ($r) { write-host $message } else {
 New-NetFirewallRule -Name "AllowWinRM" -DisplayName "AllowWinRM" -Enabled 1 -Direction Inbound -Action Allow -LocalPort 5985 -Protocol TCP
-New-NetFirewallRule -Name "AllowWinRM_Secure" -DisplayName "AllowWinRM_Secure" -Enabled 1 -Direction Inbound -Action Allow -LocalPort 5986 -Protocol TCP
-
+}
+$r = Get-NetFirewallRule -DisplayName "AllowWinRM_Secure" 2> $null; if ($r) { write-host $message } else {
+ New-NetFirewallRule -Name "AllowWinRM_Secure" -DisplayName "AllowWinRM_Secure" -Enabled 1 -Direction Inbound -Action Allow -LocalPort 5986 -Protocol TCP
+}
 # Addon Sven: Autostart Win-Remote (I know this is written below, yet somehow it didn't work)
 # see https://www.risual.com/2011/06/13/enabledisable-a-service-via-powershell/
 # see https://redmondmag.com/articles/2016/01/22/powershell-to-manage-system-services.aspx
@@ -238,26 +242,36 @@ New-NetFirewallRule -Name "AllowWinRM_Secure" -DisplayName "AllowWinRM_Secure" -
 Set-Service WinRM -StartupType Automatic
 Get-Service WinRM | Where {$_.status -eq 'Stopped'} |  Start-Service
 
-# Addon Sven: add the famous winrm user:
-if (-not(Get-LocalUser -Name winrm 2> $null)) {
+# Addon Sven: add the administrative winrm user:
+$erg = Get-LocalUser | Where-Object { $_.Name -eq "winrm" }
+if (-not($erg)) {
 New-LocalUser -Name winrm -Password ("lalelu" | ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword -FullName "Allmighty" -Description "the heart of the sun"
 Add-LocalGroupMember -Group administratoren -Member winrm;
 }
+else {
+    write-host "Benutzer 'winrm' vorhanden, alles gut"
+}
 
-if (-not(Get-LocalUser -Name student 2> $null)) {
+$erg = Get-LocalUser | Where-Object { $_.Name -eq "student" }
+if (-not($erg)) {
 	Write-Host "Benutzer nicht vorhanden"; 
 	New-LocalUser -Name student -Password("tennesosse-42"| ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword
 	Add-LocalGroupMember -Group Hauptbenutzer -Member student;
 } 
 else { 
-	write-host "benutzer vorhanden" 
-	} 
+	write-host "Benutzer 'student' vorhanden, alles palletti" 
+    Remove-LocalGroupMember -Group adminstratoren -Member "student" -Force -ErrorAction SilentlyContinue
+    Add-LocalGroupMember -Group Hauptbenutzer -Member student;
+} 
 
 # Addon Sven: deaktiviere Dienste: WindowsUpdates, Windows Search und "Intelligenter Hintergrundübertragungsdienst"
 
+Write-Host "Deaktiviere WindowsUpdate Service, Windows Search, und Background Intelligent Transfer Service"  
 Set-Service wuauserv -StartupType Disabled
 Set-Service wsearch -StartupType Disabled
 Set-Service BITS -StartupType Disabled
+
+Write-Host "Generiere und einrichten SSL Zertifikate... (dauert einen Moment)"
 
 # Get the ID and security principal of the current user account
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -486,3 +500,6 @@ Else
     Throw "Unable to establish an HTTP or HTTPS remoting session."
 }
 Write-VerboseLog "PS Remoting has been successfully configured for Ansible."
+
+
+Write-Host "Fertig :-)"

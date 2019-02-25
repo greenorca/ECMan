@@ -44,6 +44,12 @@ write-host ([math]::Round($disk.FreeSpace / (1024*1024*1024),2)) "GB free on C:\
 While(1) {ps | sort -des cpu | select -f 15 | ft -a; sleep 1; cls}
 ```
 
+# run scripts on windows:
+
+```
+set PYTHONPATH=%PYTHONPATH%;E:\
+py ui\ecWiz.py
+```
 # Create distrib package:
 
 1. install VisualStudio 2015 C++ Redistrib-Pack
