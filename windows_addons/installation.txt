@@ -44,6 +44,18 @@ write-host ([math]::Round($disk.FreeSpace / (1024*1024*1024),2)) "GB free on C:\
 While(1) {ps | sort -des cpu | select -f 15 | ft -a; sleep 1; cls}
 ```
 
+# probably install imagemagick (including PATH setup)
+
+ImageMagick-7.0.8-32-Q16-x64-dll.exe /SP /VerySilent
+
+magick convert -font arial -fill white -pointsize 120 -draw "text 200,200 'Hallo Welt'" C:\Windows\Web\Screen\img101.png C:\Windows\Web\Screen\img101_named.png
+
+--> make sure to use the new pic as lock screen using GPO (see https://community.spiceworks.com/topic/1262253-change-windows-10-lock-screen-background-image-gp)
+
+(Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\").LockScreen
+Image
+Set-ItemProperty -Name LockScreenImage -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -Value C:\Windows\Web\Screen\img101_named.png
+
 # run scripts on windows:
 
 ```

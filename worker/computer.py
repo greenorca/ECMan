@@ -57,14 +57,15 @@ class Computer(object):
         STATE_UNKNOWN = -1
         STATE_COPY_FAIL = -2
         STATE_RETRIVAL_FAIL = -3
-        
+        STATE_STUDENT_ACCOUNT_NOT_READY = -4 
+        STATE_ADMIN_STORAGE_NOT_READY = -5
         
     
     def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False):
         '''
         Constructor
         '''
-        self.debug=True
+        self.debug=False
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
@@ -99,8 +100,12 @@ class Computer(object):
         '''
         candidateName=self.getCandidateName()
         
-        command='$file = "C:\\Users\\'+ self.remoteAdminUser +'\\ecman.json";New-Item -Path $file -Force'
-        self.runPowerShellCommand(command=command)
+        ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
+        #lbDataDir = "C:\\Users\\"+ self.candidateLogin +"\\Desktop\\LB_Daten\\*"
+        lbDataDir = "C:\\Users\\"+ self.candidateLogin +"\\Desktop\\*"
+        command='$file = "{}";New-Item -Path $file -Force; Remove-Item "{}" -Recurse -Force -ErrorAction SilentlyContinue'.format(ecmanFile, lbDataDir)
+        print(command)
+        std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
         if not(resetCandidateName):
             self.setCandidateName(candidateName)
@@ -290,6 +295,8 @@ class Computer(object):
             {"name":"Block Http", "port": 80, "protocol": "TCP"},
             {"name":"Block Https", "port": 443, "protocol": "TCP"},
             {"name":"Block Dns", "port": 53, "protocol": "UDP"},
+            {"name":"Block CIFS1", "port": 139, "protocol": "TCP"},
+            {"name":"Block CIFS2", "port": 445, "protocol": "TCP"}
             ]
         
         script = []
@@ -298,6 +305,9 @@ class Computer(object):
                 command='$r = Get-NetFirewallRule -DisplayName "{0}" 2> $null; if ($r) { Remove-NetFirewallRule -DisplayName "{0}" } else { write-host "Rule exists, noting to do" }'
                 command = command.replace("{0}",entry['name'])
                 script.append(command)
+            
+            script.append("Set-SmbServerConfiguration -EnableSMB1Protocol $true -Force")
+            script.append("Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force")
                 
         else:
             self.configureFirewallService(True)            
@@ -307,6 +317,9 @@ class Computer(object):
                 command = command.replace("{1}", str(entry['port']))
                 command = command.replace("{2}", entry['protocol'])
                 script.append(command)
+
+            script.append("Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force")
+            script.append("Set-SmbServerConfiguration -EnableSMB2Protocol $false -Force")
             
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
@@ -422,13 +435,14 @@ class Computer(object):
         by writing it to a file on the winrm user home directory
         '''
 
-        command = '$file = "C:\\Users\\'+ self.remoteAdminUser +'\\ecman.json";$regex="(^candidate_name: .* ?)"; $content = Get-Content $file; if (!($content -match $regex)){ Add-Content -Path $file -Value "candidate_name: $1$;"} else { $content -replace $regex, "candidate_name: $1$;" | Set-Content $file}'.replace('$1$',candidateName)
+        command = '$file = "C:\\Users\\'+ self.remoteAdminUser + '\\ecman.json";$regex="(^candidate_name: .* ?)"; $content = Get-Content $file; if (!($content -match $regex)){ Add-Content -Path $file -Value "candidate_name: $1$;"} else { $content -replace $regex, "candidate_name: $1$;" | Set-Content $file}'.replace('$1$',candidateName)
         
         std_out, std_err, status = self.runPowerShellCommand(command)
         if status != self.STATUS_OK:
             print(std_err)
         else:
             self.candidateName = candidateName
+            self.setLockScreenPicture()
         
         return status
     
@@ -442,12 +456,54 @@ class Computer(object):
         self.checkStatusFile() # automatically retrieves remote candidate name (amongst bunch of other things) 
         
         return self.candidateName
+    
+    def checkUserConfig(self):
+        '''
+        check preconfigured exam user folder
+        check default ecman.json folder
+        '''
+        command = '$baseDir="C:\\Users\\$1$\\"; Write-Host (Test-Path $baseDir)' .replace("$1$", self.candidateLogin)
+        print("CheckStatus command: "+command)
+        std_out, std_err, status = self.runPowerShellCommand(command)
+
+        if status  != self.STATUS_OK:
+            print("Error checking user folder on LB client: "+std_err)
+            self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
+            return False;
+        
+        if std_out.find("False")>=0:
+            print("Client user folder does not exists, please logon first.")
+            self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
+            return False;
+        
+        elif std_out.find("True")>=0:
+            command = '$baseDir="C:\\Users\\$1$\\"; if (Test-Path $baseDir){ } else { try { New-Item -Path $baseDir -Force -ItemType directory; } catch { Write-Host "NOK" } }' .replace("$1$", self.remoteAdminUser)
+            print("CheckStatus command: "+command)
+            std_out, std_err, status = self.runPowerShellCommand(command)
+            
+            if status  != self.STATUS_OK:
+                print("Error checking remote-admin folder: "+std_err)
+                self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
+                return False;
+            
+            if std_out.find("NOK")>=0:
+                print("Client remote admin folder does not exist.")
+                self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
+                return False;
+            
+            return True;
+
+        print("shouldnt see this message at all: "+std_out)
+        return False
       
     def checkStatusFile(self):
         '''
         checks if file C:\\Users\\winrm\\ecman.json exists on client, 
         creates it if it doesn't exists and retrieves its content
         '''
+        if not(self.checkUserConfig()):
+            return False;
+        
         command = '$file = "C:\\Users\\$1$\\ecman.json"; if (Get-Item $file 2> $null) { $content = Get-Content $file; foreach ($line in $content){ Write-Host $line } } else { New-Item $file; Write-Host ""}'.replace("$1$", self.remoteAdminUser)
         print("CheckStatus command: "+command)
         std_out, std_err, status = self.runPowerShellCommand(command)
@@ -478,8 +534,11 @@ class Computer(object):
             self.last_update = match.group("date")
         
         match = re.search(r'(lb_src: (?P<lbsrc>[\w\d#]+);)',std_out.replace("\\","/"))
+        match = re.search(r'(lb_src: (.*);)',std_out.replace("\\","/"))
         if match:
-            self.lb_dataDirectory = match.group("lbsrc")
+            #self.lb_dataDirectory = match.group("lbsrc")
+            self.lb_dataDirectory = match.group(2)
+            
             self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
             print("fetched previous data dir: "+self.lb_dataDirectory)
                     
@@ -523,10 +582,38 @@ class Computer(object):
         except Exception as ex:
             print(ex) 
             return False
+        
+        return True
     
+    def setLockScreenPicture(self):
+        '''
+        add currently set candidate name to lock screen for this computer
+        '''
+        name = self.getCandidateName()
+        
+        command = "magick convert -font arial -fill white -pointsize 120 -draw \
+            \"text 200,200 '{}'\" C:\\Windows\\Web\\Screen\\img100.jpg \
+            C:\\Windows\\Web\\Screen\\img100_named.png".format(self.getCandidateName())
+    
+        out,err,status=compi.runPowerShellCommand(command)
+        
+        if status != self.STATUS_OK:
+            print(err)
+            return False
+        
+        command='Set-ItemProperty -Name LockScreenImage -Path "HKLM:\\Software\\Policies\\Microsoft\\Windows\\Personalization\\" \
+            -Value C:\\Windows\\Web\\Screen\\img100_named.png'
+        
+        out,err,status=compi.runPowerShellCommand(command)
+        
+        if status != self.STATUS_OK:
+            print(err)
+            return False
+
+        return True
     def blankScreen(self):
         '''
-        suppoded to blank screen on WIN computer; doesn't work remote yet...
+        supposed to blank screen on WIN computer; doesn't work remote yet...
         '''
         command = r"powershell (Add-Type '[DllImport(\"user32.dll\")]^public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)"
         command = r"%systemroot%\system32\scrnsave.scr /s"
@@ -579,7 +666,7 @@ class Computer(object):
         #self.runRemoteCommand(command=r"net use x: /delete",params=[])
         pass
         
-    def deployClientFiles(self, filepath, server_user, server_passwd, empty=True):
+    def deployClientFiles(self, filepath, server_user, server_passwd, domain, empty=True):
         '''
         copy the content of filepath (recursively) to this client machine 
         Attention: effectively erases existing exam files if empty=True (default)
@@ -600,6 +687,7 @@ class Computer(object):
         script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$server_user$', server_user)
         script=script.replace('$server_pwd$',server_passwd)
+        script=script.replace('$domain$', domain)
         
         
         # clean previous data in LB_Daten?
@@ -624,7 +712,7 @@ class Computer(object):
             self.state = Computer.State.STATE_COPY_FAIL
             return False, error.decode("850")
 
-    def retrieveClientFiles(self, filepath, server_user, server_passwd):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd, domain):
         '''
         copy LB-data files from this machine to destination (which has to be a writable SMB share) 
         within a folder with the candidates name that will be created on destination; 
@@ -638,6 +726,8 @@ class Computer(object):
             
         if self.lb_dataDirectory == "" or self.lb_dataDirectory == None:
             raise Exception("lb_data path invalid")
+        
+        lb_dataDirectory = self.lb_dataDirectory.split("#")[-1]
             
         script=""  
         try:
@@ -649,13 +739,14 @@ class Computer(object):
         
         # replace script parameters     
         script=script.replace("$dst$",filepath.format('utf_16_le'))
-        script = script.replace("$module$", self.lb_dataDirectory)
-        script=script.replace('$src$','C:\\Users\\$user$\\Desktop\\LB_Daten\\'+self.lb_dataDirectory+'\\*')
+        script = script.replace("$module$", lb_dataDirectory)
+        script=script.replace('$src$','C:\\Users\\$user$\\Desktop\\LB_Daten\\'+lb_dataDirectory+'\\*')
         script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$candidateName$', self.candidateName.replace(" ", "_"))
-        # TODO: fixme
+        
         script=script.replace('$server_user$',server_user)
         script=script.replace('$server_pwd$', server_passwd)
+        script=script.replace('$domain$', domain)
                 
         if self.debug:
             print("***********************************")
@@ -687,8 +778,9 @@ class Computer(object):
         shell_id = p.open_shell()
         encoded_ps = b64encode(script.encode('utf_16_le')).decode('ascii')
         command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
-        std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
-        
+        std_out, std_err, status = p.get_command_output(shell_id, command_id)
+        if status != self.STATUS_OK:
+            print("error reseting client: "+std_err)
         p.cleanup_command(shell_id, command_id)
         p.close_shell(shell_id)
         
@@ -697,12 +789,12 @@ class Computer(object):
             for line in str(std_out).split(r"\r\n"):
                 print(line)
             
-        if status_code!=self.STATUS_OK or not(std_out.rstrip().endswith(b"SUCCESS")):            
-            print("status_code: " + str(status_code))
+        if status!=self.STATUS_OK or not(std_out.rstrip().endswith(b"SUCCESS")):            
+            print("status_code: " + str(status))
             print("error_code: " + str(std_err))
             return -1, b"ERROR"+std_out.rstrip().split(b"ERROR")[-1]
                         
-        return status_code, std_err
+        return status, std_err
                 
     def __runPowerShellScript(self, scriptfile="FileCopy.ps1", isFile=True):
         '''
@@ -732,12 +824,23 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.114', 'winrm', 'lalelu', fetchHostname=True)
-    compi.reset(True)
+    compi = Computer('192.168.56.101', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
+    # compi = Computer('172.23.43.20', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
+    # compi.reset(True)
     
-    tests = ["deploy_retrieve", "testInternet", "setCandidateName", "testUsbBlocking"]
-    currentTest = tests[0]
+    tests = ["checkUserConfig", "read_old_state", "deploy_retrieve", 
+             "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
+    currentTest = tests[4]
     
+    if currentTest == "checkUserConfig":
+        assert(compi.checkStatusFile())
+        
+    if currentTest == "reset":
+        compi.reset()
+    
+    if currentTest == "read_old_state":
+        compi.checkStatusFile()
+        exit(0)
     
     if currentTest == "testInternet":
         compi.configureFirewallService()
@@ -761,9 +864,9 @@ if __name__=="__main__":
     if currentTest == "testUsbBlocking":
         print("Hopefully blocked now: "+compi.isUsbBlocked())
         compi.disableUsbAccess(False)
-        print("Hopefully enabled now: "+compi.isUsbBlocked())
-    
+        print("Hopefully enabled now: "+compi.isUsbBlocked())    
         exit(0)
+        
     if currentTest == "setCandidateName":
         compi.setCandidateName("Emil Grünschnabel")
         print(compi.getCandidateName())

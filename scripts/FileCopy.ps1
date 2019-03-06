@@ -8,6 +8,7 @@ $src="$src$"
 $dst="$dst$"
 $server_user = "$server_user$"
 $server_pwd = "$server_pwd$"
+$domain = "$domain$"
 
 $src=$src.replace('#', '\')
 $src=$src.replace('/', '\')
@@ -17,11 +18,12 @@ echo $src
 
 Try {
     $Error.Clear()
-	Remove-PSDrive -Name x
+	Remove-PSDrive -Name x -ErrorAction Ignore
     $Error.Clear()
     #net use x: $src /user:$server_user $server_pwd
 
     $pwd = ConvertTo-SecureString -String $server_pwd -AsPlainText -Force
+    if (! $domain -eq "") { $server_user = $domain + "\" + $server_user }; Write-Host $server_user 
     $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $server_user, $pwd
 
     New-PSDrive -Name x -PSProvider FileSystem -Root $src -Credential $cred
@@ -51,7 +53,7 @@ Try {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
     
-    Remove-PSDrive -Name x
+    Remove-PSDrive -Name x -ErrorAction Ignore
 	
     # update status file
     $file = 'c:\Users\winrm\ecman.json';

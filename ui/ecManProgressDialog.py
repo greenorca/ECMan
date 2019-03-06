@@ -29,8 +29,13 @@ class EcManProgressDialog(QDialog):
         self.ui.progressBar.setMaximum(value)
         pass
     
-    def setValue(self, value):
-        self.ui.progressBar.setValue(value)
-        if self.ui.progressBar.maximum() == value:
+    def resetValue(self):
+        self.ui.progressBar.setValue(0)
+    
+    def incrementValue(self):
+        print("incrementing progressbar")
+        self.ui.progressBar.setValue(self.ui.progressBar.value()+1)
+        print("incrementing progressbar, new value="+str(self.ui.progressBar.value()))
+        if self.ui.progressBar.maximum() == self.ui.progressBar.value():
             self.done(0)
         pass

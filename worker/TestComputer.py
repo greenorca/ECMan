@@ -8,6 +8,7 @@ passwd = "Remote0815"
 
 server_user = "odroid\\winrm"
 server_passwd = "Remote0815"
+domain=""
 
 loginUser = "Sven"
 candidateName = "Käptn Blaubär"
@@ -21,11 +22,17 @@ class TestComputer(unittest.TestCase):
         self.STATUS_OK=0
         pass
     
+    def test_checkUserConfig(self):        
+        self.assertTrue(self.compi.checkStatusFile())
+        self.assertEqual(self.compi.state, Computer.State.STATE_INIT, "Compi should be in INIT STATE")
+        
+        
+    
     def test_firewallService(self):
         self.assertTrue(self.compi.configureFirewallService(enable=True), "firewall service activation failed")
         self.assertTrue(self.compi.isFirewallServiceEnabled(), "firwall services might not be activated")
         self.assertTrue(self.compi.configureFirewallService(enable=False), "firewall service deactivation failed")
-        self.assertFalse(self.compi.isFirewallServiceEnabled(), "firwall services might not be deactivated")
+        self.assertFalse(self.compi.isFirewallServiceEnabled(), "firwall services still activated")
          
          
     def test_firewallRules(self):    
@@ -90,7 +97,7 @@ class TestComputer(unittest.TestCase):
         self.compi.reset(True)
         self.compi.setCandidateName(candidateName)
               
-        status, error = self.compi.deployClientFiles(filepath,"server_user", "server_passwd", empty=True)
+        status, error = self.compi.deployClientFiles(filepath,"server_user", "server_passwd", domain=domain, empty=True)
         self.assertFalse( status, "Status Deployment Copy NOK: "+error)
         self.assertTrue(error.startswith("ERROR copying files from network share to client:  Cannot map network"), 
                         "expected error message:: ERROR copying files from network share to client:  Cannot map network, got:: "+error)
@@ -102,7 +109,7 @@ class TestComputer(unittest.TestCase):
         self.compi.reset(True)
         self.compi.setCandidateName(candidateName)
               
-        status, error = self.compi.deployClientFiles(filepath, server_user, server_passwd, empty=True)
+        status, error = self.compi.deployClientFiles(filepath, server_user, server_passwd, domain=domain, empty=True)
         self.assertFalse( status, "Status Deployment Copy NOK: "+error)
         self.assertTrue(error.startswith("ERROR copying files from network share to client"), 
                         "missing error message:: ERROR copying files from network share to client, got:: "+error)
@@ -117,7 +124,7 @@ class TestComputer(unittest.TestCase):
         self.compi.reset(True)
         self.compi.setCandidateName(candidateName)
               
-        status, error = self.compi.deployClientFiles(filepath,server_user, server_passwd, empty=True)
+        status, error = self.compi.deployClientFiles(filepath,server_user, server_passwd, domain=domain, empty=True)
         self.assertTrue( status, "Status Deployment Copy NOK: "+error)
         self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer locally not in 'DEPLOYED' state")
         self.compi.checkStatusFile()
@@ -148,7 +155,7 @@ class TestComputer(unittest.TestCase):
         self.compi.reset(True)
         self.compi.setCandidateName(candidateName)
         
-        status, error = self.compi.deployClientFiles(filepath,server_user, server_passwd, empty=True)
+        status, error = self.compi.deployClientFiles(filepath,server_user, server_passwd, domain, empty=True)
         self.assertTrue(status, "Status Deployment Copy NOK: "+error)
         self.assertEqual(Computer.State.STATE_DEPLOYED, self.compi.state, "Computer not in 'DEPLOYED' state")
         self.compi.checkStatusFile()
@@ -157,7 +164,7 @@ class TestComputer(unittest.TestCase):
         # second: retrieve lb files     
         filepath=r"//odroid/lb_share/Ergebnisse"     
         self.assertEquals(self.STATUS_OK, self.compi.setCandidateName(candidateName),"Setup Candidate name failed")    
-        status, error = self.compi.retrieveClientFiles(filepath,server_user, server_passwd)
+        status, error = self.compi.retrieveClientFiles(filepath,server_user = server_user, server_passwd=server_passwd, domain= domain)
         self.assertTrue(status, "Error retrieving files: "+error)
         self.assertEqual(Computer.State.STATE_FINISHED, self.compi.state, "Computer not in 'FINISHED' state")  
         self.compi.checkStatusFile()

@@ -1,0 +1,21 @@
+
+# Eine angegebenen Sitzung ist nicht vorhanden. Sie wurde möglicherweise bereits beendet"
+Fehler beim Zuordnen zu einem Netzlaufwerk von einer DFS-Freigabe
+
+## siehe auch
+
+https://support.microsoft.com/de-de/help/968264/error-message-when-you-try-to-map-to-a-network-drive-of-a-dfs-share-by
+
+## Ursache
+Dieses Verhalten tritt auf, wenn der Netzwerkzugriffsrichtlinie "Speicherung von Anmeldeinformationen oder für die Netzwerkauthentifizierung nicht zulassen" aktiviert ist.
+Problemumgehung
+Gehen Sie folgendermaßen vor, um dieses Verhalten zu umgehen:
+
+    Klicken Sie auf dem Verwaltungsserver auf Start, klicken Sie auf Ausführen, geben Sie gpedit.msc einund klicken Sie dann auf OK.
+    Unter Computerkonfiguration erweitern Sie Windows-Einstellungen, erweitern Sie Sicherheit, erweitern Sie Lokale Richtlinienund dann Sicherheitsoptionen.
+    Klicken Sie im Bereich RichtlinieNetzwerkzugriff: keine Speicherung von Anmeldeinformationen oder für die Authentifizierung, klicken Sie auf Eigenschaften, klicken Sie auf deaktiviert, und klicken Sie dann auf OK. Entsprechende Registrierungsname und Speicherort lautet:
+
+    Location: HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\
+    Name: DisableDomainCreds
+    Value: 1 (DWORD)
+

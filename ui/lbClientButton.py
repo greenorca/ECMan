@@ -90,6 +90,7 @@ class LbClient(QPushButton):
         self.log.append(msg=" candidate name set: "+candidateName)
     
     def shutdownClient(self):
+        self.log.append(msg=" shutting down")
         QThreadPool.globalInstance().start(LbClient.ShutdownTask(self))
         
     def setOwnToolTip(self):
@@ -126,26 +127,32 @@ class LbClient(QPushButton):
             resetCandidateName = True if item=="Ja" else False
         
         try:
+            self.log.append(msg=" alle Daten und Einstellungen zurücksetzen")
             self.computer.reset(resetCandidateName) 
             self.setLabel()
             #self.setOwnToolTip()
         except Exception as ex:
-            print("Died reseting client: "+str(ex))       
+            print("Died reseting client: "+str(ex))  
+            self.log.append(msg=" Fehler beim zurücksetzen der Daten und Einstellungen")     
             
 
-    def deployClientFiles(self, server_user, server_passwd, path=None):
+    def deployClientFiles(self, server_user, server_passwd, server_domain, path=None):
         if path == None or path==False:
             path=self.parentApp.getExamPath()
             
         if server_user == "" or server_passwd == "":
-            self.parentApp.showMessageBox("grober Fehler","TODO implement: Anmeldecredentials für LB-Share fehlen")
+            msg= " Anmeldecredentials für LB-Share fehlen"
+            self.parentApp.showMessageBox("grober Fehler:", msg)
+            self.log.append(msg)
             return 
             
         if path == "":
-            self.parentApp.showMessageBox("grober Fehler","LB-Verzeichnispfad leer")
+            msg= " LB-Verzeichnispfad leer"
+            self.parentApp.showMessageBox("grober Fehler", msg)
+            self.log.append(msg)
             return 
         
-        status, error = self.computer.deployClientFiles(path, server_user, server_passwd, empty=True)
+        status, error = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain,  empty=True)
         
         if status != True:
             self.log.append(" error: deploying client: "+path+", cause: "+error)
@@ -165,9 +172,9 @@ class LbClient(QPushButton):
         self.setOwnToolTip() 
         self._colorizeWidgetByClientState()
 
-    def retrieveClientFiles(self, filepath, server_user, server_passwd):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd, server_domain):
         try:
-            status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd)
+            status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
             if status != True:
                 self.log.append(msg=" error: retrieving files from client: "+filepath+", cause: "+error)
             else:
@@ -194,8 +201,7 @@ class LbClient(QPushButton):
         elif self.computer.state == Computer.State.STATE_FINISHED:
             colorString = "background-color: green;"
             pal.setColor(QPalette.Button, Qt.green);
-        elif self.computer.state == Computer.State.STATE_COPY_FAIL or \
-            self.computer.state == Computer.State.STATE_RETRIVAL_FAIL:
+        elif self.computer.state.value < 0:
             colorString = "background-color: red;"
             pal.setColor(QPalette.Button, Qt.red);
         
@@ -225,8 +231,9 @@ class LbClient(QPushButton):
     #===========================================================================
     
     def select(self):
-        self.log.append(msg=" selecting client {}".format(self.computer.getHostName()))
-        self.isSelected = True
+        if self.computer.state != Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY:
+            self.log.append(msg=" selecting client {}".format(self.computer.getHostName()))
+            self.isSelected = True
         self._colorizeWidgetByClientState()
 
     def unselect(self):

@@ -15,6 +15,7 @@ from ui.lbClientButton import LbClient
 from ui.Ui_MainWindow import Ui_MainWindow
 from ui.ecManConfigDialog import EcManConfigDialog
 from ui.ecManProgressDialog import EcManProgressDialog
+from ui.ecWiz import EcWizard
 
 '''
 Start app for exam deployment software
@@ -32,13 +33,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.btnDetectClient.clicked.connect(self.detectClients)
         
-        self.btnSelectExam.clicked.connect(self.selectExam)
+        self.btnSelectExam.clicked.connect(self.selectExamByWizard)
         self.btnSelectExam.setEnabled(True)
         
         self.btnPrepareExam.clicked.connect(self.prepareExam)
         self.btnPrepareExam.setEnabled(True)
         
-        self.btnGetExams.clicked.connect(self.retrieveExamFiles)
+        self.btnGetExams.clicked.connect(self.retrieveExamFilesByWizard)
         self.btnGetExams.setEnabled(True)
         
         self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
@@ -58,6 +59,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger = Logger(self.textEditLog)
         self.show()
         self.getConfig()
+        
+        self.network_username = None
+        self.network_password = None
+        self.network_domain = None
+        self.network_servername = None
         #self.detectClients()
     
     def resetClients(self):
@@ -73,11 +79,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         progressDialog = EcManProgressDialog(self, "Reset Clients")
         progressDialog.setMaxValue(self.grid_layout.count())
-        progressDialog.setValue(0)
+        progressDialog.resetValue()
         progressDialog.open()        
         
         self.worker = ResetClientsWorker(clients, resetCandidateName)
-        self.worker.updateProgress.connect(progressDialog.setValue)
+        self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()
         
         # TODO FIXME: programmabsturz, wenn Kandidatennamen ebenfalls zurückgesetzt werden!
@@ -143,11 +149,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         progressDialog = EcManProgressDialog(self, "Hello World")
         progressDialog.setMaxValue(len(names))
-        progressDialog.setValue(0)
+        progressDialog.resetValue()
         progressDialog.open()        
         
         self.worker = SetCandidateNamesWorker(clients, names)
-        self.worker.updateProgress.connect(progressDialog.setValue)
+        self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start() 
                 
         
@@ -242,8 +248,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnResetAllClients.setEnabled(enable)
         self.btnDetectClient.setEnabled(enable)        
         
-     
-    def retrieveExamFiles(self):
+    def retrieveExamFilesByWizard(self):
         '''
         retrieve exam files for all clients
         '''
@@ -275,49 +280,66 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         clients = [c for c in clients if c not in unknownClients]
         
-        self.progressBar.setMaximum(len(clients))
-        self.progressBar.setValue(0)
-        
         retVal = QMessageBox.StandardButton.Yes
         if self.result_directory != "":
-            retVal =  QMessageBox.question(self, "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(self.result_directory))
+            retVal =  QMessageBox.question(self, "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(
+                self.result_directory.replace("#","/")))
             
         if retVal == QMessageBox.StandardButton.Yes:
-            fname = QFileDialog.getExistingDirectoryUrl(self, 'Kandidaten-Dateien kopieren nach', options=QFileDialog.ShowDirsOnly)
-        
-            if fname is None or fname.url()=="":
-                # user aborted ...
-                return         
-            self.result_directory = fname.url()
-        
-        if os.name=="posix":
-            if self.debug: 
-                self.log("raw result directory: "+self.result_directory)
-            self.result_directory = self.result_directory.replace("file:///run/user/1000/gvfs/smb-share:server=", "##")
+            wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername, 
+                          wizardType=EcWizard.TYPE_RESULT_DESTINATION)
+            wizard.setModal(True)
+            result = wizard.exec_()
+            print("I'm done, wizard result="+str(result))
+            if result==1:
+                print("selected values: %s - %s - %s"%
+                      (wizard.field("username"), wizard.field("servername"), wizard.defaultShare))    
+                
+                self.network_username = wizard.field("username")
+                self.network_password = wizard.field("password")
+                self.network_domain = wizard.field("domainname")
+                self.network_servername = wizard.server.serverName
             
+                self.result_directory = "//"+self.network_servername+"/"+wizard.defaultShare
+                
+            else:
+                print("Abbruch, kein Zielverzeichnis ausgewählt")
+                return
+                
         else:
-            self.result_directory = self.result_directory.replace("file:","")
-            # if local directory was selected (e.g. C:\ or D:\), create Share with PowerShell
-            if (self.result_directory.find("C:/")>-1 or self.result_directory.find("D:/")>-1):
-                sharename = self.result_directory.split("/")[-1]
-                if not(sharename in self.sharenames): 
-                    smbShareCreateCommand="New-SmbShare -Name {} -Path {} -FullAccess winrm,sven".format(sharename, self.result_directory.replace("///",""))
-                    self.log("Creating new share: "+smbShareCreateCommand)
-                    try:
-                        self.runLocalPowerShellAsRoot(smbShareCreateCommand)
-                        self.sharenames.append(sharename)
-                        self.result_directory = "//"+socket.gethostname() + "/" + sharename
-                    except Exception as ex:
-                        self.log("Share konnte nicht eingerichtet werden: "+ex.args[0])
-                        self.result_directory = None
-                        raise Exception("Share für Prüfungsergebnisse konnte nicht eingerichtet werden")  
+            print("Abbruch, kein Zielverzeichnis ausgewählt")
+            return
+
              
-        self.result_directory = self.result_directory.replace(",share=","#" ).replace("/","#" )     
+        self.result_directory = self.result_directory.replace("/","#" )     
         self.log("save result files into: "+self.result_directory.replace("#","\\"))
-            
-        self.worker = RetrieveResultsWorker(clients, self.result_directory)
-        self.worker.updateProgressSignal.connect(self.updateProgressBar)
+           
+        progressDialog = EcManProgressDialog(self, "Hello World")
+        progressDialog.setMaxValue(len(clients))
+        progressDialog.resetValue()
+        progressDialog.open()
+         
+        self.log("starting to retrieve files")
+        
+        self.worker = RetrieveResultsWorker(clients, self.result_directory, self.network_username, 
+                                            self.network_password, self.network_domain)
+        self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()        
+        
+        '''
+        if not(sharename in self.sharenames): 
+            smbShareCreateCommand="New-SmbShare -Name {} -Path {} -FullAccess winrm,sven".format(sharename, self.result_directory.replace("///",""))
+            self.log("Creating new share: "+smbShareCreateCommand)
+            try:
+                self.runLocalPowerShellAsRoot(smbShareCreateCommand)
+                self.sharenames.append(sharename)
+                self.result_directory = "//"+socket.gethostname() + "/" + sharename
+            except Exception as ex:
+                self.log("Share konnte nicht eingerichtet werden: "+ex.args[0])
+                self.result_directory = None
+                raise Exception("Share für Prüfungsergebnisse konnte nicht eingerichtet werden")  
+        '''
+
         
     def prepareExam(self):
         self.copyFilesToClient()
@@ -341,12 +363,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         progressDialog = EcManProgressDialog(self, "Hello World")
         progressDialog.setMaxValue(len(clients))
-        progressDialog.setValue(0)
+        progressDialog.resetValue()
         progressDialog.open()
         
         
-        self.worker = CopyExamsWorker(clients, self.lb_directory)
-        self.worker.updateProgress.connect(progressDialog.setValue)
+        self.worker = CopyExamsWorker(clients, self.lb_directory, server_user=self.network_username, 
+                                      server_passwd=self.network_password, 
+                                      server_domain = self.network_domain)
+        self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()    
         
         
@@ -385,7 +409,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         self.log("new client signal received: "+ str(ip))
         clientIp = self.ipRange.replace("*",str(ip))
-        button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd, candidateLogin=self.client_lb_user, parentApp=self)
+        button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd, 
+                          candidateLogin=self.client_lb_user, parentApp=self)
         button.setMinimumHeight(50)
         #button.installEventFilter(self)
         self.grid_layout.addWidget(button, self.grid_layout.count()/4, self.grid_layout.count()%4)  
@@ -395,11 +420,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def getExamPath(self):
         return self.lb_directory
+    
+    def selectExamByWizard(self):
+        '''
+        provides ability to select serverName share plus logon credentials and lb directory using a wizard 
+        '''
+        if socket.gethostname()=="sven-V5-171":
+           wizard = EcWizard(parent=self, username="sven", domain="HSH", servername="odroid/lb_share", 
+                          wizardType=EcWizard.TYPE_LB_SELECTION)
+        else:
+           wizard = EcWizard(parent=self, wizardType=EcWizard.TYPE_LB_SELECTION)
+       
+        wizard.setModal(True)
+        result = wizard.exec_()
+        print("I'm done, wizard result="+str(result))
+        if result==1:
+            print("selected values: %s - %s - %s - %s"%
+                  (wizard.field("username"), wizard.field("password"), wizard.field("servername"), wizard.defaultShare))    
+            
+            self.network_username = wizard.field("username")
+            self.network_password = wizard.field("password")
+            self.network_domain = wizard.field("domainname")
+            self.network_servername = wizard.server.serverName
+            
+            self.lb_directory = "//" + self.network_servername + "/" + wizard.defaultShare
+            self.lb_directory = self.lb_directory.replace("/","#" )    
+                     
+            self.setWindowTitle(self.appTitle + " - LB-Verzeichnis::"+self.lb_directory.split("#")[-1])
+            self.log("setup LB directory: "+self.lb_directory)
+            self.btnPrepareExam.setEnabled(True)
+            
+        else:
+            print("TODO: offer fallback with local shares?")
         
     def selectExam(self):
         '''
         opens a file chooser dialog to select an exam directory 
-        POSIX: file:///run/user/1000/gvfs/smb-share:server=odroid,share=lb_share/m104
+        POSIX: file:///run/user/1000/gvfs/smb-share:serverName=odroid,share=lb_share/m104
         Windows: file://vboxsvr/Nextcloud/IPA/muster_kriterien_2018.odt
         
         TODO: get login credentials with QWizard dialog, populate possible LB choices
@@ -419,7 +476,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if os.name=="posix":
                 if self.debug: 
                     self.log(self.lb_directory)
-                self.lb_directory = self.lb_directory.replace("file:///run/user/1000/gvfs/smb-share:server=", "##")
+                self.lb_directory = self.lb_directory.replace("file:///run/user/1000/gvfs/smb-share:serverName=", "##")
                 self.lb_directory = self.lb_directory.replace(",share=","/" )
             else:
                 self.lb_directory = self.lb_directory.replace("file:","")
@@ -498,7 +555,8 @@ if __name__ == '__main__':
     if os.name == "posix":
         os.chdir(os.path.dirname(__file__))
     else:
-        os.chdir(os.path.dirname(sys.path[0]))
+        #os.chdir(os.path.dirname(sys.path[0]))
+        os.chdir(os.path.dirname(__file__))
     
     app = QApplication(sys.argv)
     mainWin = MainWindow()

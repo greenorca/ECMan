@@ -8,6 +8,7 @@ $dst="$dst$"
 
 $server_user = "$server_user$"
 $server_pwd = "$server_pwd$"
+$domain = "$domain$"
 
 $dst=$dst.replace('#', '\')
 $dst=$dst.replace('smb:','')
@@ -16,10 +17,11 @@ $dst=$dst.replace('/','\').trim()
 echo $dst
 
 Try{
-	Remove-PSDrive -Name x
+	Remove-PSDrive -Name x -ErrorAction Ignore
 	$Error.Clear()
 	
 	$pwd = ConvertTo-SecureString -String $server_pwd -AsPlainText -Force
+	if (! $domain -eq "") { $server_user = $domain + "\" + $server_user }; Write-Host $server_user 
     $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $server_user, $pwd
 
     New-PSDrive -Name x -PSProvider FileSystem -Root $dst -Credential $cred

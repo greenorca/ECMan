@@ -9,7 +9,7 @@ Created on Feb 19, 2019
 
 class ShareBrowser(object):
     '''
-    simple class to connect with given credentials to given server name and retrieve the servers shares 
+    simple class to connect with given credentials to given serverName name and retrieve the servers shares 
     '''
 
     def __init__(self, servername, username, password, domain="", is_direct_tcp=True, port = 445):
@@ -18,10 +18,10 @@ class ShareBrowser(object):
         is_direct_tcp = False --> port = 139;
         is_direct_tcp = True --> port = 445
         '''
-        self.server = servername
+        self.serverName = servername
         self.user = username
         self.password = password
-        self.conn = SMBConnection(self.user, self.password, socket.gethostname(), self.server, domain = domain, is_direct_tcp=is_direct_tcp)
+        self.conn = SMBConnection(self.user, self.password, socket.gethostname(), self.serverName, domain = domain, is_direct_tcp=is_direct_tcp)
         self.port = port
         self.isConnected = False
         
@@ -30,8 +30,8 @@ class ShareBrowser(object):
         port 139 works fine if is_direct_tcp=False;
         use port 445 for is_direct_tcp=True
         '''
-        print("connecting to: "+self.server)
-        self.isConnected = self.conn.connect(self.server, self.port)
+        print("connecting to: "+self.serverName)
+        self.isConnected = self.conn.connect(self.serverName, self.port)
         
         return self.isConnected
     
