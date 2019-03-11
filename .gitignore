@@ -2,3 +2,9 @@ __pycache__*
 .~lock*
 dist*
 *Zone.Identifier*
+*.zip
+*.pdf
+*.exe
+logs/*
+worker/logs*
+legal
