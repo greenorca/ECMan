@@ -38,8 +38,8 @@ class EcWizard(QWizard):
         self.title = "LB-Auswahl"
         self.subtitle = "Wählen Sie die zu kopierende LB aus"
         if wizardType == self.TYPE_RESULT_DESTINATION:
-            self.title = "Zielverzeichnis aüf Kandidatendaten auswählen"
-            self.subtitle= ""
+            self.title = "Zielverzeichnis für Kandidatendaten auswählen"
+            self.subtitle= "Bitte Verzeichnis mit Klassennamen auswählen.<br>Das Modulverzeichnis für LB wird automatisch erstellt."
         
         self.config = ConfigParser()
         self.configFile = Path(str(Path.home())+"/.ecman.conf")

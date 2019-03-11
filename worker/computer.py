@@ -66,7 +66,7 @@ class Computer(object):
         '''
         Constructor
         '''
-        self.debug=False
+        self.debug=True
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
@@ -406,6 +406,7 @@ class Computer(object):
             return False
         
         self.logger.info("Firewall-Service aktiv: {}".format(str(enable)))
+        time.sleep(3)
         return True     
             
     def testPing(self, dst):
@@ -633,19 +634,11 @@ class Computer(object):
         '''
         add currently set candidate name to lock screen for this computer
         '''
-        name = self.getCandidateName()
-
-        #=======================================================================
-        #         
-        # command = "magick convert -font arial -fill white -pointsize 120 -draw \
-        #     \"text 200,200 '{}'\" C:\\Windows\\Web\\Screen\\img100.jpg \
-        #     C:\\Windows\\Web\\Screen\\img100_named.png".format(self.getCandidateName())
-        #=======================================================================
         command = []
         #command.append('takeown /F "{0}"'.format(file))
         #command.append('icacls "{0}" /grant winrm:("d","f")'.format(file))
         command.append('magick convert -fill green -draw \
-            \"rectangle 0,40,5000,220\" {0} {0}'.format(file))
+            \"rectangle 0,40,5000,260\" {0} {0}'.format(file))
 
         command.append("magick convert -font arial -fill white -pointsize 120 -draw \
             \"text 600,200 '{0}'\" {1} {1}".format(self.getCandidateName(), file))
@@ -772,7 +765,7 @@ class Computer(object):
             self.state = Computer.State.STATE_COPY_FAIL
             return False, error.decode("850")
 
-    def retrieveClientFiles(self, filepath, server_user, server_passwd, domain):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd, domain, maxFileSize=150*1024*1024):
         '''
         copy LB-data files from this machine to destination (which has to be a writable SMB share) 
         within a folder with the candidates name that will be created on destination; 
@@ -791,7 +784,7 @@ class Computer(object):
          
         self.logger.info("Prüfungsdaten {} vom Client auf LBV-Share kopieren: {}".
                          format(lb_dataDirectory, filepath.replace("#","/")))    
-        
+        self.configureFirewallService(enable=False)
         script=""  
         try:
             with open("scripts/FileCopyFromClient.ps1") as file:
@@ -811,7 +804,7 @@ class Computer(object):
         script=script.replace('$server_pwd$', server_passwd)
         script=script.replace('$domain$', domain)
          
-        
+        script = script.replace("$maxFilesize$", str(maxFileSize))
                 
         if self.debug:
             self.logger.info(script)
@@ -892,7 +885,7 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.56.101', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
+    compi = Computer('192.168.0.114', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
     # compi = Computer('172.23.43.20', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
     # compi.reset(True)
     

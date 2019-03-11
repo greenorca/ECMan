@@ -14,6 +14,8 @@ $dst=$dst.replace('#', '\')
 $dst=$dst.replace('smb:','')
 $dst=$dst.replace('/','\').trim()
 
+$maxFilesize = $maxFilesize$
+
 echo $dst
 
 Try{
@@ -34,7 +36,20 @@ Try{
 	# Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
-	Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
+	
+	$items = Get-ChildItem $src -Recurse
+	foreach($i in $items){
+        Write-Host $i.Fullname
+		if($i.Attributes -like "Directory" -OR $i.Length -le $maxFilesize){ 
+            $fileDst = "x:\$module$\$candidateName$\"+$i.FullName.replace($src.replace("*",""),"")
+            Write-Host "Copy " $i.FullName " to " $fileDst
+			Copy-Item $i.FullName -Destination $fileDst
+			}
+		else {
+			Write-Host "WARNUNG: Datei zu gross "+$i.Fullname
+		}
+	}
+	
 	
 	if ($Error[0].Exception.Messsage){ 
 	    	throw [System.IO.FileNotFoundException]::new("Crashed copying files back to server: "+$Error[0].Exception.Message)

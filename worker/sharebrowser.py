@@ -9,7 +9,8 @@ Created on Feb 19, 2019
 
 class ShareBrowser(object):
     '''
-    simple class to connect with given credentials to given serverName name and retrieve the servers shares 
+    simple class to connect with given credentials to given serverName name and retrieve the servers shares
+     
     '''
 
     def __init__(self, servername, username, password, domain="", is_direct_tcp=True, port = 445):
@@ -27,8 +28,7 @@ class ShareBrowser(object):
         
     def connect(self):
         '''
-        port 139 works fine if is_direct_tcp=False;
-        use port 445 for is_direct_tcp=True
+        actually establishes connection (for the user setup in ctor) 
         '''
         print("connecting to: "+self.serverName)
         self.isConnected = self.conn.connect(self.serverName, self.port)
@@ -36,12 +36,18 @@ class ShareBrowser(object):
         return self.isConnected
     
     def getShares(self):
+        '''
+        lists (non-hidden) shares for this server
+        '''
         if not(self.isConnected):
             self.connect()
             
         return self.conn.listShares()
     
     def getDirectoryContent(self, share, path):
+        '''
+        lists content for (as well hidden) shares and their sub directories 
+        '''
         if not(self.isConnected):
             self.connect()
     

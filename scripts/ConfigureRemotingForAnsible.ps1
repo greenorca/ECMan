@@ -68,7 +68,11 @@ Param (
     [switch]$EnableCredSSP
 )
 
-$imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-7.0.8-32-Q16-x64-dll.exe"
+$imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-i686-pc-windows.exe"
+$adm = "winrm"
+$adm_pwd = "lalelu"
+$student_pwd = "tennesosse-42"
+$lockscreen_picture = "C:\Windows\Web\Screen\img100.jpg"
 
 Function Write-Log
 {
@@ -245,22 +249,28 @@ Set-Service WinRM -StartupType Automatic
 Get-Service WinRM | Where {$_.status -eq 'Stopped'} |  Start-Service
 
 # Addon Sven: add the administrative winrm user:
-$erg = Get-LocalUser | Where-Object { $_.Name -eq "winrm" }
+$erg = Get-LocalUser | Where-Object { $_.Name -eq $adm }
 if (-not($erg)) {
-New-LocalUser -Name winrm -Password ("lalelu" | ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword -FullName "Allmighty" -Description "the heart of the sun"
-Add-LocalGroupMember -Group administratoren -Member winrm;
+New-LocalUser -Name $adm -Password ($adm_pwd | ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword -FullName "Allmighty" -Description "the heart of the sun"
+Add-LocalGroupMember -Group administratoren -Member $adm;
 }
 else {
-    write-host "Benutzer 'winrm' vorhanden, alles gut"
+    write-host "Benutzer '$adm' vorhanden, alles gut"
 }
 
-takeown /F "C:\Windows\Web\Screen\*"
-icacls "C:\Windows\Web\Screen\*" /grant ("winrm"+":(OI)(CI)F")
+
+
+takeown /F $lockscreen_picture /A
+$acl = Get-Acl -path $lockscreen_picture
+$rule = New-Object system.Security.AccessControl.FileSystemAccessRule($adm,"FullControl","Allow")
+$acl.SetAccessRule($rule)
+Set-Acl $lockscreen_picture $acl
+
 
 $erg = Get-LocalUser | Where-Object { $_.Name -eq "student" }
 if (-not($erg)) {
 	Write-Host "Benutzer nicht vorhanden"; 
-	New-LocalUser -Name student -Password("tennesosse-42"| ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword
+	New-LocalUser -Name student -Password($student_pwd| ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword
 	Add-LocalGroupMember -Group Hauptbenutzer -Member student  -ErrorAction Ignore;
 } 
 else { 

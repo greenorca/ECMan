@@ -17,7 +17,6 @@ from ui.Ui_MainWindow import Ui_MainWindow
 from ui.ecManConfigDialog import EcManConfigDialog
 from ui.ecManProgressDialog import EcManProgressDialog
 from ui.ecWiz import EcWizard
-from aifc import fn
 
 '''
 Start app for exam deployment software
