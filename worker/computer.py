@@ -1,12 +1,13 @@
 from winrm.protocol import Protocol
 from winrm import Session
 from base64 import b64encode
-import time, re
-#import socket, shutil
+import time, re, datetime
 from enum import Enum
 from PySide2.QtCore import QRunnable
 
-#from base64 import *
+import logging
+import logging.handlers as handlers
+
 
 '''
 Created on Dec 25, 2018
@@ -85,11 +86,20 @@ class Computer(object):
         self.__usbBlocked = "unbekannt"
         self.__internetBlocked = "unbekannt"
         
+        self.logger = logging.getLogger('ecman')
+        self.logfile_name = 'logs/client_{}_{}.log'.format(str(datetime.date.today()),self.ip)
+        hdlr = logging.FileHandler(self.logfile_name)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+        hdlr.setFormatter(formatter)
+        self.logger.addHandler(hdlr)
+        self.logger.setLevel(logging.INFO) 
+        self.logger.info("client pc initialisiert: {}".format(self.ip))
+        
         if fetchHostname==True:
             try:
                 self.hostname = self.getHostName()
             except Exception as ex:
-                print("Couldn't get hostname: %s".format(str(ex)))
+                self.logger.error("Couldn't get hostname: %s".format(str(ex)))
             pass
     
     def reset(self, resetCandidateName=False):
@@ -98,6 +108,7 @@ class Computer(object):
         by overwriting remote ecman.json file with an empty file 
         (and eventually recreating the usename) 
         '''
+        self.logger.info("PC zurücksetzen (Daten und Einstellungen)")
         candidateName=self.getCandidateName()
         
         ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
@@ -114,7 +125,6 @@ class Computer(object):
             
         self.state = Computer.State.STATE_INIT
                 
-    
     def __runRemoteCommand(self,command="ipconfig", params=['/all']):
         '''
         try to run a regular cmd program with given parameters on given winrm-host (ip)
@@ -222,6 +232,7 @@ class Computer(object):
             else:
                 return std_err
             
+        self.logger.info(self.remoteFileListing)
         return self.remoteFileListing
     
     def parseFile(self, line):
@@ -252,11 +263,15 @@ class Computer(object):
         set HKLM:\\SYSTEM\CurrentControlSet\\Services\\USBSTOR\\Start
         4: blocks; 3 unblocks
         '''
+        self.logger.info("blockiere USB-Speicher")
+
         psCommand = 'Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR\\" -Name Start -Value '+ str(4 if block==True else 3) 
         std_out, std_err, status = self.runPowerShellCommand(psCommand) 
+
         
         if status != self.STATUS_OK:
             print("Error: "+std_err)
+            self.logger.error("USB vermutlich nicht geblockt: {}".format(std_err))
             return False
         
         self.__usbBlocked = True if std_out.rstrip()=="4" else False
@@ -277,7 +292,7 @@ class Computer(object):
             return self.__usbBlocked
         
         self.__usbBlocked = True if std_out.rstrip()=="4" else False
-                        
+        self.logger.info("USB ist blockiert: {}".format(str(self.__usbBlocked)))                
         return self.__usbBlocked
      
     def allowInternetAccess(self):
@@ -301,6 +316,7 @@ class Computer(object):
         
         script = []
         if block==False:
+            self.logger.info("reaktiviere Internet")
             for entry in blockList:
                 command='$r = Get-NetFirewallRule -DisplayName "{0}" 2> $null; if ($r) { Remove-NetFirewallRule -DisplayName "{0}" } else { write-host "Rule exists, noting to do" }'
                 command = command.replace("{0}",entry['name'])
@@ -310,6 +326,7 @@ class Computer(object):
             script.append("Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force")
                 
         else:
+            self.logger.info("blockiere Internet-Zugriff")
             self.configureFirewallService(True)            
             for entry in blockList:
                 command='$r = Get-NetFirewallRule -DisplayName "{0}" 2> $null; if ($r) { write-host "Rule exists, noting to do" } else { New-NetFirewallRule -Name "{0}" -DisplayName "{0}" -Enabled 1 -Direction Outbound -Action Block -RemotePort {1} -Protocol {2} }'
@@ -349,6 +366,7 @@ class Computer(object):
         if status_code!=self.STATUS_OK:            
             print("status_code: " + str(status_code))
             print("error_code: " + str(std_err))
+            self.logger.error("Bearbeiten der Firewall nicht erfolgreich: {}".format(std_err))
             self.__internetBlocked = "unbekannt"
             return False
         
@@ -367,8 +385,10 @@ class Computer(object):
         
         if status == self.STATUS_OK and std_out.rstrip() != "":
             print("following firewalls are not active: "+ std_out)
+            self.info("Firewall-Service nicht aktiv")
             return False
         
+        self.info("Firewall-Service aktiv")
         return True
     
     def configureFirewallService(self, enable=True):
@@ -381,8 +401,11 @@ class Computer(object):
         if status != self.STATUS_OK:
             print("error activating/deactivating firewalls: "+ std_err)
             print("std_out:: "+std_out)
+            self.error("Firewall-Service Problem: {}".format(str(std_err)))
+
             return False
         
+        self.logger.info("Firewall-Service aktiv: {}".format(str(enable)))
         return True     
             
     def testPing(self, dst):
@@ -429,7 +452,7 @@ class Computer(object):
         return self.__internetBlocked        
         
         
-    def setCandidateName(self,candidateName):
+    def setCandidateName(self,candidateName, reset=False):
         '''
         sets given candidate name on remote machine 
         by writing it to a file on the winrm user home directory
@@ -443,6 +466,11 @@ class Computer(object):
         else:
             self.candidateName = candidateName
             self.setLockScreenPicture()
+        
+        self.logger.info("Kandidat name gesetzt: {}".format(self.candidateName))
+        
+        if reset == True:
+            self.reboot()
         
         return status
     
@@ -469,11 +497,13 @@ class Computer(object):
         if status  != self.STATUS_OK:
             print("Error checking user folder on LB client: "+std_err)
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
+            self.logger.error("Fehler beim Prüfen des LBUser-Verzeichnis (student): {}".format(str(std_err)))
             return False;
         
         if std_out.find("False")>=0:
             print("Client user folder does not exists, please logon first.")
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
+            self.logger.warn("LBUser-verzeichnis (student) nicht vorhanden")
             return False;
         
         elif std_out.find("True")>=0:
@@ -483,12 +513,14 @@ class Computer(object):
             
             if status  != self.STATUS_OK:
                 print("Error checking remote-admin folder: "+std_err)
-                self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
+                self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
+                self.logger.error("Fehler beim Prüfen des WinRM User-verzeichnisses")
                 return False;
             
             if std_out.find("NOK")>=0:
                 print("Client remote admin folder does not exist.")
                 self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
+                self.logger.warn("WinRM User-verzeichnis nicht vorhanden")
                 return False;
             
             return True;
@@ -513,7 +545,7 @@ class Computer(object):
             return False;
         
         self.statusFile = std_out;
-        
+        self.logger.info("Remote status file: {}".format(std_out))
         # parse std_out for status info
         regex=re.compile(r'(candidate_name: (?P<name>[\w\d ]+);)' )
         match = regex.match(std_out)
@@ -576,6 +608,7 @@ class Computer(object):
         return self.__hostName
      
     def shutdown(self):
+        self.logger.info("PC wird heruntergefahren")
         try:
             return self.__runRemoteCommand("shutdown /s /t 0", []) == self.STATUS_OK
                 
@@ -585,30 +618,57 @@ class Computer(object):
         
         return True
     
-    def setLockScreenPicture(self):
+    def reboot(self):
+        self.logger.info("PC wird neu gestartet")
+        try:
+            return self.__runRemoteCommand("shutdown /r /t 0", []) == self.STATUS_OK
+                
+        except Exception as ex:
+            print(ex) 
+            return False
+        
+        return True
+    
+    def setLockScreenPicture(self, file="C:\\Windows\\Web\\Screen\\img100.jpg"):
         '''
         add currently set candidate name to lock screen for this computer
         '''
         name = self.getCandidateName()
+
+        #=======================================================================
+        #         
+        # command = "magick convert -font arial -fill white -pointsize 120 -draw \
+        #     \"text 200,200 '{}'\" C:\\Windows\\Web\\Screen\\img100.jpg \
+        #     C:\\Windows\\Web\\Screen\\img100_named.png".format(self.getCandidateName())
+        #=======================================================================
+        command = []
+        #command.append('takeown /F "{0}"'.format(file))
+        #command.append('icacls "{0}" /grant winrm:("d","f")'.format(file))
+        command.append('magick convert -fill green -draw \
+            \"rectangle 0,40,5000,220\" {0} {0}'.format(file))
+
+        command.append("magick convert -font arial -fill white -pointsize 120 -draw \
+            \"text 600,200 '{0}'\" {1} {1}".format(self.getCandidateName(), file))
+        # struggeling with user write permissions on img100 XOR REGEDIT KEY 
         
-        command = "magick convert -font arial -fill white -pointsize 120 -draw \
-            \"text 200,200 '{}'\" C:\\Windows\\Web\\Screen\\img100.jpg \
-            C:\\Windows\\Web\\Screen\\img100_named.png".format(self.getCandidateName())
-    
-        out,err,status=compi.runPowerShellCommand(command)
-        
-        if status != self.STATUS_OK:
-            print(err)
-            return False
-        
-        command='Set-ItemProperty -Name LockScreenImage -Path "HKLM:\\Software\\Policies\\Microsoft\\Windows\\Personalization\\" \
-            -Value C:\\Windows\\Web\\Screen\\img100_named.png'
-        
-        out,err,status=compi.runPowerShellCommand(command)
-        
-        if status != self.STATUS_OK:
-            print(err)
-            return False
+        for x in command:
+            out,err,status = self.runPowerShellCommand(x)
+            if status != self.STATUS_OK:
+                print("error running script: "+x)
+                print("lets assume imagemagick isnt installed... "+err)
+                return False
+        command = []
+        command.append('if (!(Test-Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\")){ New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -ErrorAction Ignore}')
+        command.append('Set-ItemProperty -Name LockScreenImage -Path "HKLM:\\Software\\Policies\\Microsoft\\Windows\\Personalization\\" -Value {}'.format(file))
+        command.append('Set-ItemProperty -Name ForceStartBackground -Path "HKLM:\\Software\\Policies\\Microsoft\\Windows\\Personalization\\" -Value 0')
+        command.append('Set-ItemProperty -Name NoChangingLockScreen -Path "HKLM:\\Software\\Policies\\Microsoft\\Windows\\Personalization\\" -Value 1')
+
+        for x in command:
+            out,err,status = self.runPowerShellCommand(x)
+            if status != self.STATUS_OK:
+                print("error setting GPO lock screen: "+x)
+                print("lets assume something failed on GPO stuff: "+err)
+                return False
 
         return True
     def blankScreen(self):
@@ -728,7 +788,10 @@ class Computer(object):
             raise Exception("lb_data path invalid")
         
         lb_dataDirectory = self.lb_dataDirectory.split("#")[-1]
-            
+         
+        self.logger.info("Prüfungsdaten {} vom Client auf LBV-Share kopieren: {}".
+                         format(lb_dataDirectory, filepath.replace("#","/")))    
+        
         script=""  
         try:
             with open("scripts/FileCopyFromClient.ps1") as file:
@@ -747,8 +810,11 @@ class Computer(object):
         script=script.replace('$server_user$',server_user)
         script=script.replace('$server_pwd$', server_passwd)
         script=script.replace('$domain$', domain)
+         
+        
                 
         if self.debug:
+            self.logger.info(script)
             print("***********************************")
             print(script)
             print("***********************************")
@@ -757,17 +823,19 @@ class Computer(object):
         
         if status == self.STATUS_OK:
             self.state = Computer.State.STATE_FINISHED
+            self.logger.info("Kopieren der Prüfungsleistungen auf Server war erfolgreich.")
             return True, ""
+        
         else:
             self.state = Computer.State.STATE_RETRIVAL_FAIL            
+            self.logger.warn("Kopieren der Prüfungsleistungen auf Server nicht erfolgreich: {}".format(error.decode("850")))
             return False, error.decode("850")
             
             
     def runCopyScript(self,script):
-            
-        #s = Session(self.ip, auth=(self.remoteAdminUser, self.passwd)) #, transport="ssl") --> ssl option doesn't work here...
-        #r = s.run_ps(script)
-        
+        '''
+        internes Kopierskript
+        '''
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
@@ -780,7 +848,7 @@ class Computer(object):
         command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
         std_out, std_err, status = p.get_command_output(shell_id, command_id)
         if status != self.STATUS_OK:
-            print("error reseting client: "+std_err)
+            print("error running script on client: "+str(std_err))
         p.cleanup_command(shell_id, command_id)
         p.close_shell(shell_id)
         
@@ -868,7 +936,7 @@ if __name__=="__main__":
         exit(0)
         
     if currentTest == "setCandidateName":
-        compi.setCandidateName("Emil Grünschnabel")
+        compi.setCandidateName("Walter Witzig")
         print(compi.getCandidateName())
         exit(0)
       

@@ -1,19 +1,24 @@
 # download software and install it
-
-$src = "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=de"
-$dst = "C:\tmp\"
+$src = "https://imagemagick.org/download/binaries/ImageMagick-7.0.8-32-Q16-x64-dll.exe"
+$dst = "C:\tmp"
 
 Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -Path $dst -Force -ItemType directory
 
-$client = new-object System.Net.WebClient
-$client.DownloadFile($src,$dst+"Firefox.exe")
+$dst = "C:\tmp\imagemagick.exe"
 
-Write-Host "waiting for download to finish " -NoNewLine
-while ($client.IsBusy){
+#$client = new-object System.Net.WebClient
+#$cli.Headers['User-Agent'] = 'myUserAgentString';
+#$client.DownloadFile($src,$dst)
+#$client.DownloadFile($src,$dst)
 
-    Write-Host "." -NoNewLine    
-    Start-Sleep -s 1
-}
+Invoke-WebRequest $src -OutFile $dst
 
-dir $dst
+#Write-Host "waiting for download to finish " -NoNewLine
+#while ($client.IsBusy){
+
+#    Write-Host "." -NoNewLine    
+#    Start-Sleep -s 1
+#}
+
+[System.Diagnostics.Process]::Start($dst, "/VERYSILENT")

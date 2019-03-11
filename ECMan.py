@@ -1,6 +1,6 @@
 import os, sys, socket
 import subprocess, ctypes
-#from time import sleep
+# from time import sleep
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog
 from PySide2.QtGui import QTextDocument
 from PySide2.QtCore import QUrl, QEvent, Qt, QThreadPool
@@ -9,6 +9,7 @@ from configparser import ConfigParser
 from pathlib import Path
 # import scripts.winrm_toolbox as remote_tools
 from worker.computer import Computer
+from worker.logfile_handler import LogfileHandler
 from ui.logger import Logger
 from ui.uiWorkers import ScannerWorker, CopyExamsWorker, RetrieveResultsWorker, ResetClientsWorker, SetCandidateNamesWorker, SendMessageTask
 from ui.lbClientButton import LbClient
@@ -16,18 +17,19 @@ from ui.Ui_MainWindow import Ui_MainWindow
 from ui.ecManConfigDialog import EcManConfigDialog
 from ui.ecManProgressDialog import EcManProgressDialog
 from ui.ecWiz import EcWizard
+from aifc import fn
 
 '''
 Start app for exam deployment software
 author: Sven Schirmer
 last_revision: 2019-02-04
-
-
-
 '''
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
+
     def __init__(self):
-        super(MainWindow,self).__init__()
+        super(MainWindow, self).__init__()
         self.setupUi(self)
         self.grid_layout = QGridLayout()
         
@@ -52,7 +54,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
                 
-        #self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
+        # self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
         self.appTitle = 'ECMan - Exam Client Manager'                             
         self.setWindowTitle(self.appTitle)
         
@@ -64,16 +66,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.network_password = None
         self.network_domain = None
         self.network_servername = None
-        #self.detectClients()
+        
+        self.detectClients()
+    
+    def checkOldLogFiles(self):
+        '''
+        dummy, 
+        '''
+        pass
     
     def resetClients(self):
-        #TODO: sicherheitsabfrage
-        items = ["Nein","Ja"]
-        item, ok = QInputDialog().getItem(self, "Alles zurücksetzen?", "USB-Sticks und Internet werden freigeben.\nKandidaten-Namen ebenfalls zurücksetzen? ", items, 0, False) 
+        '''
+        resets remote files and configuration for all connected clients
+        '''
+
+        items = ["Nein", "Ja"]
+        item, ok = QInputDialog().getItem(self, "Alles zurücksetzen?",
+                                          "USB-Sticks und Internet werden freigeben.\nKandidaten-Namen ebenfalls zurücksetzen? ",
+                                          items, 0, False) 
         if ok == False:
             return
         
-        resetCandidateName = True if item=="Ja" else False
+        resetCandidateName = True if item == "Ja" else False
         
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
         
@@ -86,8 +100,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()
         
-        # TODO FIXME: programmabsturz, wenn Kandidatennamen ebenfalls zurückgesetzt werden!
-    
     def closeEvent(self, event):
         '''
         overrides closeEvent of base class, clean up
@@ -99,8 +111,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 Thread(target=self.runLocalPowerShellAsRoot("Remove-SmbShare -Name {} -Force".format(share))).start()
         except Exception:
             pass
+        
         print("done cleaning up...")
-        super(MainWindow,self).closeEvent(event) 
+        super(MainWindow, self).closeEvent(event) 
     
     def selectAllCLients(self):
         '''
@@ -118,7 +131,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def sendMessage(self):
         
-        message, ok = QInputDialog.getText(self, "Eingabe","Nachricht an Kandidaten eingeben")
+        message, ok = QInputDialog.getText(self, "Eingabe", "Nachricht an Kandidaten eingeben")
         if ok:
             for i in range(self.grid_layout.count()): 
                 QThreadPool.globalInstance().start(
@@ -138,11 +151,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
         
         # select only the computers without candidate name
-        if self.checkBox_OverwriteExisitingNames.checkState()!=Qt.CheckState.Checked:
-            clients = [x for x in clients if x.computer.getCandidateName()==""]
+        if self.checkBox_OverwriteExisitingNames.checkState() != Qt.CheckState.Checked:
+            clients = [x for x in clients if x.computer.getCandidateName() == ""]
             
         if len(names) > len(clients):
-            self.showMessageBox("Fehler", 
+            self.showMessageBox("Fehler",
                                 "Nicht genug Prüfungs-PCs für alle {} Kandidaten".format(str(len(names))),
                                 messageType=QMessageBox.Warning)
             return 
@@ -155,7 +168,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker = SetCandidateNamesWorker(clients, names)
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start() 
-                
         
     def getConfig(self):
         '''
@@ -166,40 +178,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.user = ""
         self.passwd = ""
         
-        self.configFile = Path(str(Path.home())+"/.ecman.conf")
+        self.configFile = Path(str(Path.home()) + "/.ecman.conf")
         
         if not(self.configFile.exists()):
             result = self.openConfigDialog()
             
-        if self.configFile.exists() or result==1:
+        if self.configFile.exists() or result == 1:
             self.refreshConfig()
         
-        #=======================================================================
-        # self.lb_server = "file:///192.168.0.50/lb_share"
-        # if os.name=='nt':
-        #     self.lb_server = r"\\192.168.0.50\lb_share"
-        #=======================================================================
-        
-        self.lb_directory = ""
         self.result_directory = ""
         
-        self.sharenames = [] # dump all eventually created local Windows-Shares in this array - TODO: remove all these shares on exit
-        self.debug=True
+        self.sharenames = []  # dump all eventually created local Windows-Shares in this array
+        self.debug = True
         # fetch own ip adddress
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             s.connect(('9.9.9.9', 1))  # connect() for UDP doesn't send packets
             self.ip_address = s.getsockname()[0]
             parts = self.ip_address.split(".")[0:-1]
-            self.ipRange=".".join(parts)+".*"
+            self.ipRange = ".".join(parts) + ".*"
             self.lineEditIpRange.setText(self.ipRange)
-            self.appTitle = self.windowTitle()+" on "+self.ip_address
+            self.appTitle = self.windowTitle() + " on " + self.ip_address
             self.setWindowTitle(self.appTitle)
         except Exception as ex:
-            self.ip_address, ok = QInputDialog.getText(self, "Keine Verbindung zum Internet", 
+            self.ip_address, ok = QInputDialog.getText(self, "Keine Verbindung zum Internet",
                                                        "Möglicherweise gelingt der Sichtflug. Bitte geben Sie die lokale IP-Adresse ein:")
             
-            self.log("no connection to internet:"+str(ex))
+            self.log("no connection to internet:" + str(ex))
             
     def refreshConfig(self):
         '''
@@ -208,11 +213,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config = ConfigParser()
         config.read_file(open(str(self.configFile)))
         
-        self.lb_server = config.get("General","lb_server",fallback="")
-        self.port=config.get("General", "winrm_port",fallback=5986)
+        self.lb_server = config.get("General", "lb_server", fallback="")
+        self.port = config.get("General", "winrm_port", fallback=5986)
         self.client_lb_user = config.get("Client", "lb_user", fallback="student") 
-        self.user = config.get("Client","user",fallback="")
-        self.passwd = config.get("Client","pwd",fallback="")    
+        self.user = config.get("Client", "user", fallback="")
+        self.passwd = config.get("Client", "pwd", fallback="")    
     
     def openConfigDialog(self):
         '''
@@ -255,7 +260,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # find all suitable clients (required array for later threading)
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count()) 
                    if self.grid_layout.itemAt(i).widget().isSelected and 
-                   self.grid_layout.itemAt(i).widget().computer.state in [Computer.State.STATE_DEPLOYED, 
+                   self.grid_layout.itemAt(i).widget().computer.state in [Computer.State.STATE_DEPLOYED,
                                                                           Computer.State.STATE_FINISHED,
                                                                           Computer.State.STATE_RETRIVAL_FAIL]]
                 
@@ -263,17 +268,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showMessageBox("Abbruch", "Keine Clients ausgewählt bzw. deployed")
             return 
         
-        unknownClients = [c for c in clients if c.computer.getCandidateName()==""]
+        unknownClients = [c for c in clients if c.computer.getCandidateName() == ""]
         
         for unknown in unknownClients:
             unknown.computer.state = Computer.State.STATE_RETRIVAL_FAIL
             unknown._colorizeWidgetByClientState()
         
         if unknownClients != []: 
-            choice = QMessageBox.critical(self, 
-                              "Achtung", 
+            choice = QMessageBox.critical(self,
+                              "Achtung",
                               "{} clients ohne gültigen Kandidatennamen.<br>Rückholung für alle anderen fortsetzen?".format(str(len(unknownClients))),
-                              QMessageBox.Yes,QMessageBox.No ) 
+                              QMessageBox.Yes, QMessageBox.No) 
                
             if choice == QMessageBox.No:
                 return;
@@ -282,17 +287,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         retVal = QMessageBox.StandardButton.Yes
         if self.result_directory != "":
-            retVal =  QMessageBox.question(self, "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(
-                self.result_directory.replace("#","/")))
+            retVal = QMessageBox.question(self, "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(
+                self.result_directory.replace("#", "/")))
             
         if retVal == QMessageBox.StandardButton.Yes:
-            wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername, 
+            wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername,
                           wizardType=EcWizard.TYPE_RESULT_DESTINATION)
             wizard.setModal(True)
             result = wizard.exec_()
-            print("I'm done, wizard result="+str(result))
-            if result==1:
-                print("selected values: %s - %s - %s"%
+            print("I'm done, wizard result=" + str(result))
+            if result == 1:
+                print("selected values: %s - %s - %s" % 
                       (wizard.field("username"), wizard.field("servername"), wizard.defaultShare))    
                 
                 self.network_username = wizard.field("username")
@@ -300,7 +305,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.network_domain = wizard.field("domainname")
                 self.network_servername = wizard.server.serverName
             
-                self.result_directory = "//"+self.network_servername+"/"+wizard.defaultShare
+                self.result_directory = "//" + self.network_servername + "/" + wizard.defaultShare
                 
             else:
                 print("Abbruch, kein Zielverzeichnis ausgewählt")
@@ -309,10 +314,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             print("Abbruch, kein Zielverzeichnis ausgewählt")
             return
-
              
-        self.result_directory = self.result_directory.replace("/","#" )     
-        self.log("save result files into: "+self.result_directory.replace("#","\\"))
+        self.result_directory = self.result_directory.replace("/", "#")     
+        self.log("save result files into: " + self.result_directory.replace("#", "\\"))
            
         progressDialog = EcManProgressDialog(self, "Hello World")
         progressDialog.setMaxValue(len(clients))
@@ -321,7 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
          
         self.log("starting to retrieve files")
         
-        self.worker = RetrieveResultsWorker(clients, self.result_directory, self.network_username, 
+        self.worker = RetrieveResultsWorker(clients, self.result_directory, self.network_username,
                                             self.network_password, self.network_domain)
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()        
@@ -339,7 +343,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.result_directory = None
                 raise Exception("Share für Prüfungsergebnisse konnte nicht eingerichtet werden")  
         '''
-
         
     def prepareExam(self):
         self.copyFilesToClient()
@@ -349,7 +352,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         copies selected exam folder to all connected clients that are selected and not in STATE_DEPLOYED or STATE_FINISHED
         '''
-        if self.lb_directory=="" or self.lb_directory==None:
+        if self.lb_directory == "" or self.lb_directory == None:
             self.showMessageBox("Fehler", "Kein Prüfungsordner ausgewählt")
             return
         
@@ -366,13 +369,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         progressDialog.resetValue()
         progressDialog.open()
         
-        
-        self.worker = CopyExamsWorker(clients, self.lb_directory, server_user=self.network_username, 
-                                      server_passwd=self.network_password, 
-                                      server_domain = self.network_domain)
+        self.worker = CopyExamsWorker(clients, self.lb_directory, server_user=self.network_username,
+                                      server_passwd=self.network_password,
+                                      server_domain=self.network_domain)
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()    
-        
         
     def detectClients(self):
         '''
@@ -380,7 +381,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         ip_range = self.lineEditIpRange.text()
         if not(ip_range.endswith('*')):
-            self.showMessageBox('Eingabefehler','Gültiger IP-V4 Bereich endet mit * (z.B. 192.168.0.*)')
+            self.showMessageBox('Eingabefehler', 'Gültiger IP-V4 Bereich endet mit * (z.B. 192.168.0.*)')
             return
 
         self.ipRange = ip_range
@@ -402,21 +403,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.addClientSignal.connect(self.addClient)
         self.worker.start()        
         
-        
     def addClient(self, ip):
         '''
         populate GUI with newly received client ips (only last byte required)
         '''
-        self.log("new client signal received: "+ str(ip))
-        clientIp = self.ipRange.replace("*",str(ip))
-        button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd, 
+        self.log("new client signal received: " + str(ip))
+        clientIp = self.ipRange.replace("*", str(ip))
+        button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd,
                           candidateLogin=self.client_lb_user, parentApp=self)
         button.setMinimumHeight(50)
-        #button.installEventFilter(self)
-        self.grid_layout.addWidget(button, self.grid_layout.count()/4, self.grid_layout.count()%4)  
+        # button.installEventFilter(self)
+        self.grid_layout.addWidget(button, self.grid_layout.count() / 4, self.grid_layout.count() % 4)  
         self.clientFrame.setLayout(self.grid_layout)     
-        #QtGui.qApp.processEvents()
-    
+        # QtGui.qApp.processEvents()
         
     def getExamPath(self):
         return self.lb_directory
@@ -425,17 +424,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         provides ability to select serverName share plus logon credentials and lb directory using a wizard 
         '''
-        if socket.gethostname()=="sven-V5-171":
-           wizard = EcWizard(parent=self, username="sven", domain="HSH", servername="odroid/lb_share", 
+        if socket.gethostname() == "sven-V5-171":
+            wizard = EcWizard(parent=self, username="sven", domain="HSH", servername="odroid/lb_share",
                           wizardType=EcWizard.TYPE_LB_SELECTION)
         else:
-           wizard = EcWizard(parent=self, wizardType=EcWizard.TYPE_LB_SELECTION)
+            wizard = EcWizard(parent=self, wizardType=EcWizard.TYPE_LB_SELECTION)
        
         wizard.setModal(True)
         result = wizard.exec_()
-        print("I'm done, wizard result="+str(result))
-        if result==1:
-            print("selected values: %s - %s - %s - %s"%
+        print("I'm done, wizard result=" + str(result))
+        if result == 1:
+            print("selected values: %s - %s - %s - %s" % 
                   (wizard.field("username"), wizard.field("password"), wizard.field("servername"), wizard.defaultShare))    
             
             self.network_username = wizard.field("username")
@@ -444,14 +443,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.network_servername = wizard.server.serverName
             
             self.lb_directory = "//" + self.network_servername + "/" + wizard.defaultShare
-            self.lb_directory = self.lb_directory.replace("/","#" )    
+            self.lb_directory = self.lb_directory.replace("/", "#")    
                      
-            self.setWindowTitle(self.appTitle + " - LB-Verzeichnis::"+self.lb_directory.split("#")[-1])
-            self.log("setup LB directory: "+self.lb_directory)
+            self.setWindowTitle(self.appTitle + " - LB-Verzeichnis::" + self.lb_directory.split("#")[-1])
+            self.log("setup LB directory: " + self.lb_directory)
             self.btnPrepareExam.setEnabled(True)
             
         else:
             print("TODO: offer fallback with local shares?")
+        
+    def handleLogFiles(self):
+        '''
+        on demand, store all client logs as PDF
+        todo - test
+        '''
+        fname = QFileDialog.getOpenFileName(self, 'Zielverzeichnis für Logdaten', 
+                                            self.lb_server, options=QFileDialog.ShowDirsOnly)
+        if fname != '':
+            clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+            for client in clients:
+                pdfFileName = fname + "/" +client.computer.getCandidateName().replace(" ","_")+".pdf"
+                LogfileHandler(client.computer.logfile, client.computer.getCandidateName()).\
+                    createPdf(pdfFileName)
+        pass
         
     def selectExam(self):
         '''
@@ -467,54 +481,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         * conn.connect("odroid")
         * "; ".join([x.name for x in conn.listShares()])
         '''
-        #fname = QFileDialog.getOpenFileUrl(self, 'LB-Daten auswählen', QUrl.fromUserInput(self.lb_server), options=QFileDialog.ShowDirsOnly)
-        #fname = QFileDialog.getOpenFileName(self, 'LB-Daten auswählen', self.lb_server, options=QFileDialog.ShowDirsOnly)
+        # fname = QFileDialog.getOpenFileUrl(self, 'LB-Daten auswählen', QUrl.fromUserInput(self.lb_server), options=QFileDialog.ShowDirsOnly)
+        # fname = QFileDialog.getOpenFileName(self, 'LB-Daten auswählen', self.lb_server, options=QFileDialog.ShowDirsOnly)
         fname = QFileDialog.getExistingDirectoryUrl(self, 'LB-Daten auswählen', dir=QUrl.fromUserInput(self.lb_server), options=QFileDialog.ShowDirsOnly)
-        if fname!="":
+        if fname != "":
             self.log("Path selected: {}".format(fname.url()))
             self.lb_directory = fname.url()
-            if os.name=="posix":
+            if os.name == "posix":
                 if self.debug: 
                     self.log(self.lb_directory)
                 self.lb_directory = self.lb_directory.replace("file:///run/user/1000/gvfs/smb-share:serverName=", "##")
-                self.lb_directory = self.lb_directory.replace(",share=","/" )
+                self.lb_directory = self.lb_directory.replace(",share=", "/")
             else:
-                self.lb_directory = self.lb_directory.replace("file:","")
+                self.lb_directory = self.lb_directory.replace("file:", "")
                 # if local directory was selected (e.g. C:\ or D:\), create Share with PowerShell
-                if (self.lb_directory.find("C:/")>-1 or self.lb_directory.find("D:/")>-1):
+                if (self.lb_directory.find("C:/") > -1 or self.lb_directory.find("D:/") > -1):
                     sharename = self.lb_directory.split("/")[-1] 
-                    smbShareCreateCommand="New-SmbShare -Name {} -Path {} -ReadAccess winrm,sven".format(sharename, self.lb_directory.replace("///",""))
-                    self.log("Creating new share: "+smbShareCreateCommand)
+                    smbShareCreateCommand = "New-SmbShare -Name {} -Path {} -ReadAccess winrm,sven".format(sharename, self.lb_directory.replace("///", ""))
+                    self.log("Creating new share: " + smbShareCreateCommand)
                     try:
                         self.__runLocalPowerShellAsRoot(smbShareCreateCommand)
                         self.sharenames.append(sharename)
-                        self.lb_directory = "//"+socket.gethostname() + "/" + sharename # important: update directory string to match smb-path
+                        self.lb_directory = "//" + socket.gethostname() + "/" + sharename  # important: update directory string to match smb-path
                     except Exception as ex:
                         self.showMessageBox("Fehler", "Share konnte nicht eingerichtet werden")
-                        self.log("Share konnte nicht eingerichtet werden: "+str(ex))
+                        self.log("Share konnte nicht eingerichtet werden: " + str(ex))
                         self.lb_directory = None
                         sharename = None
                     
-                self.lb_directory = self.lb_directory.replace("/","#" )    
+                self.lb_directory = self.lb_directory.replace("/", "#")    
                  
-            self.setWindowTitle(self.appTitle + " - Modul::"+self.lb_directory.split("#")[-1])
+            self.setWindowTitle(self.appTitle + " - Modul::" + self.lb_directory.split("#")[-1])
             self.log(self.lb_directory)
             self.btnPrepareExam.setEnabled(True)
         
     def __runLocalPowerShellAsRoot(self, command):
         # see https://docs.microsoft.com/en-us/windows/desktop/api/shellapi/nf-shellapi-shellexecutew#parameters
-        retval = ctypes.windll.shell32.ShellExecuteW(None ,"runas",  # runas admin, 
-            "C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",  #file to run
-            command, # actual powershell command
-            None, 0) # last param disables popup powershell window...
+        retval = ctypes.windll.shell32.ShellExecuteW(None , "runas",  # runas admin, 
+            "C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",  # file to run
+            command,  # actual powershell command
+            None, 0)  # last param disables popup powershell window...
     
         if retval != 42:
-            self.log("ReturnCode after creating smbShare: "+str(retval))
+            self.log("ReturnCode after creating smbShare: " + str(retval))
             subprocess.run(["C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\powershell.exe", "Get-SmbShare"])
-            raise Exception("ReturnCode after running powershell: "+str(retval))
+            raise Exception("ReturnCode after running powershell: " + str(retval))
         
     def __openFile(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file','/home')
+        fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
         if fname[0]:
             f = open(fname[0], 'r')
         with f:
@@ -535,9 +549,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 currentObject.setOwnToolTip()
                 return True
             else:
-                self.log(str(type(currentObject))+" not recognized")           
+                self.log(str(type(currentObject)) + " not recognized")           
              
-        #elif event.type() == QEvent.Leave:
+        # elif event.type() == QEvent.Leave:
         #    pass
         return False
 
@@ -555,7 +569,7 @@ if __name__ == '__main__':
     if os.name == "posix":
         os.chdir(os.path.dirname(__file__))
     else:
-        #os.chdir(os.path.dirname(sys.path[0]))
+        # os.chdir(os.path.dirname(sys.path[0]))
         os.chdir(os.path.dirname(__file__))
     
     app = QApplication(sys.argv)

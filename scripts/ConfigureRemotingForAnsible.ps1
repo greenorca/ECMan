@@ -68,6 +68,8 @@ Param (
     [switch]$EnableCredSSP
 )
 
+$imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-7.0.8-32-Q16-x64-dll.exe"
+
 Function Write-Log
 {
     $Message = $args[0]
@@ -252,17 +254,35 @@ else {
     write-host "Benutzer 'winrm' vorhanden, alles gut"
 }
 
+takeown /F "C:\Windows\Web\Screen\*"
+icacls "C:\Windows\Web\Screen\*" /grant ("winrm"+":(OI)(CI)F")
+
 $erg = Get-LocalUser | Where-Object { $_.Name -eq "student" }
 if (-not($erg)) {
 	Write-Host "Benutzer nicht vorhanden"; 
 	New-LocalUser -Name student -Password("tennesosse-42"| ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword
-	Add-LocalGroupMember -Group Hauptbenutzer -Member student;
+	Add-LocalGroupMember -Group Hauptbenutzer -Member student  -ErrorAction Ignore;
 } 
 else { 
 	write-host "Benutzer 'student' vorhanden, alles palletti" 
-    Remove-LocalGroupMember -Group adminstratoren -Member "student" -Force -ErrorAction SilentlyContinue
-    Add-LocalGroupMember -Group Hauptbenutzer -Member student;
+    Remove-LocalGroupMember -Group adminstratoren -Member "student" -ErrorAction Ignore
+    Add-LocalGroupMember -Group Hauptbenutzer -Member student -ErrorAction Ignore
 } 
+
+# Addon Sven: install imagemagick
+
+$src = $imageMagick_src
+$dst = "C:\tmp"
+Write-Host "Downloade imagemagick"
+Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -Path $dst -Force -ItemType directory
+
+$dst = "C:\tmp\imagemagick.exe"
+Invoke-WebRequest $src -OutFile $dst
+
+Write-Host "Installiere imagemagick"
+[System.Diagnostics.Process]::Start($dst, "/VERYSILENT")
+Write-Host "Fertig Installiert: imagemagick"
 
 # Addon Sven: deaktiviere Dienste: WindowsUpdates, Windows Search und "Intelligenter Hintergrundübertragungsdienst"
 

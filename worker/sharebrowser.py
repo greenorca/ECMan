@@ -55,11 +55,11 @@ if __name__ == "__main__":
     
     if os.name=="posix":
         server = ShareBrowser("odroid", "winrm", "lalelu", is_direct_tcp=True, port=445)
-        server = ShareBrowser("192.168.56.101", "sven", "lalelu", domain="green-orca.com", is_direct_tcp=True, port=445)
+        #server = ShareBrowser("192.168.56.101", "sven", "lalelu", domain="green-orca.com", is_direct_tcp=True, port=445)
         sharename = "lb_share"
         folder=""
-        sharename = "documents"
-        folder="lb_share"
+        #sharename = "documents"
+        #folder="lb_share"
     else:
         server = ShareBrowser("W10ACCL0", "winrm", "lalelu")
         server = ShareBrowser("WIN-DC1", "sven", "lalelu", domain="green-orca.com", is_direct_tcp=True, port=445)

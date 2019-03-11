@@ -110,7 +110,6 @@ class RetrieveResultsTask(QRunnable):
     def run(self):
         try:
             # test connectivity
-            
             if (self.client.computer.testPing(self.dst.replace("##","").replace("\\\\","").split("#")[0])==False):
                 print("tear down firewall for client ")
                 self.client.computer.allowInternetAccess()
@@ -286,7 +285,7 @@ class SetCandidateNameTask(QtCore.QRunnable):
     
     def run(self):
         try:
-            self.client.setCandidateName(self.candidateName, doUpdate=True)
+            self.client.setCandidateName(self.candidateName, doUpdate=True, doReset=True)
         except Exception as ex:
             print("Died while setting candidate name: "+str(ex))
         self.connector.threadFinished.emit(1)

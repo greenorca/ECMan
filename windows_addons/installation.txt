@@ -52,9 +52,10 @@ magick convert -font arial -fill white -pointsize 120 -draw "text 200,200 'Hallo
 
 --> make sure to use the new pic as lock screen using GPO (see https://community.spiceworks.com/topic/1262253-change-windows-10-lock-screen-background-image-gp)
 
-(Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\").LockScreen
-Image
-Set-ItemProperty -Name LockScreenImage -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -Value C:\Windows\Web\Screen\img101_named.png
+#ensure the respective folder is available
+New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -ErrorAction Ignore
+Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -Name LockScreenImage -Value "C:\Windows\Web\Screen\img103.png"
+Write-Host (Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\").LockScreenImage
 
 # run scripts on windows:
 

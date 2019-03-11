@@ -19,6 +19,7 @@ class LbClient(QPushButton):
         QPushButton.__init__(self,self.computer.ip)
         self.parentApp = parentApp
         self.log = LbClient.Log()
+        
         self.isSelected = False
         self.lastUpdate = None
         myThread = LbClient.CheckStatusThread(self)
@@ -79,11 +80,11 @@ class LbClient(QPushButton):
             self.setCandidateName(candidateName)
         pass
     
-    def setCandidateName(self, candidateName, doUpdate = True):
+    def setCandidateName(self, candidateName, doUpdate = True, doReset=False):
         '''
         sets candidate name on remote computer 
         '''
-        self.computer.setCandidateName(candidateName)
+        self.computer.setCandidateName(candidateName, doReset)
         if doUpdate:
             self.setLabel()
         
