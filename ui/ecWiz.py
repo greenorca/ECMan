@@ -37,9 +37,11 @@ class EcWizard(QWizard):
         
         self.title = "LB-Auswahl"
         self.subtitle = "Wählen Sie die zu kopierende LB aus"
+        self.type = self.TYPE_LB_SELECTION
         if wizardType == self.TYPE_RESULT_DESTINATION:
             self.title = "Zielverzeichnis für Kandidatendaten auswählen"
             self.subtitle= "Bitte Verzeichnis mit Klassennamen auswählen.<br>Das Modulverzeichnis für LB wird automatisch erstellt."
+            self.type = self.TYPE_RESULT_DESTINATION
         
         self.config = ConfigParser()
         self.configFile = Path(str(Path.home())+"/.ecman.conf")
@@ -213,7 +215,12 @@ class Page2(QWizardPage):
         # self.folderList.itemClicked.connect(self.validateSelection)
         folderListBox = QWidget()
         folderListBoxLayout = QVBoxLayout()
-        folderListBoxLayout.addWidget(QLabel("Modul auswählen:"))
+
+        folderListHeaderMessage = "Modul hier auswählen:"
+        if self.wizard().type == EcWizard.TYPE_RESULT_DESTINATION:
+            folderListHeaderMessage = "Klasse hier auswählen"
+        folderListBoxLayout.addWidget(QLabel(folderListHeaderMessage))
+        
         folderListBoxLayout.addWidget(self.folderList)
         folderListBox.setLayout(folderListBoxLayout)
         
@@ -281,39 +288,17 @@ def someFun():
 if __name__ == '__main__':
     import sys
     app = QApplication(sys.argv)
-    wizard = EcWizard(parent=None, username="sven", domain="HSH", servername="odroid/lb_share")
+    wizard = EcWizard(parent=None, username="sven.schirmer@wiss-online.ch", 
+                      domain="", servername="NSSGSC01/LBV", wizardType=EcWizard.TYPE_RESULT_DESTINATION)
     wizard.setModal(True)
     result = wizard.exec_()
     print("I'm done, wizard result="+str(result))
     if result==1:
         print("selected values: %s - %s - %s - %s"%
-              (wizard.field("username"), wizard.field("password"), wizard.field("servername"), wizard.defaultShare))    
+              (wizard.field("username"), "*****", wizard.field("servername"), wizard.defaultShare))    
     #app.exec_()
     
-'''
-## im Windows (auf WISS-PC) den Domänennamen weglassen
-
-## Ich sehe das LBV-Share nicht vom Linux...
-
-sven@sven-N13xWU:~$ smbclient -L 10.103.0.95 -W WISS-SC -U sven.schirmer@wiss-online.ch
-
-WARNING: The "syslog" option is deprecated
-Enter sven.schirmer@wiss-online.ch's password: 
-
-    Sharename       Type      Comment
-    ---------       ----      -------
-    IPC$            IPC       IPC Service ()
-    OpenshareSG     Disk      
-Reconnecting with SMB1 for workgroup listing.
-
-    Server               Comment
-    ---------            -------
-    NSSGSC01             
-
-    Workgroup            Master
-    ---------            -------
-    WISS-SC     
-    
+'''    
     smbclient -k //win-serverName/share$/folder
 tree connect failed: NT_STATUS_BAD_NETWORK_NAME
 

@@ -3,10 +3,8 @@ from winrm import Session
 from base64 import b64encode
 import time, re, datetime
 from enum import Enum
-from PySide2.QtCore import QRunnable
 
 import logging
-import logging.handlers as handlers
 
 
 '''
@@ -86,7 +84,7 @@ class Computer(object):
         self.__usbBlocked = "unbekannt"
         self.__internetBlocked = "unbekannt"
         
-        self.logger = logging.getLogger('ecman')
+        self.logger = logging.getLogger('ecman-clientlog_{}_{}.log'.format(str(datetime.date.today()),self.ip))
         self.logfile_name = 'logs/client_{}_{}.log'.format(str(datetime.date.today()),self.ip)
         hdlr = logging.FileHandler(self.logfile_name)
         formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
@@ -576,7 +574,37 @@ class Computer(object):
             print("fetched previous data dir: "+self.lb_dataDirectory)
                     
         return True;
-      
+    
+    def createBunchOfStupidFiles(self,numberOfFiles=1000):
+        command='for /l %x in (1, 1, {0}) do echo %x > C:\\Users\\'+ \
+            self.candidateLogin+'\\Desktop\\LB_Daten\\%x.txt'.format(numberOfFiles)
+        status = self.(command, [])
+        self.logger.info("Created bunch of files: "+str(status)) 
+    
+    def checkFileSanity(self, maxFiles=100, maxFileSize=100000):
+        '''
+        tests if remote Desktop contains less than maxFiles with a total size less than maxFileSize (in bytes)
+        '''
+        command = '$summary=(Get-ChildItem -Recurse C:\\Users\\'+self.candidateLogin +'\\Desktop) | Measure-Object -property length -sum; Write-Host "Files:" $summary.Count "; Size:" $summary.Sum;'
+        out, err, status = self.runPowerShellCommand(command)
+        
+        if status != self.STATUS_OK:
+            self.logger.error("Error checking remote desktop sanity: "+err)
+            return False;
+        
+        self.logger.info(out)
+        
+        files, size = out.replace("Files:","").replace("Size:","").split(";")
+        errors = 0
+        if int(files)>maxFiles:
+            self.logger.warning("Desktop enthält zu viele Dateien: "+files)
+            errors += 1
+        if int(size)>maxFileSize:
+            self.logger.warning("Desktop-Dateien in Summe zu gross: "+size)
+            errors += 1
+        
+        return errors == 0
+        
     def getHostName(self):
         '''
         returns hostname for given ip
@@ -611,7 +639,7 @@ class Computer(object):
     def shutdown(self):
         self.logger.info("PC wird heruntergefahren")
         try:
-            return self.__runRemoteCommand("shutdown /s /t 0", []) == self.STATUS_OK
+            return self.__runRemoteCommand("shutdown /s /t 3", []) == self.STATUS_OK
                 
         except Exception as ex:
             print(ex) 
@@ -622,7 +650,7 @@ class Computer(object):
     def reboot(self):
         self.logger.info("PC wird neu gestartet")
         try:
-            return self.__runRemoteCommand("shutdown /r /t 0", []) == self.STATUS_OK
+            return self.__runRemoteCommand("shutdown /r /t 2", []) == self.STATUS_OK
                 
         except Exception as ex:
             print(ex) 
@@ -816,8 +844,8 @@ class Computer(object):
         
         if status == self.STATUS_OK:
             self.state = Computer.State.STATE_FINISHED
-            self.logger.info("Kopieren der Prüfungsleistungen auf Server war erfolgreich.")
-            return True, ""
+            self.logger.info("<h3>Kopieren der Prüfungsleistungen auf Server war erfolgreich.</h3> <p>Details: "+error.decode("850").replace('\r\n','<br>\n').replace('\n','<br>\n')+"</p>")
+            return True, error.decode("850")
         
         else:
             self.state = Computer.State.STATE_RETRIVAL_FAIL            
@@ -840,8 +868,6 @@ class Computer(object):
         encoded_ps = b64encode(script.encode('utf_16_le')).decode('ascii')
         command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
         std_out, std_err, status = p.get_command_output(shell_id, command_id)
-        if status != self.STATUS_OK:
-            print("error running script on client: "+str(std_err))
         p.cleanup_command(shell_id, command_id)
         p.close_shell(shell_id)
         
@@ -851,11 +877,12 @@ class Computer(object):
                 print(line)
             
         if status!=self.STATUS_OK or not(std_out.rstrip().endswith(b"SUCCESS")):            
+            print("error running script on client: ")
             print("status_code: " + str(status))
             print("error_code: " + str(std_err))
             return -1, b"ERROR"+std_out.rstrip().split(b"ERROR")[-1]
                         
-        return status, std_err
+        return status, std_out
                 
     def __runPowerShellScript(self, scriptfile="FileCopy.ps1", isFile=True):
         '''
@@ -885,13 +912,21 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.114', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
-    # compi = Computer('172.23.43.20', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
+    compi = Computer('192.168.0.105', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
+    #err, result = compi.retrieveClientFiles("##odroid#lb_share#Ergebnisse", "winrm", "lalelu", "HSH")
+    #compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
     # compi.reset(True)
-    
+    #err, result = compi.retrieveClientFiles("##nssgsc01#lbv#erg#ifz826", "sven.schirmer@wiss-online.ch", "Februar2019", "")
+    compi.createBunchOfStupidFiles()
+    result = compi.checkFileSanity(100, 1000000)
+    #print(err)
+    print(result)
+    with open(compi.logfile_name) as log:
+        print("\n".join(log.readlines()))
+        
     tests = ["checkUserConfig", "read_old_state", "deploy_retrieve", 
              "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
-    currentTest = tests[4]
+    currentTest = tests[42]
     
     if currentTest == "checkUserConfig":
         assert(compi.checkStatusFile())

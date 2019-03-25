@@ -2,12 +2,17 @@
 # Eine angegebenen Sitzung ist nicht vorhanden. Sie wurde möglicherweise bereits beendet"
 Fehler beim Zuordnen zu einem Netzlaufwerk von einer DFS-Freigabe
 
+## actually...
+
+USE Domain (especially back home on odroid)
+
 ## siehe auch
 
 https://support.microsoft.com/de-de/help/968264/error-message-when-you-try-to-map-to-a-network-drive-of-a-dfs-share-by
 
 ## Ursache
-Dieses Verhalten tritt auf, wenn der Netzwerkzugriffsrichtlinie "Speicherung von Anmeldeinformationen oder für die Netzwerkauthentifizierung nicht zulassen" aktiviert ist.
+Dieses Verhalten tritt auf, wenn der Netzwerkzugriffsrichtlinie 
+"Speicherung von Anmeldeinformationen oder für die Netzwerkauthentifizierung nicht zulassen" aktiviert ist.
 Problemumgehung
 Gehen Sie folgendermaßen vor, um dieses Verhalten zu umgehen:
 

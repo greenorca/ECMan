@@ -139,6 +139,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="btnSaveExamLog">
+        <property name="text">
+         <string>Prüfungslog speichern</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -150,30 +157,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnSendMessage">
-        <property name="toolTip">
-         <string>sendet Nachricht an alle ausgewählten Clients.</string>
-        </property>
-        <property name="text">
-         <string>Benutzer benachrichtigen</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnResetAllClients">
-        <property name="text">
-         <string>Alle Clients zurücksetzen</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnUnselectAllClients">
-        <property name="text">
-         <string>Alle Clients deaktivieren</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </item>
@@ -320,7 +303,19 @@
     </property>
     <addaction name="actionBearbeiten"/>
    </widget>
+   <widget class="QMenu" name="menuBatch_Operationen">
+    <property name="title">
+     <string>&amp;Batch-Operationen</string>
+    </property>
+    <addaction name="actionAlle_Clients_zur_cksetzen"/>
+    <addaction name="actionAlle_Clients_deaktivieren"/>
+    <addaction name="actionAlle_Clients_rebooten"/>
+    <addaction name="actionAlle_Clients_herunterfahren"/>
+    <addaction name="separator"/>
+    <addaction name="actionAlle_Benutzer_benachrichtigen"/>
+   </widget>
    <addaction name="menuKonfiguration"/>
+   <addaction name="menuBatch_Operationen"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="sizePolicy">
@@ -339,6 +334,31 @@
   <action name="actionBearbeiten">
    <property name="text">
     <string>&amp;Bearbeiten</string>
+   </property>
+  </action>
+  <action name="actionAlle_Clients_zur_cksetzen">
+   <property name="text">
+    <string>&amp;Alle Clients zurücksetzen</string>
+   </property>
+  </action>
+  <action name="actionAlle_Clients_deaktivieren">
+   <property name="text">
+    <string>Alle &amp;Clients deaktivieren</string>
+   </property>
+  </action>
+  <action name="actionAlle_Clients_rebooten">
+   <property name="text">
+    <string>Alle Clients &amp;rebooten</string>
+   </property>
+  </action>
+  <action name="actionAlle_Clients_herunterfahren">
+   <property name="text">
+    <string>Alle Clients &amp;herunterfahren</string>
+   </property>
+  </action>
+  <action name="actionAlle_Benutzer_benachrichtigen">
+   <property name="text">
+    <string>Alle &amp;Benutzer benachrichtigen</string>
    </property>
   </action>
  </widget>

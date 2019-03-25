@@ -177,11 +177,12 @@ class LbClient(QPushButton):
         try:
             status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
             if status != True:
-                self.log.append(msg=" error: retrieving files from client: "+filepath+", cause: "+error)
+                self.log.append(msg=" error: retrieving files from client: "+
+                                filepath+", cause: "+error)
             else:
-                self.log.append(msg=" success: retrieved files from client: "+filepath)
+                self.log.append(msg=" success: retrieved files from client: "+
+                                filepath)
                 self.isSelected = False;
-                self.setOwnToolTip() 
 
         except Exception as ex:
             self.log.append(msg=" Exception retrieving client files: "+str(ex))
@@ -345,8 +346,9 @@ class LbClient(QPushButton):
         
         def run(self):
             if self.widget.computer.shutdown() == True:
-                self.widget.setEnabled(False)
-                colorString = "background-color: grey;"
-                self.widget.setStyleSheet("QPushButton {"+ colorString + "}")
+                self.widget.deleteLater()
 
+            else:
+                colorString = "background-color: red;"
+                self.widget.setStyleSheet("QPushButton {"+ colorString + "}")
 

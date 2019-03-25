@@ -5,7 +5,7 @@ Get-ChildItem "Desktop" | Foreach-Object {
  
  Get-ChildItem "Desktop" | Foreach-Object { 
     
-    Write-Host $_.FullName "::"  $_.PSIsContainer
+    Write-Host $_.FullName "::"  $_.PSIContainer
     
 } 
  

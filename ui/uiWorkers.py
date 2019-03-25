@@ -110,11 +110,13 @@ class RetrieveResultsTask(QRunnable):
     def run(self):
         try:
             # test connectivity
-            if (self.client.computer.testPing(self.dst.replace("##","").replace("\\\\","").split("#")[0])==False):
+            if (self.client.computer.testPing(self.dst.replace("##","").
+                        replace("\\\\","").split("#")[0])==False):
                 print("tear down firewall for client ")
                 self.client.computer.allowInternetAccess()
             
-            self.client.retrieveClientFiles(self.dst, self.server_user, self.server_passwd, self.server_domain)        
+            self.client.retrieveClientFiles(self.dst, 
+                        self.server_user, self.server_passwd, self.server_domain)        
             
         except Exception as ex:
             print("crashed retrieving results into dst: {} because of {}".format(self.dst, ex))
@@ -147,7 +149,8 @@ class RetrieveResultsWorker(QThread):
     def run(self):
         threads = QThreadPool()
         threads.setMaxThreadCount(10)
-        for client in self.clients:       
+        for client in self.clients: 
+            print("setup file retrival for "+client.computer.getCandidateName())      
             thread = RetrieveResultsTask(client, self.dst, self.server_user, self.server_passwd, self.server_domain)
             thread.connector.threadFinished.connect(self.updateProgress)
             threads.start(thread)
@@ -285,7 +288,7 @@ class SetCandidateNameTask(QtCore.QRunnable):
     
     def run(self):
         try:
-            self.client.setCandidateName(self.candidateName, doUpdate=True, doReset=True)
+            self.client.setCandidateName(self.candidateName, doUpdate=True, doReset=False)
         except Exception as ex:
             print("Died while setting candidate name: "+str(ex))
         self.connector.threadFinished.emit(1)

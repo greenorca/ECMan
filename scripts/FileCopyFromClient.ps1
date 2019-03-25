@@ -19,7 +19,7 @@ $maxFilesize = $maxFilesize$
 echo $dst
 
 Try{
-	Remove-PSDrive -Name x -ErrorAction Ignore
+	net use * /del /y
 	$Error.Clear()
 	
 	$pwd = ConvertTo-SecureString -String $server_pwd -AsPlainText -Force
@@ -33,29 +33,16 @@ Try{
         throw [System.IO.FileNotFoundException]::new("Cannot map network (copy back to server): "+$Error[0].Exception.Message)
     }
 	    
-	# Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
 	
-	$items = Get-ChildItem $src -Recurse
-	foreach($i in $items){
-        Write-Host $i.Fullname
-		if($i.Attributes -like "Directory" -OR $i.Length -le $maxFilesize){ 
-            $fileDst = "x:\$module$\$candidateName$\"+$i.FullName.replace($src.replace("*",""),"")
-            Write-Host "Copy " $i.FullName " to " $fileDst
-			Copy-Item $i.FullName -Destination $fileDst
-			}
-		else {
-			Write-Host "WARNUNG: Datei zu gross "+$i.Fullname
-		}
-	}
-	
+	Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
 	
 	if ($Error[0].Exception.Messsage){ 
 	    	throw [System.IO.FileNotFoundException]::new("Crashed copying files back to server: "+$Error[0].Exception.Message)
 	    }
 	    
-	net use x: /delete
+	net use * /delete /y
 	
 	$file = 'c:\Users\winrm\ecman.json';
 	if (Get-Item $file 2> $null) { Write-Host "File found, OK" } 

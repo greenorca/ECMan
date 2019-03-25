@@ -258,15 +258,6 @@ else {
     write-host "Benutzer '$adm' vorhanden, alles gut"
 }
 
-
-
-takeown /F $lockscreen_picture /A
-$acl = Get-Acl -path $lockscreen_picture
-$rule = New-Object system.Security.AccessControl.FileSystemAccessRule($adm,"FullControl","Allow")
-$acl.SetAccessRule($rule)
-Set-Acl $lockscreen_picture $acl
-
-
 $erg = Get-LocalUser | Where-Object { $_.Name -eq "student" }
 if (-not($erg)) {
 	Write-Host "Benutzer nicht vorhanden"; 
@@ -279,7 +270,14 @@ else {
     Add-LocalGroupMember -Group Hauptbenutzer -Member student -ErrorAction Ignore
 } 
 
-# Addon Sven: install imagemagick
+# setup lockscreen configuration requirements (so I can write a name on it)
+takeown /F $lockscreen_picture /A
+$acl = Get-Acl -path $lockscreen_picture
+$rule = New-Object system.Security.AccessControl.FileSystemAccessRule($adm,"FullControl","Allow")
+$acl.SetAccessRule($rule)
+Set-Acl $lockscreen_picture $acl
+
+# install imagemagick
 
 $src = $imageMagick_src
 $dst = "C:\tmp"
@@ -293,6 +291,10 @@ Invoke-WebRequest $src -OutFile $dst
 Write-Host "Installiere imagemagick"
 [System.Diagnostics.Process]::Start($dst, "/VERYSILENT")
 Write-Host "Fertig Installiert: imagemagick"
+
+
+# fix wierd SMB error (hopefully): "Eine angegebene Anmeldesitzung ist nicht vorhanden. Sie wurde gegebenenfalls bereits beendet"
+Set-ItemProperty -Name DisableDomainCreds -Path "HKLM:\\System\CurrentControlSet\Control\Lsa\" -Value 1
 
 # Addon Sven: deaktiviere Dienste: WindowsUpdates, Windows Search und "Intelligenter Hintergrundübertragungsdienst"
 

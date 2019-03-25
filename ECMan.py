@@ -22,6 +22,11 @@ from ui.ecWiz import EcWizard
 Start app for exam deployment software
 author: Sven Schirmer
 last_revision: 2019-02-04
+
+TODO:
+crashes when retrieving deep dir structures -- tested, works@home!
+crashes on shutdown all clients
+
 '''
 
 
@@ -34,6 +39,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.btnDetectClient.clicked.connect(self.detectClients)
         
+        self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
+        
         self.btnSelectExam.clicked.connect(self.selectExamByWizard)
         self.btnSelectExam.setEnabled(True)
         
@@ -42,14 +49,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.btnGetExams.clicked.connect(self.retrieveExamFilesByWizard)
         self.btnGetExams.setEnabled(True)
+        self.btnSaveExamLog.clicked.connect(self.saveExamLog)
+        #self.btnSaveExamLog.setEnabled(False)
         
-        self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
-        self.btnUnselectAllClients.clicked.connect(self.unselectAllCLients)
-           
         self.actionBearbeiten.triggered.connect(self.openConfigDialog)      
-        
-        self.btnSendMessage.clicked.connect(self.sendMessage)
-        self.btnResetAllClients.clicked.connect(self.resetClients)
+        self.actionAlle_Clients_deaktivieren.triggered.connect(self.unselectAllCLients)
+        self.actionAlle_Benutzer_benachrichtigen.triggered.connect(self.sendMessage)
+        self.actionAlle_Clients_zur_cksetzen.triggered.connect(self.resetClients)
+        self.actionAlle_Clients_rebooten.triggered.connect(self.rebootAllClients)
+        self.actionAlle_Clients_herunterfahren.triggered.connect(self.shutdownAllClients)
                
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
                 
@@ -128,6 +136,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i in range(self.grid_layout.count()): 
             self.grid_layout.itemAt(i).widget().unselect()
     
+    def shutdownAllClients(self):
+        for i in range(self.grid_layout.count()): 
+            self.grid_layout.itemAt(i).widget().shutdownClient()
+    
+    def rebootAllClients(self):
+        for i in range(self.grid_layout.count()): 
+            self.grid_layout.itemAt(i).widget().computer.reboot()
+
     def sendMessage(self):
         
         message, ok = QInputDialog.getText(self, "Eingabe", "Nachricht an Kandidaten eingeben")
@@ -249,7 +265,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnSelectAllClients.setEnabled(enable)           
         self.btnPrepareExam.setEnabled(enable)
         self.btnGetExams.setEnabled(enable)
-        self.btnResetAllClients.setEnabled(enable)
         self.btnDetectClient.setEnabled(enable)        
         
     def retrieveExamFilesByWizard(self):
@@ -290,8 +305,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.result_directory.replace("#", "/")))
             
         if retVal == QMessageBox.StandardButton.Yes:
-            wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername,
+            if socket.gethostname() == "sven-V5-171":
+                wizard = EcWizard(parent=self, username="sven", domain="HSH", servername="odroid/lb_share",
+                          wizardType=EcWizard.TYPE_LB_SELECTION)
+            else:
+                wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername,
                           wizardType=EcWizard.TYPE_RESULT_DESTINATION)
+                wizard = EcWizard(parent=self, username="sven.schirmer@wiss-online.ch", domain="", servername="NSSGSC01/LBV",
+                          wizardType=EcWizard.TYPE_LB_SELECTION)
+            
             wizard.setModal(True)
             result = wizard.exec_()
             print("I'm done, wizard result=" + str(result))
@@ -329,6 +351,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()        
         
+        self.btnSaveExamLog.setEnabled(True)
+        
         '''
         if not(sharename in self.sharenames): 
             smbShareCreateCommand="New-SmbShare -Name {} -Path {} -FullAccess winrm,sven".format(sharename, self.result_directory.replace("///",""))
@@ -342,7 +366,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.result_directory = None
                 raise Exception("Share für Prüfungsergebnisse konnte nicht eingerichtet werden")  
         '''
-        
+      
+    
     def prepareExam(self):
         self.copyFilesToClient()
         pass
@@ -390,8 +415,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.enableButtons(enable=False)
         # clear previous client buttons
         try:
-            for i in range(self.grid_layout.count()): 
+            for i in reversed(range(self.grid_layout.count())): 
                 self.grid_layout.itemAt(i).widget().close()
+                self.grid_layout.itemAt(i).widget().deleteLater()
         except:
             pass
         self.clientFrame.setLayout(self.grid_layout)
@@ -428,6 +454,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                           wizardType=EcWizard.TYPE_LB_SELECTION)
         else:
             wizard = EcWizard(parent=self, wizardType=EcWizard.TYPE_LB_SELECTION)
+            wizard = EcWizard(parent=self, username="sven.schirmer@wiss-online.ch", domain="", servername="NSSGSC01/LBV", wizardType=EcWizard.TYPE_LB_SELECTION)
        
         wizard.setModal(True)
         result = wizard.exec_()
@@ -451,18 +478,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             print("TODO: offer fallback with local shares?")
         
-    def handleLogFiles(self):
+    def saveExamLog(self):
         '''
         on demand, store all client logs as PDF
         todo - test
         '''
-        fname = QFileDialog.getOpenFileName(self, 'Zielverzeichnis für Logdaten', 
-                                            self.lb_server, options=QFileDialog.ShowDirsOnly)
+        fname = QFileDialog.getExistingDirectory(self, 'Zielverzeichnis für Logdaten', options=QFileDialog.ShowDirsOnly)
         if fname != '':
             clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
             for client in clients:
                 pdfFileName = fname + "/" +client.computer.getCandidateName().replace(" ","_")+".pdf"
-                LogfileHandler(client.computer.logfile, client.computer.getCandidateName()).\
+                LogfileHandler(client.computer.logfile_name, client.computer.getCandidateName()).\
                     createPdf(pdfFileName)
         pass
         
