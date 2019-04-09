@@ -69,12 +69,17 @@ py ui\ecWiz.py
 1. install Python (python-3.6.8-webinstall)
 1. pip install PySide2==5.11.2, PyWinRm, 
 
+
+## mucho wichtig für die Logfiles:
+
+wkhtmltopdf installieren auf WIN-ECMan Rechner!
+
 ## Using PyInstaller
 
 ```
 pip install PyInstaller  (used ==3.3 for install problems with latest pip)
 
-pyinstaller --distpath C:\Users\Sven\Desktop\ --workpath C:\Users\Sven\tmp\ -i green_orca.ico --add-data ./scripts;./scripts ECMan.py
+pyinstaller --distpath C:\Users\172482\tmp\ --workpath C:\Users\172482\Desktop\WISS_LB_Deploy -i green_orca.ico --add-data ./scripts;./scripts ECMan.py
 
 
 ```

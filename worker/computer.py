@@ -578,12 +578,13 @@ class Computer(object):
     def createBunchOfStupidFiles(self,numberOfFiles=1000):
         command='for /l %x in (1, 1, {0}) do echo %x > C:\\Users\\'+ \
             self.candidateLogin+'\\Desktop\\LB_Daten\\%x.txt'.format(numberOfFiles)
-        status = self.(command, [])
+        status = self.__runRemoteCommand(command, [])
         self.logger.info("Created bunch of files: "+str(status)) 
     
     def checkFileSanity(self, maxFiles=100, maxFileSize=100000):
         '''
-        tests if remote Desktop contains less than maxFiles with a total size less than maxFileSize (in bytes)
+        returns True if remote Desktop contains less than maxFiles with a total size less than maxFileSize (in bytes)
+        returns False otherwise 
         '''
         command = '$summary=(Get-ChildItem -Recurse C:\\Users\\'+self.candidateLogin +'\\Desktop) | Measure-Object -property length -sum; Write-Host "Files:" $summary.Count "; Size:" $summary.Sum;'
         out, err, status = self.runPowerShellCommand(command)
@@ -599,9 +600,11 @@ class Computer(object):
         if int(files)>maxFiles:
             self.logger.warning("Desktop enthält zu viele Dateien: "+files)
             errors += 1
+            self.state = Computer.State.STATE_RETRIVAL_FAIL
         if int(size)>maxFileSize:
             self.logger.warning("Desktop-Dateien in Summe zu gross: "+size)
             errors += 1
+            self.state = Computer.State.STATE_RETRIVAL_FAIL
         
         return errors == 0
         
@@ -660,7 +663,7 @@ class Computer(object):
     
     def setLockScreenPicture(self, file="C:\\Windows\\Web\\Screen\\img100.jpg"):
         '''
-        add currently set candidate name to lock screen for this computer
+        add currently set candidate name to lock screen image for this computer
         '''
         command = []
         #command.append('takeown /F "{0}"'.format(file))
@@ -696,8 +699,8 @@ class Computer(object):
         '''
         supposed to blank screen on WIN computer; doesn't work remote yet...
         '''
-        command = r"powershell (Add-Type '[DllImport(\"user32.dll\")]^public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)"
-        command = r"%systemroot%\system32\scrnsave.scr /s"
+        #command = r"powershell (Add-Type '[DllImport(\"user32.dll\")]^public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)"
+        #command = r"%systemroot%\system32\scrnsave.scr /s"
         command = r"runas /user:Sven runas /user:student%systemroot%\system32\scrnsave.scr /s"
         self.__runRemoteCommand(command, [])
         
@@ -758,7 +761,7 @@ class Computer(object):
         try:
             with open("scripts/FileCopy.ps1") as file:
                 script = file.read()
-        except Exception as ex:
+        except Exception:
             with open("../scripts/FileCopy.ps1") as file:
                 script = file.read()
         
@@ -914,7 +917,7 @@ class Computer(object):
 if __name__=="__main__":
     compi = Computer('192.168.0.105', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
     #err, result = compi.retrieveClientFiles("##odroid#lb_share#Ergebnisse", "winrm", "lalelu", "HSH")
-    #compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
+    compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
     # compi.reset(True)
     #err, result = compi.retrieveClientFiles("##nssgsc01#lbv#erg#ifz826", "sven.schirmer@wiss-online.ch", "Februar2019", "")
     compi.createBunchOfStupidFiles()

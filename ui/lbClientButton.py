@@ -173,16 +173,21 @@ class LbClient(QPushButton):
         self.setOwnToolTip() 
         self._colorizeWidgetByClientState()
 
-    def retrieveClientFiles(self, filepath, server_user, server_passwd, server_domain):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd, server_domain, maxFiles=500, maxFileSize=10000000):
         try:
-            status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
-            if status != True:
-                self.log.append(msg=" error: retrieving files from client: "+
-                                filepath+", cause: "+error)
+            if self.computer.checkFileSanity(maxFiles, maxFileSize):
+            
+                status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
+                if status != True:
+                    self.log.append(msg=" error: retrieving files from client: "+
+                                    filepath+", cause: "+error)
+                else:
+                    self.log.append(msg=" success: retrieved files from client: "+
+                                    filepath)
+                    self.isSelected = False;
+                    
             else:
-                self.log.append(msg=" success: retrieved files from client: "+
-                                filepath)
-                self.isSelected = False;
+                self.log.append(msg=" error: too much files on client system")
 
         except Exception as ex:
             self.log.append(msg=" Exception retrieving client files: "+str(ex))

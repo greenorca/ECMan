@@ -4,7 +4,7 @@ Created on Jan 19, 2019
 @author: sven
 '''
 
-import socket, time, random
+import socket, time
 from PySide2 import QtCore
 from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject, Signal
 from ui.lbClientButton import LbClient
@@ -39,7 +39,7 @@ class ScannerTask(QRunnable):
             ip = int(self.ip.split(".")[-1])
             self.connector.addClient.emit(ip)          
             
-        except Exception as ex:
+        except Exception:
             #print("crashed scanning IP {} because of {}".format(self.ip, ex))
             #===================================================================
             # r = random.Random()
@@ -98,7 +98,7 @@ class ScannerWorker(QThread):
     
 
 class RetrieveResultsTask(QRunnable):
-    def __init__(self, client:LbClient, dst: str, server_user, server_passwd, server_domain):
+    def __init__(self, client:LbClient, dst: str, server_user, server_passwd, server_domain, maxFiles=100, maxFileSize=100000):
         QRunnable.__init__(self)
         self.client = client
         self.dst = dst
@@ -106,6 +106,8 @@ class RetrieveResultsTask(QRunnable):
         self.server_user = server_user 
         self.server_passwd = server_passwd
         self.server_domain = server_domain
+        self.maxFiles = maxFiles
+        self.maxFileSize = maxFileSize
     
     def run(self):
         try:
@@ -116,7 +118,7 @@ class RetrieveResultsTask(QRunnable):
                 self.client.computer.allowInternetAccess()
             
             self.client.retrieveClientFiles(self.dst, 
-                        self.server_user, self.server_passwd, self.server_domain)        
+                        self.server_user, self.server_passwd, self.server_domain, self.maxFiles, self.maxFileSize)        
             
         except Exception as ex:
             print("crashed retrieving results into dst: {} because of {}".format(self.dst, ex))
@@ -323,9 +325,8 @@ class SetCandidateNamesWorker(QtCore.QThread):
             threads.start(task)
             print("candidate name setter thread started for "+self.candidateNames[i])
         
-        maxThreads = threads.activeThreadCount()
-         
         print("done thread setup, should all be running now")            
+        #maxThreads = threads.activeThreadCount()
         #while threads.activeThreadCount() > 0:
         #    self.updateProgress.emit(maxThreads - threads.activeThreadCount())
         #    time.sleep(1)

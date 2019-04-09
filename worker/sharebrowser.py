@@ -79,7 +79,7 @@ if __name__ == "__main__":
     print(os.linesep.join([x.name for x in shares]))
     try:
         fileList = server.conn.listPath(sharename, folder)
-        directories = os.linesep.join(x.filename for x in fileList if x.isDirectory)
+        directories = os.linesep.join(x.filename for x in fileList if x.isDirectory and x.filename!=".." and x.filename!=".")
         files = os.linesep.join(x.filename for x in fileList if not(x.isDirectory))
         print("================================")
         print("directories: " +directories)
@@ -87,6 +87,9 @@ if __name__ == "__main__":
         
     except Exception as ex:
         print("Unable to connect to shared device: "+str(ex))
+    
+    with open("/home/sven/Nextcloud/Documents/Projects/WISS_LB_Deploy/netzplan.png", "rb") as fileObj:
+        server.conn.storeFile(sharename, "Ergebnisse/netzplan.png", fileObj)
         
     server.disconnect()
     

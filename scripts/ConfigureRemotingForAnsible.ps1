@@ -69,9 +69,10 @@ Param (
 )
 
 $imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-i686-pc-windows.exe"
+$imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-7.0.8-35-Q16-x64-dll.exe"
 $adm = "winrm"
 $adm_pwd = "lalelu"
-$student_pwd = "tennesosse-42"
+$student_pwd = "student"
 $lockscreen_picture = "C:\Windows\Web\Screen\img100.jpg"
 
 Function Write-Log

@@ -28,13 +28,15 @@ class LogfileHandler:
             
         
         html_content = "<br>".join(content).\
-            replace("ü", "&uuml;").\
-            replace("ä", "&auml;").\
-            replace("ö", "&ouml").\
             replace("WARNING","<span style={color:'red'; font-weight:'bold';}>WARNING</span>)").\
             replace("ERROR","<span style={color:'red'; font-weight:'bold';}>ERROR</span>")
         
         html_content = "<articles><h1>Deployment Protokoll f&uuml;r {0}</h1>{1}</section>". \
             format(self.candidateName, html_content)
+        
+        html_content = html_content.replace("ü", "&uuml;").\
+            replace("ä", "&auml;").\
+            replace("ö", "&ouml")
+        
         
         pdfkit.from_string(html_content, targetFile)    

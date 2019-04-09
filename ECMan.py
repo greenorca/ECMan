@@ -7,9 +7,11 @@ from PySide2.QtCore import QUrl, QEvent, Qt, QThreadPool
 from threading import Thread
 from configparser import ConfigParser
 from pathlib import Path
+from datetime import date
 # import scripts.winrm_toolbox as remote_tools
-from worker.computer import Computer
 from worker.logfile_handler import LogfileHandler
+from worker.sharebrowser import ShareBrowser
+from worker.computer import Computer
 from ui.logger import Logger
 from ui.uiWorkers import ScannerWorker, CopyExamsWorker, RetrieveResultsWorker, ResetClientsWorker, SetCandidateNamesWorker, SendMessageTask
 from ui.lbClientButton import LbClient
@@ -21,11 +23,7 @@ from ui.ecWiz import EcWizard
 '''
 Start app for exam deployment software
 author: Sven Schirmer
-last_revision: 2019-02-04
-
-TODO:
-crashes when retrieving deep dir structures -- tested, works@home!
-crashes on shutdown all clients
+last_revision: 2019-03-26
 
 '''
 
@@ -312,7 +310,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername,
                           wizardType=EcWizard.TYPE_RESULT_DESTINATION)
                 wizard = EcWizard(parent=self, username="sven.schirmer@wiss-online.ch", domain="", servername="NSSGSC01/LBV",
-                          wizardType=EcWizard.TYPE_LB_SELECTION)
+                          wizardType=EcWizard.TYPE_RESULT_DESTINATION)
             
             wizard.setModal(True)
             result = wizard.exec_()
@@ -483,62 +481,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         on demand, store all client logs as PDF
         todo - test
         '''
-        fname = QFileDialog.getExistingDirectory(self, 'Zielverzeichnis für Logdaten', options=QFileDialog.ShowDirsOnly)
-        if fname != '':
-            clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
-            for client in clients:
-                pdfFileName = fname + "/" +client.computer.getCandidateName().replace(" ","_")+".pdf"
-                LogfileHandler(client.computer.logfile_name, client.computer.getCandidateName()).\
-                    createPdf(pdfFileName)
-        pass
+        #fname = QFileDialog.getExistingDirectory(self, 'Zielverzeichnis für Logdaten', options=QFileDialog.ShowDirsOnly)
+        #if fname != '':
+        if self.result_directory==None or len(self.result_directory)==0:
+            self.showMessageBox("Fehler", 
+                                "Ergebnispfad für Prüfungsdaten nicht gesetzt.<br>Bitte zuerst Prüfungsdaten abholen.", 
+                                QMessageBox.Error)
+            return 
         
-    def selectExam(self):
-        '''
-        opens a file chooser dialog to select an exam directory 
-        POSIX: file:///run/user/1000/gvfs/smb-share:serverName=odroid,share=lb_share/m104
-        Windows: file://vboxsvr/Nextcloud/IPA/muster_kriterien_2018.odt
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+        for client in clients:
+            lb_dataDirectory = client.computer.lb_dataDirectory.split("#")[-1]
+            pdfFileName = "protocol_"+date.today().__str__()+"_"+client.computer.getCandidateName().replace(" ","_")+".pdf"
+            LogfileHandler(client.computer.logfile_name, client.computer.getCandidateName()).\
+                createPdf(pdfFileName)
+            smbServer = ShareBrowser(self.network_servername, self.network_username, self.network_password) 
+            if not (smbServer.connect()):
+                self.showMessageBox("Fehler", 
+                            "Verbindung zum Server kann nicht aufgebaut werden.", 
+                            QMessageBox.Error)
+                return 
         
-        TODO: get login credentials with QWizard dialog, populate possible LB choices
-        https://doc-snapshots.qt.io/qtforpython/PySide2/QtWidgets/QWizard.html#qwizard;
-        then list LB folders usin pysmb library (and actually, do the same for the result stuff 
-        https://pysmb.readthedocs.io/en/latest/api/smb_SMBConnection.html
-        * conn=SMBConnection(userId,password,os.uname().nodename, "odroid") 
-        * conn.connect("odroid")
-        * "; ".join([x.name for x in conn.listShares()])
-        '''
-        # fname = QFileDialog.getOpenFileUrl(self, 'LB-Daten auswählen', QUrl.fromUserInput(self.lb_server), options=QFileDialog.ShowDirsOnly)
-        # fname = QFileDialog.getOpenFileName(self, 'LB-Daten auswählen', self.lb_server, options=QFileDialog.ShowDirsOnly)
-        fname = QFileDialog.getExistingDirectoryUrl(self, 'LB-Daten auswählen', dir=QUrl.fromUserInput(self.lb_server), options=QFileDialog.ShowDirsOnly)
-        if fname != "":
-            self.log("Path selected: {}".format(fname.url()))
-            self.lb_directory = fname.url()
-            if os.name == "posix":
-                if self.debug: 
-                    self.log(self.lb_directory)
-                self.lb_directory = self.lb_directory.replace("file:///run/user/1000/gvfs/smb-share:serverName=", "##")
-                self.lb_directory = self.lb_directory.replace(",share=", "/")
-            else:
-                self.lb_directory = self.lb_directory.replace("file:", "")
-                # if local directory was selected (e.g. C:\ or D:\), create Share with PowerShell
-                if (self.lb_directory.find("C:/") > -1 or self.lb_directory.find("D:/") > -1):
-                    sharename = self.lb_directory.split("/")[-1] 
-                    smbShareCreateCommand = "New-SmbShare -Name {} -Path {} -ReadAccess winrm,sven".format(sharename, self.lb_directory.replace("///", ""))
-                    self.log("Creating new share: " + smbShareCreateCommand)
-                    try:
-                        self.__runLocalPowerShellAsRoot(smbShareCreateCommand)
-                        self.sharenames.append(sharename)
-                        self.lb_directory = "//" + socket.gethostname() + "/" + sharename  # important: update directory string to match smb-path
-                    except Exception as ex:
-                        self.showMessageBox("Fehler", "Share konnte nicht eingerichtet werden")
-                        self.log("Share konnte nicht eingerichtet werden: " + str(ex))
-                        self.lb_directory = None
-                        sharename = None
-                    
-                self.lb_directory = self.lb_directory.replace("/", "#")    
-                 
-            self.setWindowTitle(self.appTitle + " - Modul::" + self.lb_directory.split("#")[-1])
-            self.log(self.lb_directory)
-            self.btnPrepareExam.setEnabled(True)
+            with open(pdfFileName, "rb") as file:
+                sharename = self.result_directory.replace("##","").split("#")[1]
+                destination = "/".join(self.result_directory.replace("##","").split("#")[2:])+"/"+lb_dataDirectory+"/"
+                smbServer.conn.storeFile(sharename, destination + pdfFileName, file)
+        
         
     def __runLocalPowerShellAsRoot(self, command):
         # see https://docs.microsoft.com/en-us/windows/desktop/api/shellapi/nf-shellapi-shellexecutew#parameters
@@ -594,9 +562,11 @@ if __name__ == '__main__':
     if os.name == "posix":
         os.chdir(os.path.dirname(__file__))
     else:
-        # os.chdir(os.path.dirname(sys.path[0]))
-        os.chdir(os.path.dirname(__file__))
-    
+        os.chdir(os.path.dirname(sys.path[0]))
+        #os.chdir(os.path.dirname(__file__))
+    if not(os.path.exists("logs")):
+        os.makedirs("logs")
+        
     app = QApplication(sys.argv)
     mainWin = MainWindow()
     ret = app.exec_()
