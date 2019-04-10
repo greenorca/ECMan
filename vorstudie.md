@@ -1,5 +1,5 @@
 <header style="font-family:sans-serif;background-color:white; margin-top: -50px;">
-<img src="green_orca.png" width="120">
+<img src="images/green_orca.png" width="120">
 <div style="display: inline-block; margin-left: 20px;">
 <h2 style="text-align:left;color: black;">Green-ORCA</h2>
 <p style="">
@@ -34,7 +34,7 @@ Hohlstrasse 535<br>
 Eine Softwarelösung soll die Bereitstellung der Prüfungsfestplatten und die Durchführung der praktischen Prüfungen in der beruflichen Grundbildung an den WISS-Standorten Bern, St.Gallen und Zürich für alle Beteiligten vereinfachen. In Folgenden werden Ist- und Sollzustand kurz beschrieben und eine Kostenplanung aufgestellt.
 
 <figure>
-  <img src="preview_v002.png" alt="Prototyp ECMan-SW" />
+  <img src="images/preview_v002.png" alt="Prototyp ECMan-SW" />
   <p style="font-style:italic;margin-top:0px;">Prototyp ECMan-SW</p>
 </figure>
 
@@ -79,7 +79,7 @@ In den Prüfungslabors werden Festplatten mit einem WISS-Standardimage eingesetz
 Das Deployment der Prüfungsdaten erfolgt parallel durch Ausführung von Skripten auf den Prüfungs-PCs selbst ausserhalb der Sichtweite der Kandidaten. Die Berechtigung für Dateifreigaben auf WISS-Shares basiert auf den WISS-ActiveDirectory-Accounts der Dozenten.
 
 <figure>
-  <img src="ablaufdiagramm.png" alt="Ablaufdiagramm">
+  <img src="images/ablaufdiagramm.png" alt="Ablaufdiagramm">
   <p style="font-style:italic;">Ablaufdiagramm: angepasst von Vorlage HGL</p>
 </figure>
 
@@ -150,7 +150,7 @@ Die folgenden Voraussetzungen für die Standard-Images sind notwendig und müsse
 
 
 <figure>
-  <img src="netzplan.png" alt="Netzplan">
+  <img src="images/netzplan.png" alt="Netzplan">
   <p style="font-style:italic;">Netzplan: alle PCs eines Labor sind im gleichen VLAN bzw. Subnetz. Ein LB-Share-Replica Fileserver befindet sich am Standort, der Master-Server ist in Zürich.</p>
 </figure>
 
