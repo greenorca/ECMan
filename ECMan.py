@@ -64,15 +64,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle(self.appTitle)
         
         self.logger = Logger(self.textEditLog)
-        self.show()
-        self.getConfig()
         
         self.network_username = None
         self.network_password = None
         self.network_domain = None
         self.network_servername = None
-        self.maxFiles = 100
-        self.maxFileSize = 200*1024*1024
+        
+        self.getConfig()
+        self.show()
+        
         self.detectClients()
     
     def checkOldLogFiles(self):
@@ -232,8 +232,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.client_lb_user = config.get("Client", "lb_user", fallback="student") 
         self.user = config.get("Client", "user", fallback="")
         self.passwd = config.get("Client", "pwd", fallback="")    
-        self.maxFiles = config.get("Client","max_files",fallback="100")
-        self.maxFileSize = config.get("Client","max_fileSize",fallback="100")
+        self.maxFiles = int(config.get("Client","max_files",fallback="100"))
+        self.maxFileSize = int(config.get("Client","max_fileSize",fallback="100"))*1024*1024 # thats MB now...
     
     def openConfigDialog(self):
         '''

@@ -3,11 +3,11 @@ Created on Jan 22, 2019
 
 @author: sven
 '''
-from PySide2.QtWidgets import QDialog
+from PySide2.QtWidgets import QDialog, QApplication
+from PySide2.QtGui import QIntValidator
 from configparser import ConfigParser
 from pathlib import Path
 from ui.configDialog import Ui_Dialog
-from PySide2.QtWidgets import QApplication
 
 class EcManConfigDialog(QDialog):
     '''
@@ -25,9 +25,13 @@ class EcManConfigDialog(QDialog):
         self.ui = Ui_Dialog()
         
         self.ui.setupUi(self)
+        
+        self.ui.lineEdit_MaxFiles.setValidator(QIntValidator(10, 100, self))
+        self.ui.lineEdit_MaxFileSize.setValidator(QIntValidator(10, 1000, self))
+        
         self.ui.comboBox_LbServer.addItem("")
         self.ui.comboBox_LbServer.addItem("//odroid/lb_share")
-        self.ui.comboBox_LbServer.addItem("//odroid2/lb_share")
+        self.ui.comboBox_LbServer.addItem("//NSSGSC01/LBV")
         self.config = ConfigParser()
         self.configFile=configFile
         
@@ -47,6 +51,9 @@ class EcManConfigDialog(QDialog):
             self.ui.lineEdit_winRmPort.setText(self.config.get("General", "winrm_port",fallback="5986"))
             self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user"))
             self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd"))
+            self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="100"))
+            self.ui.lineEdit_MaxFileSize.setText(self.config.get("Client","max_fileSize",fallback="100"))
+            
                         
     def saveConfig(self):
         '''
@@ -68,6 +75,8 @@ class EcManConfigDialog(QDialog):
         self.config["Client"]["lb_user"] = self.ui.lineEdit_StdLogin.text()
         self.config["Client"]["user"] =  self.ui.lineEdit_winRmUser.text()
         self.config["Client"]["pwd"] = self.ui.lineEdit_winRmPwd.text()
+        self.config["Client"]["max_files"]=self.ui.lineEdit_MaxFiles.text()
+        self.config["Client"]["max_fileSize"]=self.ui.lineEdit_MaxFileSize.text()
         
         self.config.write(open(self.configFile,'w'))
         

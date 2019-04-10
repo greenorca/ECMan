@@ -191,6 +191,7 @@ class LbClient(QPushButton):
 
         except Exception as ex:
             self.log.append(msg=" Exception retrieving client files: "+str(ex))
+            self.computer.state = Computer.State.STATE_RETRIVAL_FAIL
             
         self.setOwnToolTip() 
         self._colorizeWidgetByClientState()

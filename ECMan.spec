@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['ECMan.py'],
-             pathex=['C:\\Users\\172482\\Desktop\\WISS_LB_Deploy'],
+             pathex=['C:\\Users\\172482\\git\\ECMan'],
              binaries=[],
              datas=[('./scripts', './scripts')],
              hiddenimports=[],
@@ -26,7 +26,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True , icon='green_orca.ico')
+          console=True , icon='images\\green_orca.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
