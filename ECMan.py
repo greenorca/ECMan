@@ -71,7 +71,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.network_password = None
         self.network_domain = None
         self.network_servername = None
-        
+        self.maxFiles = 100
+        self.maxFileSize = 200*1024*1024
         self.detectClients()
     
     def checkOldLogFiles(self):
@@ -345,7 +346,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.log("starting to retrieve files")
         
         self.worker = RetrieveResultsWorker(clients, self.result_directory, self.network_username,
-                                            self.network_password, self.network_domain)
+                                            self.network_password, self.network_domain, self.maxFiles, self.maxFileSize)
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()        
         
@@ -562,7 +563,7 @@ if __name__ == '__main__':
     if os.name == "posix":
         os.chdir(os.path.dirname(__file__))
     else:
-        os.chdir(os.path.dirname(sys.path[0]))
+        os.chdir(sys.path[0])
         #os.chdir(os.path.dirname(__file__))
     if not(os.path.exists("logs")):
         os.makedirs("logs")
