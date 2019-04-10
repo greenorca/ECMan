@@ -135,7 +135,7 @@ class RetrieveResultsWorker(QThread):
     '''    
     updateProgressSignal = QtCore.Signal(int)
         
-    def __init__(self, clients: [], dst, server_user, server_passwd, server_domain):
+    def __init__(self, clients: [], dst, server_user, server_passwd, server_domain, maxFiles=100, maxFileSize=100000):
         '''
         ctor, required params:
         clients: array of lbClient instances to copy data from    
@@ -147,13 +147,15 @@ class RetrieveResultsWorker(QThread):
         self.server_user = server_user 
         self.server_passwd = server_passwd
         self.server_domain = server_domain
+        self.maxFiles = maxFiles
+        self.maxFileSize = maxFileSize
 
     def run(self):
         threads = QThreadPool()
         threads.setMaxThreadCount(10)
         for client in self.clients: 
             print("setup file retrival for "+client.computer.getCandidateName())      
-            thread = RetrieveResultsTask(client, self.dst, self.server_user, self.server_passwd, self.server_domain)
+            thread = RetrieveResultsTask(client, self.dst, self.server_user, self.server_passwd, self.server_domain, self.maxFiles, self.maxFileSize)
             thread.connector.threadFinished.connect(self.updateProgress)
             threads.start(thread)
             time.sleep(0.3)            
