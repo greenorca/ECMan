@@ -60,7 +60,7 @@ class Computer(object):
         STATE_ADMIN_STORAGE_NOT_READY = -5
         
     
-    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False):
+    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False, ):
         '''
         Constructor
         '''
@@ -112,7 +112,14 @@ class Computer(object):
         ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
         #lbDataDir = "C:\\Users\\"+ self.candidateLogin +"\\Desktop\\LB_Daten\\*"
         lbDataDir = "C:\\Users\\"+ self.candidateLogin +"\\Desktop\\*"
-        command='$file = "{}";New-Item -Path $file -Force; Remove-Item "{}" -Recurse -Force -ErrorAction SilentlyContinue'.format(ecmanFile, lbDataDir)
+        lbDataDir += " C:\\Users\\"+ self.candidateLogin +"\\Documents\\*"
+        lbDataDir += " C:\\Users\\"+ self.candidateLogin +"\\Downloads\\*"
+        lbDataDir += " C:\\Users\\"+ self.candidateLogin +"\\Pictures\\*"
+        
+        command='''
+        $file = "{}";New-Item -Path $file -Force; 
+        echo {} | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue;     
+        '''.format(ecmanFile, lbDataDir)
         print(command)
         std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
@@ -915,21 +922,21 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.105', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
+    compi = Computer('192.168.56.101', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
     #err, result = compi.retrieveClientFiles("##odroid#lb_share#Ergebnisse", "winrm", "lalelu", "HSH")
-    compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
+    # compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
     # compi.reset(True)
     #err, result = compi.retrieveClientFiles("##nssgsc01#lbv#erg#ifz826", "sven.schirmer@wiss-online.ch", "Februar2019", "")
-    compi.createBunchOfStupidFiles()
-    result = compi.checkFileSanity(100, 1000000)
+    # compi.createBunchOfStupidFiles()
+    # result = compi.checkFileSanity(100, 1000000)
     #print(err)
-    print(result)
+    #print(result)
     with open(compi.logfile_name) as log:
         print("\n".join(log.readlines()))
         
     tests = ["checkUserConfig", "read_old_state", "deploy_retrieve", 
              "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
-    currentTest = tests[42]
+    currentTest = tests[-1]
     
     if currentTest == "checkUserConfig":
         assert(compi.checkStatusFile())
