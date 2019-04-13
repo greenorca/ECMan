@@ -120,6 +120,8 @@ class Computer(object):
         $file = "{}";New-Item -Path $file -Force; 
         echo {} | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue;     
         '''.format(ecmanFile, lbDataDir)
+        # wipe regular files from home dir
+        command+="Get-Item -Path C:\\Users\\"+self.candidateLogin+"\\* | Where { Test-Path $_ -PathType Leaf } | Remove-Item;"
         print(command)
         std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
