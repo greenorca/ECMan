@@ -88,7 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         items = ["Nein", "Ja"]
         item, ok = QInputDialog().getItem(self, "Alles zurücksetzen?",
-                                          "USB-Sticks und Internet werden freigeben.\nKandidaten-Namen ebenfalls zurücksetzen? ",
+                                          "USB-Sticks und Internet werden freigeben.\nNicht systemrelevante Daten im Benutzerverzeichnis werden gelöscht.\nKandidaten-Namen ebenfalls zurücksetzen? ",
                                           items, 0, False) 
         if ok == False:
             return
@@ -396,7 +396,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.worker = CopyExamsWorker(clients, self.lb_directory, server_user=self.network_username,
                                       server_passwd=self.network_password,
-                                      server_domain=self.network_domain)
+                                      server_domain=self.network_domain,
+                                      reset=self.checkBoxWipeHomedir.checkState())
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()    
         
@@ -565,7 +566,7 @@ if __name__ == '__main__':
     if os.name == "posix":
         os.chdir(os.path.dirname(__file__))
     else:
-        os.chdir(sys.path[0])
+        os.chdir(os.path.dirname(sys.path[0]))
         #os.chdir(os.path.dirname(__file__))
     if not(os.path.exists("logs")):
         os.makedirs("logs")

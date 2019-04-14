@@ -25,7 +25,7 @@ class EcManConfigDialog(QDialog):
         self.ui = Ui_Dialog()
         
         self.ui.setupUi(self)
-        
+        self.setWindowTitle("ECMan - Konfiguration")
         self.ui.lineEdit_MaxFiles.setValidator(QIntValidator(10, 100, self))
         self.ui.lineEdit_MaxFileSize.setValidator(QIntValidator(10, 1000, self))
         

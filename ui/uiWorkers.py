@@ -173,11 +173,11 @@ class CopyExamsWorker(QtCore.QThread):
     '''    
     updateProgressSignal = QtCore.Signal(int)
         
-    def __init__(self, clients: [], src, server_user, server_passwd, server_domain):
+    def __init__(self, clients: [], src, server_user, server_passwd, server_domain, reset):
         '''
         ctor, required params:
         clients: array of lbClient instances to copy data to
-        
+        resets 
         '''
         QtCore.QThread.__init__(self)
         self.clients = clients
@@ -185,6 +185,7 @@ class CopyExamsWorker(QtCore.QThread):
         self.server_user = server_user 
         self.server_passwd = server_passwd
         self.server_domain = server_domain
+        self.reset=reset
 
     #A QThread is run by calling it's start() function, which calls this run()
     #function in it's own "thread". 
@@ -192,7 +193,7 @@ class CopyExamsWorker(QtCore.QThread):
         threads = QThreadPool()
         threads.setMaxThreadCount(10)
         for client in self.clients:       
-            thread = CopyExamsTask(client,self.src, self.server_user, self.server_passwd, self.server_domain)
+            thread = CopyExamsTask(client,self.src, self.server_user, self.server_passwd, self.server_domain, self.reset)
             thread.connector.threadFinished.connect(self.updateProgress)
             threads.start(thread)
             print("copy thread started for "+client.computer.getHostName())
@@ -203,17 +204,19 @@ class CopyExamsWorker(QtCore.QThread):
 
 class CopyExamsTask(QtCore.QRunnable):
     
-    def __init__(self,client,src, server_user, server_passwd, server_domain):
+    def __init__(self,client,src, server_user, server_passwd, server_domain, reset):
         QtCore.QRunnable.__init__(self)
         self.client = client
         self.src = src        
         self.server_user = server_user 
         self.server_passwd = server_passwd
         self.server_domain = server_domain
+        self.reset=reset
         self.connector = MySignals()
+        
          
     def run(self):
-        self.client.deployClientFiles(self.server_user, self.server_passwd, self.server_domain, self.src)
+        self.client.deployClientFiles(self.server_user, self.server_passwd, self.server_domain, self.src, self.reset)
         self.connector.threadFinished.emit(1)
 
 class ResetClientsWorker(QtCore.QThread):

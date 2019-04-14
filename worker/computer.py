@@ -100,29 +100,19 @@ class Computer(object):
                 self.logger.error("Couldn't get hostname: %s".format(str(ex)))
             pass
     
-    def reset(self, resetCandidateName=False):
+    def resetStatus(self, resetCandidateName=False):
         '''
         resets remote status file and internal status variables 
         by overwriting remote ecman.json file with an empty file 
         (and eventually recreating the usename) 
-        '''
-        self.logger.info("PC zurücksetzen (Daten und Einstellungen)")
+        '''       
+        
+        self.logger.info("PC LB-Status zurücksetzen " + ("inklusive Benutzernamen" if resetCandidateName==True else ""))
         candidateName=self.getCandidateName()
         
         ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
-        #lbDataDir = "C:\\Users\\"+ self.candidateLogin +"\\Desktop\\LB_Daten\\*"
-        lbDataDir = "C:\\Users\\"+ self.candidateLogin +"\\Desktop\\*"
-        lbDataDir += " C:\\Users\\"+ self.candidateLogin +"\\Documents\\*"
-        lbDataDir += " C:\\Users\\"+ self.candidateLogin +"\\Downloads\\*"
-        lbDataDir += " C:\\Users\\"+ self.candidateLogin +"\\Pictures\\*"
         
-        command='''
-        $file = "{}";New-Item -Path $file -Force; 
-        echo {} | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue;     
-        '''.format(ecmanFile, lbDataDir)
-        # wipe regular files from home dir
-        command+="Get-Item -Path C:\\Users\\"+self.candidateLogin+"\\* | Where { Test-Path $_ -PathType Leaf } | Remove-Item;"
-        print(command)
+        command='$file = "{}";New-Item -Path $file -Force;'.format(ecmanFile)
         std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
         if not(resetCandidateName):
@@ -131,6 +121,28 @@ class Computer(object):
             self.candidateName = ""
             
         self.state = Computer.State.STATE_INIT
+                
+    def resetClientHomeDirectory(self):
+        '''
+        removes all non-system files within client directories
+        '''
+        self.logger.info("PC Benutzerdaten zurücksetzen")
+        
+        script=""  
+        try:
+            with open("scripts/CleanHomedir.ps1") as file:
+                script = file.read()
+        except Exception:
+            with open("../scripts/CleanHomedir.ps1") as file:
+                script = file.read()
+        
+        # replace script parameters     
+        script=script.replace("$candidate$", self.candidateLogin)
+        
+        state, message = self.runCopyScript(script)
+        if state != 0:
+            self.logger.error("PC Benutzerdaten zurücksetzen gescheitert: "+ str(message))
+            
                 
     def __runRemoteCommand(self,command="ipconfig", params=['/all']):
         '''
@@ -550,6 +562,7 @@ class Computer(object):
 
         if status  != self.STATUS_OK:
             print("Error checking status file: "+std_err)
+            self.logger.error("Fehler beim Lesen des Status-Datei ecman.conf: "+std_err)
             return False;
         
         self.statusFile = std_out;
@@ -599,7 +612,7 @@ class Computer(object):
         out, err, status = self.runPowerShellCommand(command)
         
         if status != self.STATUS_OK:
-            self.logger.error("Error checking remote desktop sanity: "+err)
+            self.logger.error("Fehler beim Überprüfen der Dateien im Lösungsverzeichnis: "+err)
             return False;
         
         self.logger.info(out)
@@ -719,14 +732,6 @@ class Computer(object):
         just prints std_out, std_err and status
         returns std_out, std_err and status (0 == good) instead of True and False  
         '''
-        #=======================================================================
-        # s = Session(self.ip, auth=(self.remoteAdminUser, self.passwd))
-        # r = s.run_ps(command)
-        # print("std_out:")
-        # for line in str(r.std_out).split(r"\r\n"):
-        #     print(line)
-        # print("status_code: " + str(r.status_code))
-        #=======================================================================
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
@@ -924,7 +929,7 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.56.101', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
+    compi = Computer('192.168.0.114', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
     #err, result = compi.retrieveClientFiles("##odroid#lb_share#Ergebnisse", "winrm", "lalelu", "HSH")
     # compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
     # compi.reset(True)
@@ -938,13 +943,14 @@ if __name__=="__main__":
         
     tests = ["checkUserConfig", "read_old_state", "deploy_retrieve", 
              "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
-    currentTest = tests[-1]
+    currentTest = tests[-41]
     
     if currentTest == "checkUserConfig":
         assert(compi.checkStatusFile())
         
     if currentTest == "reset":
-        compi.reset()
+        compi.resetClientHomeDirectory()
+        compi.resetStatus(resetCandidateName=True)
     
     if currentTest == "read_old_state":
         compi.checkStatusFile()

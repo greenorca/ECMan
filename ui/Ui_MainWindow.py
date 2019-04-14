@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'Ui_MainWindow.ui',
 # licensing of 'Ui_MainWindow.ui' applies.
 #
-# Created: Wed Mar 13 09:07:27 2019
+# Created: Sun Apr 14 10:34:09 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -67,6 +67,10 @@ class Ui_MainWindow(object):
         self.btnPrepareExam.setAutoFillBackground(False)
         self.btnPrepareExam.setObjectName("btnPrepareExam")
         self.verticalLayout_2.addWidget(self.btnPrepareExam)
+        self.checkBoxWipeHomedir = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBoxWipeHomedir.setToolTip("")
+        self.checkBoxWipeHomedir.setObjectName("checkBoxWipeHomedir")
+        self.verticalLayout_2.addWidget(self.checkBoxWipeHomedir)
         self.checkBoxBlockUsb = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBoxBlockUsb.setChecked(True)
         self.checkBoxBlockUsb.setObjectName("checkBoxBlockUsb")
@@ -199,6 +203,7 @@ class Ui_MainWindow(object):
         self.btnSelectExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung auswählen", None, -1))
         self.btnPrepareExam.setToolTip(QtWidgets.QApplication.translate("MainWindow", "Achtung: bereits vorhandene Daten werden überschrieben", None, -1))
         self.btnPrepareExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung einspielen", None, -1))
+        self.checkBoxWipeHomedir.setText(QtWidgets.QApplication.translate("MainWindow", "HOME-Verzeichnis leeren", None, -1))
         self.checkBoxBlockUsb.setText(QtWidgets.QApplication.translate("MainWindow", "USB blockieren", None, -1))
         self.checkBoxBlockWebAccess.setText(QtWidgets.QApplication.translate("MainWindow", "Web blockieren", None, -1))
         self.btnGetExams.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfungsdaten abholen", None, -1))

@@ -109,6 +109,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="checkBoxWipeHomedir">
+        <property name="toolTip">
+         <string extracomment="löscht alle Nicht-Systemdaten aus dem Benutzerverzeichnis"/>
+        </property>
+        <property name="text">
+         <string>HOME-Verzeichnis leeren</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkBoxBlockUsb">
         <property name="text">
          <string>USB blockieren</string>

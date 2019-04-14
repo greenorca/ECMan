@@ -4,9 +4,9 @@ block_cipher = None
 
 
 a = Analysis(['ECMan.py'],
-             pathex=['C:\\Users\\172482\\git\\ECMan'],
+             pathex=['E:\\Documents\\Projects\\WISS_LB_Deploy'],
              binaries=[],
-             datas=[('./scripts', './scripts')],
+             datas=[('.\\scripts', '.\\scripts')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],

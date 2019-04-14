@@ -1,62 +1,3 @@
-
-# Tune clean Win10-Installation (regular client)
-
-## Remove crap apps
-
-Get-AppxPackage *OneNote* | Remove-AppxPackage
-Get-AppxPackage *xbox* | Remove-AppxPackage
-Get-AppxPackage *3d* | Remove-AppxPackage
-Get-AppxPackage *bing* | Remove-AppxPackage
-Get-AppxPackage *people | Remove-AppxPackage
-Get-AppxPackage *wallet | Remove-AppxPackage
-Get-AppxPackage *sykpe* | Remove-AppxPackage
-
-* %SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall
-
-## stop and disable services
-
-* Set-Service -Name wuauserv -StartupType Disabled
-* Get-Service -Name wuauserv | Stop-Service
-* Set-Service -Name wsearch -StartupType Disabled
-* Get-Service -Name wsearch | Stop-Service
-
-# Powershell - Monitoring
-
-* free Memory (in GB)
-```
-$os=Get-CimInstance Win32_OperatingSystem
-write-host ([math]::Round($os.FreePhysicalMemory/(1024*1024),2)) "GB free Memory" 
-write-host ([math]::Round($os.TotalVisibleMemorySize/(1024*1024),2)) "GB total Memory" 
-```
-
-* free disk space
-```
-$disk = Get-WMIObject Win32_Logicaldisk -filter "deviceid='$($os.systemdrive)'"
-$disk.FreeSpace / (1024*1024*1024)
-
-//or even:
-write-host ([math]::Round($disk.FreeSpace / (1024*1024*1024),2)) "GB free on C:\"
-```
-
-* Powershell UNIX top
-
-```
-While(1) {ps | sort -des cpu | select -f 15 | ft -a; sleep 1; cls}
-```
-
-# probably install imagemagick (including PATH setup)
-
-ImageMagick-7.0.8-32-Q16-x64-dll.exe /SP /VerySilent
-
-magick convert -font arial -fill white -pointsize 120 -draw "text 200,200 'Hallo Welt'" C:\Windows\Web\Screen\img101.png C:\Windows\Web\Screen\img101_named.png
-
---> make sure to use the new pic as lock screen using GPO (see https://community.spiceworks.com/topic/1262253-change-windows-10-lock-screen-background-image-gp)
-
-#ensure the respective folder is available
-New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -ErrorAction Ignore
-Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -Name LockScreenImage -Value "C:\Windows\Web\Screen\img103.png"
-Write-Host (Get-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\").LockScreenImage
-
 # run scripts on windows:
 
 ```
@@ -66,8 +7,8 @@ py ui\ecWiz.py
 # Create distrib package:
 
 1. install VisualStudio 2015 C++ Redistrib-Pack
-1. install Python (python-3.6.8-webinstall)
-1. pip install PySide2==5.12, PyWinRm, 
+1. install Python (python-3.7.3-webinstall)
+1. pip install PySide2==5.12, PyWinRm, PySmby 
 
 
 ## mucho wichtig für die Logfiles:
@@ -77,9 +18,10 @@ wkhtmltopdf installieren auf WIN-ECMan Rechner!
 ## Using PyInstaller
 
 ```
-pip install PyInstaller  (used ==3.3 for install problems with latest pip)
+pip install PyInstaller  (used ==3.4 for install problems with latest pip)
 
-pyinstaller --distpath C:\Users\172482\tmp\ --workpath C:\Users\172482\Desktop\WISS_LB_Deploy -i images\green_orca.ico --add-data ./scripts;./scripts ECMan.py
+pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts ECMan.py
+pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts ECMan.py
 
 
 ```

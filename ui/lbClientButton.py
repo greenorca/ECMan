@@ -88,10 +88,10 @@ class LbClient(QPushButton):
         if doUpdate:
             self.setLabel()
         
-        self.log.append(msg=" candidate name set: "+candidateName)
+        self.log.append(msg=" Kandidat-Name gesetzt: "+candidateName)
     
     def shutdownClient(self):
-        self.log.append(msg=" shutting down")
+        self.log.append(msg=" herunterfahren")
         QThreadPool.globalInstance().start(LbClient.ShutdownTask(self))
         
     def setOwnToolTip(self):
@@ -120,24 +120,35 @@ class LbClient(QPushButton):
         self.resetComputerStatus(resetCandidateName=None)
     
     def resetComputerStatus(self, resetCandidateName=None):
+        '''
+        resets client status **and data!**
+        resets candidate name if resetCandidateName = True,
+        opens a confirmation dialog if resetCandidateName = None (default),
+        skips client name reset if resetCandidateName = False
+        '''
         if resetCandidateName==None: 
             items = ["Nein","Ja"]
-            item, ok = QInputDialog().getItem(self, "Client-Status zurücksetzen", "Kandidat-Name zurücksetzen? ", items, 0, False) 
+            item, ok = QInputDialog().getItem(self, "Client-Status zurücksetzen und Verzeichnisse leeren", "Kandidat-Name zurücksetzen? ", items, 0, False) 
             if ok == False:
                 return
             resetCandidateName = True if item=="Ja" else False
         
         try:
             self.log.append(msg=" alle Daten und Einstellungen zurücksetzen")
-            self.computer.reset(resetCandidateName) 
+            self.computer.resetStatus(resetCandidateName) 
+            self.computer.resetClientHomeDirectory()
             self.setLabel()
             #self.setOwnToolTip()
         except Exception as ex:
-            print("Died reseting client: "+str(ex))  
+            print("Fehler beim Zurücksetzen vom Client-PC: "+str(ex))  
             self.log.append(msg=" Fehler beim zurücksetzen der Daten und Einstellungen")     
             
 
-    def deployClientFiles(self, server_user, server_passwd, server_domain, path=None):
+    def deployClientFiles(self, server_user, server_passwd, server_domain, path=None, reset=False):
+        '''
+        starts remote copy process for path,
+        wipes remote non-system files in user home dir before if reset=True 
+        '''
         if path == None or path==False:
             path=self.parentApp.getExamPath()
             
@@ -153,12 +164,15 @@ class LbClient(QPushButton):
             self.log.append(msg)
             return 
         
-        status, error = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain,  empty=True)
+        if reset == True:
+            self.computer.resetClientHomeDirectory()
+        
+        status, error = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain)
         
         if status != True:
-            self.log.append(" error: deploying client: "+path+", cause: "+error)
+            self.log.append(" Fehler Prüfungsdaten zum Client kopieren: "+path+", cause: "+error)
         else:
-            self.log.append(" success: deployed client: "+path.replace("#","/"))
+            self.log.append(" Prüfungsdaten zum Client kopieren erfolgreich: "+path.replace("#","/"))
             
             if self.parentApp.checkBoxBlockUsb.checkState()==Qt.CheckState.Checked:
                 success = self.computer.disableUsbAccess(block=True)
@@ -179,18 +193,18 @@ class LbClient(QPushButton):
             
                 status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
                 if status != True:
-                    self.log.append(msg=" error: retrieving files from client: "+
-                                    filepath+", cause: "+error)
+                    self.log.append(msg=" Fehler beim Kopieren der Resultate: "+
+                                    filepath+", Ursache: "+error)
                 else:
-                    self.log.append(msg=" success: retrieved files from client: "+
+                    self.log.append(msg=" Resultate erfolgreich kopiert: "+
                                     filepath)
                     self.isSelected = False;
                     
             else:
-                self.log.append(msg=" error: too much files on client system")
+                self.log.append(msg=" Fehler: zu viele Dateien im Lösungsverzeichnis")
 
         except Exception as ex:
-            self.log.append(msg=" Exception retrieving client files: "+str(ex))
+            self.log.append(msg=" Exception beim Kopieren der Resultate: "+str(ex))
             self.computer.state = Computer.State.STATE_RETRIVAL_FAIL
             
         self.setOwnToolTip() 
@@ -227,25 +241,14 @@ class LbClient(QPushButton):
         
         #self.setStyleSheet("QPushButton {"+ colorString + fontStyle +"}")
      
-    #===========================================================================
-    # def paintEvent(self, event):
-    #      opt = QStyleOption() 
-    #      opt.init(self);
-    #      p = QPainter(self)
-    #      style()->drawPrimitive(QStyle::PE_Widget, opt, p, self);
-    #     
-    #      QPushButton.paintEvent(event);
-    #         
-    #===========================================================================
-    
     def select(self):
         if self.computer.state != Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY:
-            self.log.append(msg=" selecting client {}".format(self.computer.getHostName()))
+            self.log.append(msg=" ausgewählt {}".format(self.computer.getHostName()))
             self.isSelected = True
         self._colorizeWidgetByClientState()
 
     def unselect(self):
-        self.log.append(msg=" unselecting client {}".format(self.computer.getHostName()))
+        self.log.append(msg=" abgewählt {}".format(self.computer.getHostName()))
         self.isSelected = False
         self._colorizeWidgetByClientState()
 
@@ -270,8 +273,6 @@ class LbClient(QPushButton):
     def blockUsbAccess(self):
         self.computer.disableUsbAccess(True)
         self.setOwnToolTip() 
-        #TODO: implelemt as QRunnable
-        
         
     def allowUsbAccess(self):
         self.computer.disableUsbAccess(False)
