@@ -60,11 +60,11 @@ class Computer(object):
         STATE_ADMIN_STORAGE_NOT_READY = -5
         
     
-    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False, ):
+    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False):
         '''
         Constructor
         '''
-        self.debug=True
+        self.debug=False
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd

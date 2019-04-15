@@ -110,15 +110,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         '''
         overrides closeEvent of base class, clean up
-        * especially remove shares created on Windows hosts
+        
         '''
         print("cleaning up...")
-        try:
-            for share in self.sharenames:
-                Thread(target=self.runLocalPowerShellAsRoot("Remove-SmbShare -Name {} -Force".format(share))).start()
-        except Exception:
-            pass
-        
+#         try:* especially remove shares created on Windows hosts
+#             for share in self.sharenames:
+#                 Thread(target=self.runLocalPowerShellAsRoot("Remove-SmbShare -Name {} -Force".format(share))).start()
+#         except Exception:
+#             pass
+#         
         print("done cleaning up...")
         super(MainWindow, self).closeEvent(event) 
     
