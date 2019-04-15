@@ -23,11 +23,59 @@ pip install PyInstaller  (used ==3.4 for install problems with latest pip)
 pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts ECMan.py
 pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts ECMan.py
 
-
 ```
+
+# WISS-PC (Doz-PC SG Zi 43)
+
+## Python: 3.7.3
+## pip freeze
+
+altgraph==0.16.1
+asn1crypto==0.24.0
+backcall==0.1.0
+certifi==2019.3.9
+cffi==1.12.2
+chardet==3.0.4
+colorama==0.4.1
+cryptography==2.6.1
+decorator==4.4.0
+future==0.17.1
+idna==2.8
+ipython==7.4.0
+ipython-genutils==0.2.0
+jedi==0.13.3
+macholib==1.11
+ntlm-auth==1.2.0
+parso==0.3.4
+pdfkit==0.6.1
+pefile==2018.8.8
+pickleshare==0.7.5
+prompt-toolkit==2.0.9
+pyasn1==0.4.5
+pycparser==2.19
+Pygments==2.3.1
+PyInstaller==3.4
+PyQt5==5.12.1
+PyQt5-sip==4.19.15
+PySide2==5.12.2
+pysmb==1.1.27
+pywin32-ctypes==0.2.0
+pywinrm==0.3.0
+requests==2.21.0
+requests-ntlm==1.1.0
+shiboken2==5.12.2
+six==1.12.0
+traitlets==4.3.2
+urllib3==1.24.1
+wcwidth==0.1.7
+wkhtmltopdf==0.2
+xmltodict==0.12.0
+
 
 see [http://www.pyinstaller.org/](http://www.pyinstaller.org/)
 
 ## Using cx_Freeze
 
 see https://cx-freeze.readthedocs.io/en/latest/overview.html
+
+

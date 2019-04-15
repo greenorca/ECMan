@@ -236,7 +236,7 @@ class Computer(object):
                         if type(file) == File:
                             file.name = currentDir.name+"/"+file.name
                             currentDir.addChild(file)
-                        elif type(file) == str and not(currentDir.name.endswith(file)):
+                        elif type(file) == str and not (type(currentDir) is list) and not(currentDir.name.endswith(file)):
                             currentDir = currentDir.getSubFolder(file)
                             if currentDir==[]:
                                 currentDir = self.lb_files.getSubFolder(file)
@@ -929,15 +929,17 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    compi = Computer('192.168.0.114', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
+    # compi = Computer('192.168.0.114', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
     #err, result = compi.retrieveClientFiles("##odroid#lb_share#Ergebnisse", "winrm", "lalelu", "HSH")
-    # compi = Computer('172.23.43.2', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
+    compi = Computer('172.23.43.16', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
     # compi.reset(True)
     #err, result = compi.retrieveClientFiles("##nssgsc01#lbv#erg#ifz826", "sven.schirmer@wiss-online.ch", "Februar2019", "")
     # compi.createBunchOfStupidFiles()
     # result = compi.checkFileSanity(100, 1000000)
     #print(err)
     #print(result)
+    compi.getRemoteFileListing()
+    
     with open(compi.logfile_name) as log:
         print("\n".join(log.readlines()))
         
