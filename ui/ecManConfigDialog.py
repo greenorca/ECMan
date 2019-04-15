@@ -26,7 +26,7 @@ class EcManConfigDialog(QDialog):
         
         self.ui.setupUi(self)
         self.setWindowTitle("ECMan - Konfiguration")
-        self.ui.lineEdit_MaxFiles.setValidator(QIntValidator(10, 100, self))
+        self.ui.lineEdit_MaxFiles.setValidator(QIntValidator(10, 10000, self))
         self.ui.lineEdit_MaxFileSize.setValidator(QIntValidator(10, 1000, self))
         
         self.ui.comboBox_LbServer.addItem("")
@@ -51,7 +51,7 @@ class EcManConfigDialog(QDialog):
             self.ui.lineEdit_winRmPort.setText(self.config.get("General", "winrm_port",fallback="5986"))
             self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user"))
             self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd"))
-            self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="100"))
+            self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="1000"))
             self.ui.lineEdit_MaxFileSize.setText(self.config.get("Client","max_fileSize",fallback="100"))
             
                         

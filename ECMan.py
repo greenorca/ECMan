@@ -69,6 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.network_password = None
         self.network_domain = None
         self.network_servername = None
+        self.lb_directory = None
         
         self.getConfig()
         self.show()
@@ -224,16 +225,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         reads config file into class variables
         '''
-        config = ConfigParser()
-        config.read_file(open(str(self.configFile)))
+        self.config = ConfigParser()
+        self.config.read_file(open(str(self.configFile)))
         
-        self.lb_server = config.get("General", "lb_server", fallback="")
-        self.port = config.get("General", "winrm_port", fallback=5986)
-        self.client_lb_user = config.get("Client", "lb_user", fallback="student") 
-        self.user = config.get("Client", "user", fallback="")
-        self.passwd = config.get("Client", "pwd", fallback="")    
-        self.maxFiles = int(config.get("Client","max_files",fallback="100"))
-        self.maxFileSize = int(config.get("Client","max_fileSize",fallback="100"))*1024*1024 # thats MB now...
+        self.lb_server = self.config.get("General", "lb_server", fallback="")
+        self.port = self.config.get("General", "winrm_port", fallback=5986)
+        self.client_lb_user = self.config.get("Client", "lb_user", fallback="student") 
+        self.user = self.config.get("Client", "user", fallback="")
+        self.passwd = self.config.get("Client", "pwd", fallback="")    
+        self.maxFiles = int(self.config.get("Client","max_files",fallback="100"))
+        self.maxFileSize = int(self.config.get("Client","max_fileSize",fallback="100"))*1024*1024 # thats MB now...
     
     def openConfigDialog(self):
         '''
@@ -312,7 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername,
                           wizardType=EcWizard.TYPE_RESULT_DESTINATION)
-                wizard = EcWizard(parent=self, username="sven.schirmer@wiss-online.ch", domain="", servername="NSSGSC01/LBV",
+                wizard = EcWizard(parent=self, username=self.network_username, domain=self.network_domain, servername=self.config["General"]["lb_server"],
                           wizardType=EcWizard.TYPE_RESULT_DESTINATION)
             
             wizard.setModal(True)
@@ -377,7 +378,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         copies selected exam folder to all connected clients that are selected and not in STATE_DEPLOYED or STATE_FINISHED
         '''
-        if self.lb_directory == "" or self.lb_directory == None:
+        if self.lb_directory == None or self.lb_directory == "":
             self.showMessageBox("Fehler", "Kein Prüfungsordner ausgewählt")
             return
         
@@ -456,14 +457,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                           wizardType=EcWizard.TYPE_LB_SELECTION)
         else:
             wizard = EcWizard(parent=self, wizardType=EcWizard.TYPE_LB_SELECTION)
-            wizard = EcWizard(parent=self, username="sven.schirmer@wiss-online.ch", domain="", servername="NSSGSC01/LBV", wizardType=EcWizard.TYPE_LB_SELECTION)
+            wizard = EcWizard(parent=self, username=self.config.get("General","username", fallback=""), 
+                              domain=self.config.get("General","domain", fallback=""), 
+                              servername=self.config.get("General","servername", fallback=""), 
+                              wizardType=EcWizard.TYPE_LB_SELECTION)
        
         wizard.setModal(True)
         result = wizard.exec_()
         print("I'm done, wizard result=" + str(result))
         if result == 1:
-            print("selected values: %s - %s - %s - %s" % 
-                  (wizard.field("username"), wizard.field("password"), wizard.field("servername"), wizard.defaultShare))    
+            print("selected values: %s - %s - %s" % 
+                  (wizard.field("username"), 
+                   wizard.field("servername"), wizard.defaultShare))    
+            
+            self.config["General"]["servername"] = wizard.field("servername")
+            self.config["General"]["domain"] = wizard.field("domainname")
+            self.config["General"]["username"] = wizard.field("username")
+            
+            self.config.write(open(self.configFile,'w'))
             
             self.network_username = wizard.field("username")
             self.network_password = wizard.field("password")
@@ -563,11 +574,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == '__main__':
+    '''
+    print("os.chdir: "+os.path.dirname(__file__))
     if os.name == "posix":
         os.chdir(os.path.dirname(__file__))
     else:
+        print("switching to directory: "+os.path.dirname(sys.path[0]))
         os.chdir(os.path.dirname(sys.path[0]))
         #os.chdir(os.path.dirname(__file__))
+    '''
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    print("cd: "+dname)
+    os.chdir(dname)
+    
     if not(os.path.exists("logs")):
         os.makedirs("logs")
         
