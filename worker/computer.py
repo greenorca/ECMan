@@ -3,7 +3,8 @@ from winrm import Session
 from base64 import b64encode
 import time, re, datetime
 from enum import Enum
-
+from pathlib import Path
+from configparser import ConfigParser
 import logging
 
 
@@ -747,23 +748,6 @@ class Computer(object):
         p.close_shell(shell_id)
         return std_out.decode("850").rstrip(), std_err.decode("850").rstrip(), status_code
     
-    def __copyFile2Client(self, filepath):
-        '''
-        doesn't work well as long as network shares are not mounted locally (and file permissions fit)
-        '''
-        #self.runPowerShellCommand(r'Remove-SmbShare -Name LB-DATA -Force -ErrorAction SilentlyContinue')
-        #self.runPowerShellCommand(r'New-SmbShare -Name LB-DATA -PATH C:\Users\"+self.candidateLogin+"\Desktop\LBX -FullAccess winrm')
-        #shutil.copytree(filepath, '//'+self.ip+'/LB-DATA/'+filepath.split('/')[-1])
-        
-        '''
-        net use works, but only until session is closed...
-        '''
-        #self.runRemoteCommand(command="net use",params=["x:", filepath, r"/user:winrm lalelu", "/persistent:yes"])
-        #self.runRemoteCommand("dir",["x:"])
-        #self.runRemoteCommand(command="robocopy", params=["x:/", r"C:/Users/"+self.candidateLogin+"/Desktop/LBX"])
-        #self.runRemoteCommand(command=r"net use x: /delete",params=[])
-        pass
-        
     def deployClientFiles(self, filepath, server_user, server_passwd, domain, empty=True):
         '''
         copy the content of filepath (recursively) to this client machine 
@@ -929,11 +913,19 @@ class Computer(object):
         return r.std_out.decode("utf-8").rstrip()
 
 if __name__=="__main__":
-    # compi = Computer('192.168.0.114', 'winrm', 'lalelu', candidateLogin="Sven", fetchHostname=True)
-    #err, result = compi.retrieveClientFiles("##odroid#lb_share#Ergebnisse", "winrm", "lalelu", "HSH")
-    compi = Computer('172.23.43.16', 'winrm', 'lalelu', candidateLogin="student", fetchHostname=True)
-    # compi.reset(True)
-    #err, result = compi.retrieveClientFiles("##nssgsc01#lbv#erg#ifz826", "sven.schirmer@wiss-online.ch", "Februar2019", "")
+    ip = '192.168.56.100'
+    config = ConfigParser()
+    configFile = Path(str(Path.home()) + "/.ecman.conf")
+    config.read_file(open(str(configFile)))
+        
+    lb_server = config.get("General", "lb_server", fallback="")
+    port = config.get("General", "winrm_port", fallback=5986)
+    client_lb_user = config.get("Client", "lb_user", fallback="student") 
+    user = config.get("Client", "user", fallback="")
+    passwd = config.get("Client", "pwd", fallback="")  
+    
+    compi = Computer(ip, user, passwd, candidateLogin=client_lb_user, fetchHostname=True)
+    
     # compi.createBunchOfStupidFiles()
     # result = compi.checkFileSanity(100, 1000000)
     #print(err)
@@ -995,7 +987,7 @@ if __name__=="__main__":
         filepath="//odroid/" 
         module = "M101"
         compi.setCandidateName("Emil Grünschnabel")
-        retval, msg = compi.deployClientFiles(filepath+"lb_share/"+module, "odroid\\winrm123", "lalelu", True)
+        retval, msg = compi.deployClientFiles(filepath+"lb_share/"+module, "odroid\\winrm123", passwd, True)
         if retval == False:
             print("Error copying: "+msg)
         assert(compi.state == Computer.State.STATE_DEPLOYED)
@@ -1004,7 +996,7 @@ if __name__=="__main__":
         print(compi.lb_files) 
         print("now wait a bit...")
         sleep(5)
-        x = compi.retrieveClientFiles(filepath+"lb_share/Ergebnisse", "odroid\\winrm", "lalelu")
+        x = compi.retrieveClientFiles(filepath+"lb_share/Ergebnisse", "odroid\\winrm", passwd)
         print(x)
         assert(compi.state == Computer.State.STATE_FINISHED)
         exit()

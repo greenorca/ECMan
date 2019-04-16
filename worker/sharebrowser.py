@@ -59,16 +59,25 @@ class ShareBrowser(object):
     
 if __name__ == "__main__":
     
+    ip = '192.168.56.100'
+    config = ConfigParser()
+    configFile = Path(str(Path.home()) + "/.ecman.conf")
+    config.read_file(open(str(configFile)))
+        
+    lb_server = config.get("General", "lb_server", fallback="")
+    port = config.get("General", "winrm_port", fallback=5986)
+    client_lb_user = config.get("Client", "lb_user", fallback="student") 
+    user = config.get("Client", "user", fallback="")
+    passwd = config.get("Client", "pwd", fallback="")  
+    
     if os.name=="posix":
-        server = ShareBrowser("odroid", "winrm", "lalelu", is_direct_tcp=True, port=445)
-        #server = ShareBrowser("192.168.56.101", "sven", "lalelu", domain="green-orca.com", is_direct_tcp=True, port=445)
+        server = ShareBrowser("odroid", user, passwd, is_direct_tcp=True, port=445)
         sharename = "lb_share"
         folder=""
         #sharename = "documents"
         #folder="lb_share"
     else:
-        server = ShareBrowser("W10ACCL0", "winrm", "lalelu")
-        server = ShareBrowser("WIN-DC1", "sven", "lalelu", domain="green-orca.com", is_direct_tcp=True, port=445)
+        server = ShareBrowser("WIN-DC1", user, passwd, domain="green-orca.com", is_direct_tcp=True, port=445)
         sharename = "documents"
         folder="lb_share"
        
