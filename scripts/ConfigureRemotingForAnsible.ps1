@@ -68,7 +68,6 @@ Param (
     [switch]$EnableCredSSP
 )
 
-$imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-i686-pc-windows.exe"
 $imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-7.0.8-35-Q16-x64-dll.exe"
 $adm = "winrm"
 $adm_pwd = "lalelu"

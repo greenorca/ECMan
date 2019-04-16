@@ -360,8 +360,6 @@ if __name__ == "__main__":
     ip = "192.168.0.114"
     port = 5986
     
-    #compi = Computer(ip, remoteAdminUser="winrm", passwd="lalelu", candidateLogin="Sven", fetchHostname=False)
-    
     scan = ScannerTask(ip, port)
     
     scan.start()    
