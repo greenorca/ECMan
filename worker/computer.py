@@ -7,7 +7,6 @@ from pathlib import Path
 from configparser import ConfigParser
 import logging
 
-
 '''
 Created on Dec 25, 2018
 
@@ -87,6 +86,8 @@ class Computer(object):
         
         self.logger = logging.getLogger('ecman-clientlog_{}_{}.log'.format(str(datetime.date.today()),self.ip))
         self.logfile_name = 'logs/client_{}_{}.log'.format(str(datetime.date.today()),self.ip)
+        if Path(self.logfile_name).parent.exists()==False:
+             Path(self.logfile_name).parent.mkdir()
         hdlr = logging.FileHandler(self.logfile_name)
         formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
         hdlr.setFormatter(formatter)
@@ -912,93 +913,5 @@ class Computer(object):
         
         return r.std_out.decode("utf-8").rstrip()
 
-if __name__=="__main__":
-    ip = '192.168.56.100'
-    config = ConfigParser()
-    configFile = Path(str(Path.home()) + "/.ecman.conf")
-    config.read_file(open(str(configFile)))
-        
-    lb_server = config.get("General", "lb_server", fallback="")
-    port = config.get("General", "winrm_port", fallback=5986)
-    client_lb_user = config.get("Client", "lb_user", fallback="student") 
-    user = config.get("Client", "user", fallback="")
-    passwd = config.get("Client", "pwd", fallback="")  
-    
-    compi = Computer(ip, user, passwd, candidateLogin=client_lb_user, fetchHostname=True)
-    
-    # compi.createBunchOfStupidFiles()
-    # result = compi.checkFileSanity(100, 1000000)
-    #print(err)
-    #print(result)
-    compi.getRemoteFileListing()
-    
-    with open(compi.logfile_name) as log:
-        print("\n".join(log.readlines()))
-        
-    tests = ["checkUserConfig", "read_old_state", "deploy_retrieve", 
-             "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
-    currentTest = tests[-41]
-    
-    if currentTest == "checkUserConfig":
-        assert(compi.checkStatusFile())
-        
-    if currentTest == "reset":
-        compi.resetClientHomeDirectory()
-        compi.resetStatus(resetCandidateName=True)
-    
-    if currentTest == "read_old_state":
-        compi.checkStatusFile()
-        exit(0)
-    
-    if currentTest == "testInternet":
-        compi.configureFirewallService()
-    
-        server = "www.mastersong.de"
-        print("Online: "+str(compi.testPing(server)))
-        compi.blockInternetAccess()
-        print("Online: "+str(compi.testPing(server)))
-        compi.allowInternetAccess()
-        print("Online: "+str(compi.testPing(server)))
-        
-        print("Testing firewall status")
-        status = compi.isFirewallServiceEnabled()
-        print("result: "+str(status))
-        blocked = False
-        compi.sendMessage("Internet is blocked: {}".format(str(blocked)))
-        compi.blockInternetAccess(blocked)
-        
-        exit(0)
-        
-    if currentTest == "testUsbBlocking":
-        print("Hopefully blocked now: "+compi.isUsbBlocked())
-        compi.disableUsbAccess(False)
-        print("Hopefully enabled now: "+compi.isUsbBlocked())    
-        exit(0)
-        
-    if currentTest == "setCandidateName":
-        compi.setCandidateName("Walter Witzig")
-        print(compi.getCandidateName())
-        exit(0)
-      
-    if currentTest == "deploy_retrieve": 
-        # thats the local stuff on tuxedo machine
-        from time import sleep
-        filepath="//192.168.56.1/"
-        filepath="//odroid/" 
-        module = "M101"
-        compi.setCandidateName("Emil Grünschnabel")
-        retval, msg = compi.deployClientFiles(filepath+"lb_share/"+module, "odroid\\winrm123", passwd, True)
-        if retval == False:
-            print("Error copying: "+msg)
-        assert(compi.state == Computer.State.STATE_DEPLOYED)
-        assert(compi.lb_dataDirectory == module)
-        print(compi.getRemoteFileListing())
-        print(compi.lb_files) 
-        print("now wait a bit...")
-        sleep(5)
-        x = compi.retrieveClientFiles(filepath+"lb_share/Ergebnisse", "odroid\\winrm", passwd)
-        print(x)
-        assert(compi.state == Computer.State.STATE_FINISHED)
-        exit()
-    
+
     
