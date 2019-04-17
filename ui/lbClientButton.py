@@ -338,7 +338,7 @@ class LbClient(QPushButton):
                 print("finished fetching this computers name")
                 
             except Exception as ex:
-                print("crashed fetching this computers name: "+str(ex))
+                self.widget.log.append("crashed fetching this computers name: "+str(ex))
                 pass
             
             self.widget.setLabel()

@@ -1,4 +1,5 @@
 from winrm.protocol import Protocol
+from winrm.exceptions import InvalidCredentialsError
 from winrm import Session
 from base64 import b64encode
 import time, re, datetime
@@ -58,7 +59,9 @@ class Computer(object):
         STATE_RETRIVAL_FAIL = -3
         STATE_STUDENT_ACCOUNT_NOT_READY = -4 
         STATE_ADMIN_STORAGE_NOT_READY = -5
-        
+        STATE_WINRM_LOGIN_FAIL = -6
+        STATE_IMAGEMAGICK_MISSING = -7
+        STATE_GPO_BGIMAGE_FAIL = -8
     
     def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False):
         '''
@@ -512,41 +515,41 @@ class Computer(object):
         check default ecman.json folder
         '''
         command = '$baseDir="C:\\Users\\$1$\\"; Write-Host (Test-Path $baseDir)' .replace("$1$", self.candidateLogin)
-        print("CheckStatus command: "+command)
+        if self.debug: print("CheckStatus command: "+command)
         std_out, std_err, status = self.runPowerShellCommand(command)
 
         if status  != self.STATUS_OK:
-            print("Error checking user folder on LB client: "+std_err)
+            if self.debug: print("Error checking user folder on LB client: "+std_err)
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
             self.logger.error("Fehler beim Prüfen des LBUser-Verzeichnis (student): {}".format(str(std_err)))
             return False;
         
         if std_out.find("False")>=0:
-            print("Client user folder does not exists, please logon first.")
+            if self.debug: print("Client-User {} HOME-Verzeichnis existiert nicht. Bitte erstmalig einloggen!".format(self.candidateLogin))
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
             self.logger.warn("LBUser-verzeichnis (student) nicht vorhanden")
             return False;
         
         elif std_out.find("True")>=0:
             command = '$baseDir="C:\\Users\\$1$\\"; if (Test-Path $baseDir){ } else { try { New-Item -Path $baseDir -Force -ItemType directory; } catch { Write-Host "NOK" } }' .replace("$1$", self.remoteAdminUser)
-            print("CheckStatus command: "+command)
+            if self.debug: print("CheckStatus command: "+command)
             std_out, std_err, status = self.runPowerShellCommand(command)
             
             if status  != self.STATUS_OK:
-                print("Error checking remote-admin folder: "+std_err)
+                if self.debug: print("Error checking remote-admin folder: "+std_err)
                 self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
                 self.logger.error("Fehler beim Prüfen des WinRM User-verzeichnisses")
                 return False;
             
             if std_out.find("NOK")>=0:
-                print("Client remote admin folder does not exist.")
+                if self.debug: print("Client remote admin folder does not exist.")
                 self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
                 self.logger.warn("WinRM User-verzeichnis nicht vorhanden")
                 return False;
             
             return True;
 
-        print("shouldnt see this message at all: "+std_out)
+        print("computer.checkUserConfig: you shouldnt see this message at all: "+std_out)
         return False
       
     def checkStatusFile(self):
@@ -558,11 +561,11 @@ class Computer(object):
             return False;
         
         command = '$file = "C:\\Users\\$1$\\ecman.json"; if (Get-Item $file 2> $null) { $content = Get-Content $file; foreach ($line in $content){ Write-Host $line } } else { New-Item $file; Write-Host ""}'.replace("$1$", self.remoteAdminUser)
-        print("CheckStatus command: "+command)
+        if self.debug: print("CheckStatus command: "+command)
         std_out, std_err, status = self.runPowerShellCommand(command)
 
         if status  != self.STATUS_OK:
-            print("Error checking status file: "+std_err)
+            if self.debug: print("Error checking status file: "+std_err)
             self.logger.error("Fehler beim Lesen des Status-Datei ecman.conf: "+std_err)
             return False;
         
@@ -594,7 +597,7 @@ class Computer(object):
             self.lb_dataDirectory = match.group(2)
             
             self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
-            print("fetched previous data dir: "+self.lb_dataDirectory)
+            if self.debug: print("fetched previous data dir: "+self.lb_dataDirectory)
                     
         return True;
     
@@ -646,19 +649,30 @@ class Computer(object):
             password=self.passwd,
             server_cert_validation='ignore')
         
-        shell_id = p.open_shell()
-        command_id = p.run_command(shell_id, 'hostname', [])
-        std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
-        
-        p.cleanup_command(shell_id, command_id)
-        p.close_shell(shell_id)
-        
-        if status_code != self.STATUS_OK:
-            print("Error: "+std_err.decode("850"))
-            self.__hostName = "--unknown--"
+        try:
+            shell_id = p.open_shell()
+            command_id = p.run_command(shell_id, 'hostname', [])
+            std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
             
-        else:    
-            self.__hostName = std_out.decode("utf-8").replace("\r\n","") 
+            p.cleanup_command(shell_id, command_id)
+            p.close_shell(shell_id)
+            
+            if status_code != self.STATUS_OK:
+                print("Error: "+std_err.decode("850"))
+                self.__hostName = "--unknown--"
+                
+            else:    
+                self.__hostName = std_out.decode("utf-8").replace("\r\n","") 
+        
+        except (InvalidCredentialsError):
+            self.logger.error("Remotemanagement-Benutzer oder Passwort ungültig.")
+            self.state = Computer.State.STATE_WINRM_LOGIN_FAIL
+            self.__hostName = "--invalid remote user--" 
+                
+        except Exception as ex:
+            self.logger.error("Konnte Hostnamen nicht abfragen: " + str(ex))
+            self.state = Computer.State.STATE_WINRM_LOGIN_FAIL
+            self.__hostName = "--unknown error--"
         
         return self.__hostName
      
@@ -701,8 +715,9 @@ class Computer(object):
         for x in command:
             out,err,status = self.runPowerShellCommand(x)
             if status != self.STATUS_OK:
-                print("error running script: "+x)
-                print("lets assume imagemagick isnt installed... "+err)
+                if self.debug: print("error running script: "+x)
+                if self.debug: print("lets assume imagemagick isnt installed... "+err)
+                self.state = Computer.State.STATE_IMAGEMAGICK_MISSING
                 return False
         command = []
         command.append('if (!(Test-Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\")){ New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization\" -ErrorAction Ignore}')
@@ -713,8 +728,9 @@ class Computer(object):
         for x in command:
             out,err,status = self.runPowerShellCommand(x)
             if status != self.STATUS_OK:
-                print("error setting GPO lock screen: "+x)
-                print("lets assume something failed on GPO stuff: "+err)
+                if self.debug: print("error setting GPO lock screen: "+x)
+                if self.debug: print("lets assume something failed on GPO stuff: "+err)
+                self.state = Computer.State.STATE_GPO_BGIMAGE_FAIL
                 return False
 
         return True
@@ -879,9 +895,8 @@ class Computer(object):
                 print(line)
             
         if status!=self.STATUS_OK or not(std_out.rstrip().endswith(b"SUCCESS")):            
-            print("error running script on client: ")
-            print("status_code: " + str(status))
-            print("error_code: " + str(std_err))
+            self.logger.error("error running script on client - status_code: " + str(status))
+            self.logger.error("error_code: " + str(std_err))
             return -1, b"ERROR"+std_out.rstrip().split(b"ERROR")[-1]
                         
         return status, std_out
