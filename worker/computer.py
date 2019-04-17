@@ -399,17 +399,16 @@ class Computer(object):
      
     def isFirewallServiceEnabled(self):
         '''
-        tests if windows defender firewall service is enabled for all network profiles
         '''
         testCommand = 'Get-NetFirewallProfile | Where-Object {$_.Enabled -ne "true"}'
         std_out, std_err, status = self.runPowerShellCommand(command=testCommand)
         
         if status == self.STATUS_OK and std_out.rstrip() != "":
             print("following firewalls are not active: "+ std_out)
-            self.info("Firewall-Service nicht aktiv")
+            self.logger.info("Firewall-Service nicht aktiv")
             return False
         
-        self.info("Firewall-Service aktiv")
+        self.logger.info("Firewall-Service aktiv")
         return True
     
     def configureFirewallService(self, enable=True):
@@ -605,7 +604,7 @@ class Computer(object):
         status = self.__runRemoteCommand(command, [])
         self.logger.info("Created bunch of files: "+str(status)) 
     
-    def checkFileSanity(self, maxFiles=100, maxFileSize=100000):
+    def checkFileSanity(self, maxFiles=100, maxFileSize=1000000):
         '''
         returns True if remote Desktop contains less than maxFiles with a total size less than maxFileSize (in bytes)
         returns False otherwise 
@@ -766,7 +765,8 @@ class Computer(object):
         
         # replace script parameters     
         script=script.replace("$src$",filepath.format('utf_16_le'))
-        script=script.replace('$dst$','C:\\Users\\$user$\\Desktop\\LB_Daten\\')
+        #script=script.replace('$dst$','C:\\Users\\$user$\\Desktop\\LB_Daten\\')
+        script=script.replace('$dst$','C:\\Users\\$user$\\Desktop\\')
         script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$server_user$', server_user)
         script=script.replace('$server_pwd$',server_passwd)
