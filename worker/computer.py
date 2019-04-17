@@ -842,7 +842,7 @@ class Computer(object):
         # replace script parameters     
         script=script.replace("$dst$",filepath.format('utf_16_le'))
         script = script.replace("$module$", lb_dataDirectory)
-        script=script.replace('$src$','C:\\Users\\$user$\\Desktop\\LB_Daten\\'+lb_dataDirectory+'\\*')
+        script=script.replace('$src$','C:\\Users\\$user$\\Desktop\\*')
         script=script.replace('$user$', self.candidateLogin)
         script=script.replace('$candidateName$', self.candidateName.replace(" ", "_"))
         

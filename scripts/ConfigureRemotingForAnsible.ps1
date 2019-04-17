@@ -53,7 +53,11 @@
 # Version 1.8 - 2018-02-23
 # Version 1.9 - 2018-09-21
 # Version 1.9.1 - 2019-01-14 (added own WinRM-Firewall rules and WinRM autostart)
-
+#
+# *****************************************************************************
+# Remember: Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+# *****************************************************************************
+#
 # Support -Verbose option
 [CmdletBinding()]
 
@@ -68,7 +72,6 @@ Param (
     [switch]$EnableCredSSP
 )
 
-$imageMagick_src = "https://imagemagick.org/download/binaries/ImageMagick-7.0.8-35-Q16-x64-dll.exe"
 $adm = "winrm"
 $adm_pwd = "lalelu"
 $student_pwd = "student"
@@ -235,10 +238,10 @@ $ErrorActionPreference = "Stop"
 # Addon Sven: Firewall-Rules for Win-Remote
 $message = "Regel vorhanden, alles gut"
 
-$r = Get-NetFirewallRule -DisplayName "AllowWinRM" 2> $null; if ($r) { write-host $message } else {
+$r = Get-NetFirewallRule -DisplayName "AllowWinRM" -ErrorAction Ignore 2> $null; if ($r) { write-host $message } else {
 New-NetFirewallRule -Name "AllowWinRM" -DisplayName "AllowWinRM" -Enabled 1 -Direction Inbound -Action Allow -LocalPort 5985 -Protocol TCP
 }
-$r = Get-NetFirewallRule -DisplayName "AllowWinRM_Secure" 2> $null; if ($r) { write-host $message } else {
+$r = Get-NetFirewallRule -DisplayName "AllowWinRM_Secure"  -ErrorAction Ignore 2> $null; if ($r) { write-host $message } else {
  New-NetFirewallRule -Name "AllowWinRM_Secure" -DisplayName "AllowWinRM_Secure" -Enabled 1 -Direction Inbound -Action Allow -LocalPort 5986 -Protocol TCP
 }
 # Addon Sven: Autostart Win-Remote (I know this is written below, yet somehow it didn't work)
@@ -279,14 +282,14 @@ Set-Acl $lockscreen_picture $acl
 
 # install imagemagick
 
-$src = $imageMagick_src
-$dst = "C:\tmp"
-Write-Host "Downloade imagemagick"
-Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
-New-Item -Path $dst -Force -ItemType directory
+#$src = $imageMagick_src
+#$dst = "C:\tmp"
+#Write-Host "Downloade imagemagick"
+#Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
+#New-Item -Path $dst -Force -ItemType directory
 
-$dst = "C:\tmp\imagemagick.exe"
-Invoke-WebRequest $src -OutFile $dst
+$dst = $PSScriptRoot+"ImageMagick-7.0.8-40-Q8-x64-dll.exe"
+#Invoke-WebRequest $src -OutFile $dst
 
 Write-Host "Installiere imagemagick"
 [System.Diagnostics.Process]::Start($dst, "/VERYSILENT")

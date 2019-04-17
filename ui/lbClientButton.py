@@ -141,7 +141,7 @@ class LbClient(QPushButton):
             #self.setOwnToolTip()
         except Exception as ex:
             print("Fehler beim Zurücksetzen vom Client-PC: "+str(ex))  
-            self.log.append(msg=" Fehler beim zurücksetzen der Daten und Einstellungen")     
+            self.log.append(msg=" Fehler beim Zurücksetzen der Daten und Einstellungen")     
             
 
     def deployClientFiles(self, server_user, server_passwd, server_domain, path=None, reset=False):
@@ -170,7 +170,7 @@ class LbClient(QPushButton):
         status, error = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain)
         
         if status != True:
-            self.log.append(" Fehler Prüfungsdaten zum Client kopieren: "+path+", cause: "+error)
+            self.log.append(" Fehler Prüfungsdaten zum Client kopieren: "+path+", Ursache: "+error)
         else:
             self.log.append(" Prüfungsdaten zum Client kopieren erfolgreich: "+path.replace("#","/"))
             

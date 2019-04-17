@@ -40,8 +40,9 @@ Try {
 	    New-Item -Path $baseDir -Force -ItemType directory
     }
 
-    Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
-    New-Item -Path $dst -Force -ItemType directory
+	# Desktop wird nicht mehr hier leer geputzt!
+    # Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue 
+    # New-Item -Path $dst -Force -ItemType directory
     Write-Host "Source: " $src
     Write-Host "Dest: " $dst
     $Error.Clear()
