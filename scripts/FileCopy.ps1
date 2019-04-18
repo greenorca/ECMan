@@ -54,6 +54,8 @@ Try {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
     
+    #foreach ($zipfile in (Get-Item -Path $dst+(Get-Item -Path $src | Where { $_.Name -match "zip" })){ Expand-Archive $zipfile ($dst).Parent}
+    
     Remove-PSDrive -Name x -ErrorAction Ignore
 	
     # update status file
