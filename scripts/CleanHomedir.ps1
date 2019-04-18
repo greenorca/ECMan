@@ -2,13 +2,17 @@
 # cleans all non-system files in users home
 # created by Sven Schirmer
 
-$user=%candidate%
+$user="$candidate$"
 
 $path="C:\Users\"+$user+"\*"
 
+if ( $path -eq "C:\Users\*" ){
+	exit -1
+}
+
 # cleanup folder contents (only for visible folders)
 foreach ($folder in get-item -Path $path | Where { $_.Name -notmatch "^\." }){ 
-    Write-Host "Cleaning up "+$folder.name 
+    Write-Host "Cleaning up "$folder.name 
     Remove-Item $folder\* -Recurse -Force -ErrorAction SilentlyContinue;
 }
 

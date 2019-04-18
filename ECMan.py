@@ -88,8 +88,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
 
         items = ["Nein", "Ja"]
-        item, ok = QInputDialog().getItem(self, "Alles zurücksetzen?",
-                                          "USB-Sticks und Internet werden freigeben.\nNicht systemrelevante Daten im Benutzerverzeichnis werden gelöscht.\nKandidaten-Namen ebenfalls zurücksetzen? ",
+        item, ok = QInputDialog().getItem(self, "LB-Status zurücksetzen?",
+                                          "USB-Sticks und Internet werden freigeben.\nDaten im Benutzerverzeichnis werden NICHT gelöscht.\nKandidaten-Namen ebenfalls zurücksetzen? ",
                                           items, 0, False) 
         if ok == False:
             return
@@ -398,7 +398,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker = CopyExamsWorker(clients, self.lb_directory, server_user=self.network_username,
                                       server_passwd=self.network_password,
                                       server_domain=self.network_domain,
-                                      reset=self.checkBoxWipeHomedir.checkState())
+                                      reset=(self.checkBoxWipeHomedir.checkState()==Qt.CheckState.Checked))
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()    
         

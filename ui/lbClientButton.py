@@ -6,7 +6,7 @@ Created on Jan 20, 2019
 
 from time import asctime, clock
 from worker.computer import Computer
-from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog, QWidget
+from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog, QWidget, QMessageBox
 from PySide2.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject
 from PySide2.QtGui import QFont, QPalette
 
@@ -54,6 +54,9 @@ class LbClient(QPushButton):
         
         act8 = menu.addAction("LB-Status zurücksetzen")
         act8.triggered.connect(self.resetComputerStatusConfirm)
+        
+        act9 = menu.addAction("LB-Daten zurücksetzen")
+        act9.triggered.connect(self.resetClientHomeDirectory)
         
         menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
         menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
@@ -128,7 +131,7 @@ class LbClient(QPushButton):
         '''
         if resetCandidateName==None: 
             items = ["Nein","Ja"]
-            item, ok = QInputDialog().getItem(self, "Client-Status zurücksetzen und Verzeichnisse leeren", "Kandidat-Name zurücksetzen? ", items, 0, False) 
+            item, ok = QInputDialog().getItem(self, "Client-Status zurücksetzen?", "Kandidat-Name zurücksetzen? ", items, 0, False) 
             if ok == False:
                 return
             resetCandidateName = True if item=="Ja" else False
@@ -136,13 +139,17 @@ class LbClient(QPushButton):
         try:
             self.log.append(msg=" alle Daten und Einstellungen zurücksetzen")
             self.computer.resetStatus(resetCandidateName) 
-            self.computer.resetClientHomeDirectory()
             self.setLabel()
             #self.setOwnToolTip()
         except Exception as ex:
             print("Fehler beim Zurücksetzen vom Client-PC: "+str(ex))  
             self.log.append(msg=" Fehler beim Zurücksetzen der Daten und Einstellungen")     
-            
+     
+    def resetClientHomeDirectory(self):
+        if QMessageBox.critical(self,"Achtung", "Alle Benutzerdaten löschen?", 
+                                QMessageBox.Yes, QMessageBox.No)==QMessageBox.Yes:  
+            self.computer.resetClientHomeDirectory()
+                   
 
     def deployClientFiles(self, server_user, server_passwd, server_domain, path=None, reset=False):
         '''
@@ -165,7 +172,10 @@ class LbClient(QPushButton):
             return 
         
         if reset == True:
-            self.computer.resetClientHomeDirectory()
+            success = self.computer.resetClientHomeDirectory()
+            self.log.append(" Client-Daten gelöscht: "+str(success))
+        else:
+            self.log.append(" Löschen der Client-Daten nicht gewünscht.")
         
         status, error = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain)
         
