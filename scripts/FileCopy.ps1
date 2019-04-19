@@ -1,8 +1,7 @@
 # copy remote directory into local Desktop folder
 # first, map network share to drive x:, then copy from x to Desktop
 # actual network resource replaces $src$ (triggered by python) 
-# TODO: adapt user 
-# see full help: https://ss64.com/ps/copy-item.html
+# run runner.ps1 in LB directory if exists
 
 $src="$src$"
 $dst="$dst$"
@@ -53,8 +52,8 @@ Try {
     {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
-    
-    #foreach ($zipfile in (Get-Item -Path $dst+(Get-Item -Path $src | Where { $_.Name -match "zip" })){ Expand-Archive $zipfile ($dst).Parent}
+    $mypath=$dst+$src.split("\")[-1]+"\runner.ps1"
+    if (Test-Path $mypath) { Invoke-Expression $mypath }
     
     Remove-PSDrive -Name x -ErrorAction Ignore
 	
