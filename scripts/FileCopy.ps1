@@ -47,9 +47,9 @@ Try {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
     
-    ## Baustelle: check; and eventually split that bloddy monster deployment script in pieces!
-    foreach ($psfile in (Get-ChildItem -Path $dst"\"(Get-Item $src).Name | Where { $_.Name -like "runner.ps1" })){ Write-Host "Executing $psfile" }
-    
+	$mypath=$dst+$src.split("\")[-1]+"\runner.ps1"
+    if (Test-Path $mypath) { Invoke-Expression $mypath }
+        
     Remove-PSDrive -Name x -ErrorAction Ignore
 	
     # update status file
