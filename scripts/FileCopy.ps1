@@ -39,9 +39,6 @@ Try {
 	    New-Item -Path $baseDir -Force -ItemType directory
     }
 
-	# Desktop wird nicht mehr hier leer geputzt!
-    # Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue 
-    # New-Item -Path $dst -Force -ItemType directory
     Write-Host "Source: " $src
     Write-Host "Dest: " $dst
     $Error.Clear()
@@ -53,6 +50,7 @@ Try {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
     $mypath=$dst+$src.split("\")[-1]+"\runner.ps1"
+    Write-Host "executing " $mypath
     if (Test-Path $mypath) { Invoke-Expression $mypath }
     
     Remove-PSDrive -Name x -ErrorAction Ignore
