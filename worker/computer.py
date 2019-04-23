@@ -67,7 +67,7 @@ class Computer(object):
         '''
         Constructor
         '''
-        self.debug=False
+        self.debug=True
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
