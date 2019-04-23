@@ -53,9 +53,11 @@
 # Version 1.8 - 2018-02-23
 # Version 1.9 - 2018-09-21
 # Version 1.9.1 - 2019-01-14 (added own WinRM-Firewall rules and WinRM autostart)
+# Version 1.9.2 - 2019-04-18 (bigfix own WinRM-Firewall rules, ImageMagick-Deployment)
 #
 # *****************************************************************************
-# Remember: Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+# Remember to run this before running the script itself: 
+# Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 # *****************************************************************************
 #
 # Support -Verbose option
@@ -281,15 +283,7 @@ $acl.SetAccessRule($rule)
 Set-Acl $lockscreen_picture $acl
 
 # install imagemagick
-
-#$src = $imageMagick_src
-#$dst = "C:\tmp"
-#Write-Host "Downloade imagemagick"
-#Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
-#New-Item -Path $dst -Force -ItemType directory
-
 $dst = $PSScriptRoot+"ImageMagick-7.0.8-40-Q8-x64-dll.exe"
-#Invoke-WebRequest $src -OutFile $dst
 
 Write-Host "Installiere imagemagick"
 [System.Diagnostics.Process]::Start($dst, "/VERYSILENT")

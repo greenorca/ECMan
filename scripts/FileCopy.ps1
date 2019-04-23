@@ -1,8 +1,6 @@
 # copy remote directory into local Desktop folder
 # first, map network share to drive x:, then copy from x to Desktop
 # actual network resource replaces $src$ (triggered by python) 
-# TODO: adapt user 
-# see full help: https://ss64.com/ps/copy-item.html
 
 $src="$src$"
 $dst="$dst$"
@@ -12,7 +10,6 @@ $domain = "$domain$"
 
 $src=$src.replace('#', '\')
 $src=$src.replace('/', '\')
-$src=$src.replace('smb:','').trim()
 
 echo $src
 
@@ -20,7 +17,6 @@ Try {
     $Error.Clear()
 	Remove-PSDrive -Name x -ErrorAction Ignore
     $Error.Clear()
-    #net use x: $src /user:$server_user $server_pwd
 
     $pwd = ConvertTo-SecureString -String $server_pwd -AsPlainText -Force
     if (! $domain -eq "") { $server_user = $domain + "\" + $server_user }; Write-Host $server_user 
@@ -40,9 +36,6 @@ Try {
 	    New-Item -Path $baseDir -Force -ItemType directory
     }
 
-	# Desktop wird nicht mehr hier leer geputzt!
-    # Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue 
-    # New-Item -Path $dst -Force -ItemType directory
     Write-Host "Source: " $src
     Write-Host "Dest: " $dst
     $Error.Clear()
@@ -54,7 +47,8 @@ Try {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
     
-    #foreach ($zipfile in (Get-Item -Path $dst+(Get-Item -Path $src | Where { $_.Name -match "zip" })){ Expand-Archive $zipfile ($dst).Parent}
+    ## Baustelle: check; and eventually split that bloddy monster deployment script in pieces!
+    foreach ($psfile in (Get-ChildItem -Path $dst"\"(Get-Item $src).Name | Where { $_.Name -like "runner.ps1" })){ Write-Host "Executing $psfile" }
     
     Remove-PSDrive -Name x -ErrorAction Ignore
 	
