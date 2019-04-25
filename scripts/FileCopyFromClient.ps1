@@ -36,7 +36,8 @@ Try{
 	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
 	
-	Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
+	Compress-Archive -DestinationPath x:\$module$\$candidateName$\desktop_$candidateName$.zip -Force -Path $src -ErrorAction Ignore
+	#Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
 	
 	if ($Error[0].Exception.Messsage){ 
 	    	throw [System.IO.FileNotFoundException]::new("Crashed copying files back to server: "+$Error[0].Exception.Message)
