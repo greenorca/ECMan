@@ -57,31 +57,22 @@ Try {
 	
     # update status file
     $file = 'c:\Users\winrm\ecman.json';
+	$json=ConvertFrom-Json -InputObject (Gc $file -Raw) 
 
-    $regex='(^last_update: .* ?)';
-    $d = date;
-    $content = Get-Content $file
-    if (!($content -match $regex)){
-        Add-Content -Path $file -Value ('last_update: ' + $d+';')
-    } else {
-        $content -replace $regex, ('last_update: '+$d+';') | Set-Content $file
-    }
+	$d = date;
+	if ($json.PSObject.Properties.Name -notcontains "last_update") { 
+		json | Add-Member NoteProperty -Name "last_update" -Value $d } 
+	else  { $json.last_update=$d }
 
-    $regex='(^lb_src: .* ?)';
-    $content = Get-Content $file
-    if (!($content -match $regex)){
-        Add-Content -Path $file -Value ("lb_src: " + $src+";")
-    } else {
-        $content -replace $regex, ('lb_src: '+$src+';') | Set-Content $file
-    }
+    if ($json.PSObject.Properties.Name -notcontains "lb_src") { 
+		json | Add-Member NoteProperty -Name "lb_src" -Value $src } 
+	else  { $json.lb_src=$src }
 
-    $regex='(^client_state: .* ?)';
-    $content = Get-Content $file
-    if (!($content -match $regex)){
-        Add-Content -Path $file -Value "client_state: STATE_DEPLOYED;"
-    } else {
-        $content -replace $regex, "client_state: STATE_DEPLOYED;" | Set-Content $file
-    }
+    if ($json.PSObject.Properties.Name -notcontains "client_state") { 
+		json | Add-Member NoteProperty -Name "client_state" -Value "STATE_DEPLOYED" } 
+	else  { $json.client_state="STATE_DEPLOYED" }
+    
+    $json | ConvertTo-Json | Out-File $file
 
     Write-Host "SUCCESS"
 }

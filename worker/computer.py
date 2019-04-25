@@ -482,8 +482,15 @@ class Computer(object):
         by writing it to a file on the winrm user home directory
         '''
 
-        command = '$file = "C:\\Users\\'+ self.remoteAdminUser + '\\ecman.json";$regex="(^candidate_name: .* ?)"; $content = Get-Content $file; if (!($content -match $regex)){ Add-Content -Path $file -Value "candidate_name: $1$;"} else { $content -replace $regex, "candidate_name: $1$;" | Set-Content $file}'.replace('$1$',candidateName)
-        
+        command = '''
+            $file = "C:\\Users\\$0$\\ecman.json";
+            $json=ConvertFrom-Json -InputObject (Gc $file -Raw);
+            if ($json.PSObject.Properties.Name -notcontains "candidate_name") { 
+                $json | Add-Member NoteProperty -Name "candidate_name" -Value "$1$" } 
+            else  { $json.client_state="$1$" }
+            $json | ConvertTo-Json | Out-File $file; 
+            '''.replace("$0$", self.remoteAdminUser).replace('$1$',candidateName)
+        print("setup name: "+command)
         std_out, std_err, status = self.runPowerShellCommand(command)
         if status != self.STATUS_OK:
             print(std_err)
@@ -572,13 +579,13 @@ class Computer(object):
         self.statusFile = std_out;
         self.logger.info("Remote status file: {}".format(std_out))
         # parse std_out for status info
-        regex=re.compile(r'(candidate_name: (?P<name>[\w\d ]+);)' )
+        regex=re.compile(r'(candidate_name: (?P<name>[\w\d ]+))' )
         match = regex.match(std_out)
         if match:
             self.candidateName = match.group("name")
         
         self.state = Computer.State.STATE_INIT
-        match = re.search(r'(client_state: (?P<state>[\w_ ]+);)',std_out)
+        match = re.search(r'(client_state: (?P<state>[\w_ ]+))',std_out)
         if match:
             state = match.group("state")
             for x in Computer.State:
@@ -586,7 +593,7 @@ class Computer(object):
                     self.state = x
                     break
         
-        match = re.search(r'(last_update: (?P<date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2});)', std_out)
+        match = re.search(r'(last_update: (?P<date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}))', std_out)
         if match:
             self.last_update = match.group("date")
         

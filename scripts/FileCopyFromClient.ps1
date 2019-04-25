@@ -48,33 +48,23 @@ Try{
 	$file = 'c:\Users\winrm\ecman.json';
 	if (Get-Item $file 2> $null) { Write-Host "File found, OK" } 
 	else { Write-Host "Status file not found"; exit; }
-	
-	$regex='(^last_update: .* ?)';
+	$json=ConvertFrom-Json -InputObject (Gc $file -Raw) 
+
 	$d = date;
-	
-	$content = Get-Content $file
-	if (($content -match $regex).Length -eq 0){
-	    Add-Content -Path $file -Value ('last_update: ' + $d+';')
-	} else {
-	    $content -replace $regex, ('last_update: '+$d+';') | Set-Content $file
-	}
-	
-	$regex='(^lb_dst: .* ?)';
-	$content = Get-Content $file
-	if (($content -match $regex).Length -eq 0){
-	    Add-Content -Path $file -Value ("lb_dst: " + $dst+";")
-	} else {
-	    $content -replace $regex, ('lb_dst: '+$dst+';') | Set-Content $file
-	}
-	
-	$regex='(^client_state: .* ?)';
-	$content = Get-Content $file
-	if (($content -match $regex).Length -eq 0){
-	    Add-Content -Path $file -Value "client_state: STATE_FINISHED;"
-	} else {
-	    $content -replace $regex, "client_state: STATE_FINISHED;" | Set-Content $file
-	}
-	
+	if ($json.PSObject.Properties.Name -notcontains "last_update") { 
+		json | Add-Member NoteProperty -Name "last_update" -Value $d } 
+	else  { $json.last_update=$d }
+
+    if ($json.PSObject.Properties.Name -notcontains "lb_dst") { 
+		json | Add-Member NoteProperty -Name "lb_dst" -Value $dst } 
+	else  { $json.lb_dst=$dst }
+
+    if ($json.PSObject.Properties.Name -notcontains "client_state") { 
+		json | Add-Member NoteProperty -Name "client_state" -Value "STATE_FINISHED" } 
+	else  { $json.client_state="STATE_FINISHED" }
+    
+    $json | ConvertTo-Json | Out-File $file
+    	
 	Write-Host "SUCCESS"
 }
 catch {
