@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 from configparser import ConfigParser
 import logging
+import json
 
 '''
 Created on Dec 25, 2018
@@ -117,7 +118,7 @@ class Computer(object):
         
         ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
         
-        command='$file = "{}";New-Item -Path $file -Force;'.format(ecmanFile)
+        command='$file = "{}";Set-Content -Path $file "{}";'.format(ecmanFile)
         std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
         if not(resetCandidateName):
@@ -487,7 +488,7 @@ class Computer(object):
             $json=ConvertFrom-Json -InputObject (Gc $file -Raw);
             if ($json.PSObject.Properties.Name -notcontains "candidate_name") { 
                 $json | Add-Member NoteProperty -Name "candidate_name" -Value "$1$" } 
-            else  { $json.client_state="$1$" }
+            else  { $json.candidate_name="$1$" }
             $json | ConvertTo-Json | Out-File $file; 
             '''.replace("$0$", self.remoteAdminUser).replace('$1$',candidateName)
         print("setup name: "+command)
@@ -567,7 +568,15 @@ class Computer(object):
         if not(self.checkUserConfig()):
             return False;
         
-        command = '$file = "C:\\Users\\$1$\\ecman.json"; if (Get-Item $file 2> $null) { $content = Get-Content $file; foreach ($line in $content){ Write-Host $line } } else { New-Item $file; Write-Host ""}'.replace("$1$", self.remoteAdminUser)
+        command = '''
+        $file = "C:\\Users\\$1$\\ecman.json"; 
+        if (Get-Item $file 2> $null) { 
+            $content = Get-Content $file; 
+            foreach ($line in $content){ Write-Host $line } 
+        } else { 
+            Set-Content -Path $file "{}"; Write-Host "{}";
+        }'''.replace("$1$", self.remoteAdminUser)
+        
         if self.debug: print("CheckStatus command: "+command)
         std_out, std_err, status = self.runPowerShellCommand(command)
 
@@ -578,33 +587,33 @@ class Computer(object):
         
         self.statusFile = std_out;
         self.logger.info("Remote status file: {}".format(std_out))
-        # parse std_out for status info
-        regex=re.compile(r'(candidate_name: (?P<name>[\w\d ]+))' )
-        match = regex.match(std_out)
-        if match:
-            self.candidateName = match.group("name")
         
+        # parse std_out for status info
+        myJson = json.loads(self.statusFile)
+        
+        self.candidateName=myJson.get("candidate_name")
         self.state = Computer.State.STATE_INIT
-        match = re.search(r'(client_state: (?P<state>[\w_ ]+))',std_out)
+        match = myJson.get("client_state")
         if match:
-            state = match.group("state")
             for x in Computer.State:
-                if x.name == state:
+                if x.name == match:
                     self.state = x
                     break
         
-        match = re.search(r'(last_update: (?P<date>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}))', std_out)
+        match = myJson.get("last_update")
         if match:
-            self.last_update = match.group("date")
+            self.last_update = match
         
-        match = re.search(r'(lb_src: (?P<lbsrc>[\w\d#]+);)',std_out.replace("\\","/"))
-        match = re.search(r'(lb_src: (.*);)',std_out.replace("\\","/"))
+        match = myJson.get("lb_src")
         if match:
-            #self.lb_dataDirectory = match.group("lbsrc")
-            self.lb_dataDirectory = match.group(2)
+            match= match.replace("\\","/")
+            self.lb_dataDirectory = match
             
             self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
-            if self.debug: print("fetched previous data dir: "+self.lb_dataDirectory)
+            if self.debug: 
+                print("fetched user name: "+self.candidateName)
+                print("fetched client state: "+self.state.name)
+                print("fetched previous data dir: "+self.lb_dataDirectory)
                     
         return True;
     

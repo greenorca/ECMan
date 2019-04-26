@@ -167,7 +167,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # select only the computers without candidate name
         if self.checkBox_OverwriteExisitingNames.checkState() != Qt.CheckState.Checked:
-            clients = [x for x in clients if x.computer.getCandidateName() == ""]
+            clients = [x for x in clients if x.computer.getCandidateName() == "" or x.computer.getCandidateName() == None]
             
         if len(names) > len(clients):
             self.showMessageBox("Fehler",

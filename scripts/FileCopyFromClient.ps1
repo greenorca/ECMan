@@ -52,15 +52,15 @@ Try{
 
 	$d = date;
 	if ($json.PSObject.Properties.Name -notcontains "last_update") { 
-		json | Add-Member NoteProperty -Name "last_update" -Value $d } 
-	else  { $json.last_update=$d }
+		$json | Add-Member NoteProperty -Name "last_update" -Value "$d" } 
+	else  { $json.last_update="$d" }
 
     if ($json.PSObject.Properties.Name -notcontains "lb_dst") { 
-		json | Add-Member NoteProperty -Name "lb_dst" -Value $dst } 
-	else  { $json.lb_dst=$dst }
+		$json | Add-Member NoteProperty -Name "lb_dst" -Value "$dst" } 
+	else  { $json.lb_dst="$dst" }
 
     if ($json.PSObject.Properties.Name -notcontains "client_state") { 
-		json | Add-Member NoteProperty -Name "client_state" -Value "STATE_FINISHED" } 
+		$json | Add-Member NoteProperty -Name "client_state" -Value "STATE_FINISHED" } 
 	else  { $json.client_state="STATE_FINISHED" }
     
     $json | ConvertTo-Json | Out-File $file

@@ -276,7 +276,7 @@ class LbClient(QPushButton):
         if self.computer.getHostName() != "":
             label = label +"\n"+ self.computer.getHostName()
         
-        label = label +"\n"+ self.computer.getCandidateName()        
+        label = label +"\n"+ (self.computer.getCandidateName() or "-LEER-")       
         self.setText(label)
         self._colorizeWidgetByClientState()
     

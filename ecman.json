@@ -1,5 +1,7 @@
-candidate_name: albern;
-last_update: 01/31/2019 16:39:14;
-lb_src: \\odroid\lb_share\M120;
-client_state: STATE_FINISHED;
-lb_dst: \\odroid\lb_share\Ergebnisse;
+{
+	"candidate_name": "albern",
+	"last_update": "01/31/2019 16:39:14",
+	"lb_src": "//odroid/lb_share/M120",
+	"client_state": "STATE_FINISHED",
+	"lb_dst": "//odroid/lb_share/Ergebnisse"
+}

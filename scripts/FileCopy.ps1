@@ -61,15 +61,15 @@ Try {
 
 	$d = date;
 	if ($json.PSObject.Properties.Name -notcontains "last_update") { 
-		json | Add-Member NoteProperty -Name "last_update" -Value $d } 
-	else  { $json.last_update=$d }
+		$json | Add-Member NoteProperty -Name "last_update" -Value "$d" } 
+	else  { $json.last_update="$d" }
 
     if ($json.PSObject.Properties.Name -notcontains "lb_src") { 
-		json | Add-Member NoteProperty -Name "lb_src" -Value $src } 
-	else  { $json.lb_src=$src }
+		$json | Add-Member NoteProperty -Name "lb_src" -Value "$src" } 
+	else  { $json.lb_src="$src" }
 
     if ($json.PSObject.Properties.Name -notcontains "client_state") { 
-		json | Add-Member NoteProperty -Name "client_state" -Value "STATE_DEPLOYED" } 
+		$json | Add-Member NoteProperty -Name "client_state" -Value "STATE_DEPLOYED" } 
 	else  { $json.client_state="STATE_DEPLOYED" }
     
     $json | ConvertTo-Json | Out-File $file
