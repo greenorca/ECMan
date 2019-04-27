@@ -43,17 +43,18 @@ class EcManConfigDialog(QDialog):
         if self.configFile.exists():
             
             self.config.read_file(open(str(self.configFile)))
-            
-            #lineEdit_lconfig.get("General","lb_server",fallback="")
-            # self.ui.comboBox_LbServer.addItem(self.config.get("General", "lb_server",fallback=""))
-            self.ui.comboBox_LbServer.setCurrentText(self.config.get("General", "lb_server",fallback=""))
-            self.ui.lineEdit_StdLogin.setText(self.config.get("Client", "lb_user",fallback="student"))
-            self.ui.lineEdit_winRmPort.setText(self.config.get("General", "winrm_port",fallback="5986"))
-            self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user"))
-            self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd"))
-            self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="1000"))
-            self.ui.lineEdit_MaxFileSize.setText(self.config.get("Client","max_fileSize",fallback="100"))
-            
+            try:
+                #lineEdit_lconfig.get("General","lb_server",fallback="")
+                # self.ui.comboBox_LbServer.addItem(self.config.get("General", "lb_server",fallback=""))
+                self.ui.comboBox_LbServer.setCurrentText(self.config.get("General", "lb_server",fallback=""))
+                self.ui.lineEdit_StdLogin.setText(self.config.get("Client", "lb_user",fallback="student"))
+                self.ui.lineEdit_winRmPort.setText(self.config.get("General", "winrm_port",fallback="5986"))
+                self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user"))
+                self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd"))
+                self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="1000"))
+                self.ui.lineEdit_MaxFileSize.setText(self.config.get("Client","max_fileSize",fallback="100"))
+            except Exception as ex:
+                pass
                         
     def saveConfig(self):
         '''

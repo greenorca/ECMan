@@ -68,7 +68,7 @@ class Computer(object):
         '''
         Constructor
         '''
-        self.debug=True
+        self.debug=False
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
@@ -118,7 +118,7 @@ class Computer(object):
         
         ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
         
-        command='$file = "{}";Set-Content -Path $file "{}";'.format(ecmanFile)
+        command='$file = "'+ecmanFile+'";Set-Content -Path $file "{}";'
         std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
         if not(resetCandidateName):
@@ -179,9 +179,9 @@ class Computer(object):
         sends a message in a little popup window on client computer
         '''
         if message == "" or type(message) != str:
-            message="Verbindungstest Kandidat: "+self.getCandidateName()
+            message="Verbindungstest Kandidat: "+str(self.getCandidateName())
         else:
-            message = self.candidateName + ":: "+message
+            message = str(self.candidateName) + ":: "+message
             
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
