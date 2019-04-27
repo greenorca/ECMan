@@ -1,6 +1,7 @@
 __pycache__*
 .~lock*
-dist*
+dist/*
+build/*
 *Zone.Identifier*
 *.zip
 *.pdf
