@@ -283,7 +283,7 @@ $acl.SetAccessRule($rule)
 Set-Acl $lockscreen_picture $acl
 
 # install imagemagick
-$dst = $PSScriptRoot+"ImageMagick-7.0.8-40-Q8-x64-dll.exe"
+$dst = $PSScriptRoot+"\ImageMagick-7.0.8-40-Q8-x64-dll.exe"
 
 Write-Host "Installiere imagemagick"
 [System.Diagnostics.Process]::Start($dst, "/VERYSILENT")
