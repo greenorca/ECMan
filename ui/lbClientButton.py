@@ -40,13 +40,13 @@ class LbClient(QPushButton):
         act3 = menu.addAction("Dateien zum Client kopieren")
         act3.triggered.connect(self.deployClientFiles)
         
-        act4 = menu.addAction("USB blockieren")
+        act4 = menu.addAction("USB sperren")
         act4.triggered.connect(self.blockUsbAccessThread)
 
         act5 = menu.addAction("USB aktivieren")
         act5.triggered.connect(self.allowUsbAccessThread)
         
-        act6 = menu.addAction("Internet deaktivieren")
+        act6 = menu.addAction("Internet sperren")
         act6.triggered.connect(self.blockInternetAccessThread)
         
         act7 = menu.addAction("Internet freigeben")

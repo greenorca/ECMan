@@ -11,7 +11,7 @@ if ( $path -eq "C:\Users\*" ){
 }
 
 # cleanup folder contents (only for visible folders)
-foreach ($folder in get-item -Path $path | Where { $_.Name -notmatch "^\." }){ 
+foreach ($folder in get-item -Path $path | Where { ($_.Name -notmatch "^\."  -AND $_.Name -notmatch "^zeal-portable"  -AND $_.Name -notmatch "^eclipse") } ){
     Write-Host "Cleaning up "$folder.name 
     Remove-Item $folder\* -Recurse -Force -ErrorAction SilentlyContinue;
 }

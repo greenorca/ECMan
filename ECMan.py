@@ -71,7 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.network_servername = None
         self.lb_directory = None
         
-        self.getConfig()
+        self.configure()
         self.show()
         
         self.detectClients()
@@ -184,7 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start() 
         
-    def getConfig(self):
+    def configure(self):
         '''
         sets inial values for app 
         '''        
@@ -199,7 +199,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             result = self.openConfigDialog()
             
         if self.configFile.exists() or result == 1:
-            self.refreshConfig()
+            self.readConfigFile()
         
         self.result_directory = ""
         
@@ -221,7 +221,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             
             self.log("no connection to internet:" + str(ex))
             
-    def refreshConfig(self):
+    def readConfigFile(self):
         '''
         reads config file into class variables
         '''
@@ -244,7 +244,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         result = configDialog.exec_()
         if result == 1:
             configDialog.saveConfig()
-            self.refreshConfig()
+            self.readConfigFile()
         return result
         
     def log(self, message):
@@ -303,18 +303,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         retVal = QMessageBox.StandardButton.Yes
         if self.result_directory != "":
-            retVal = QMessageBox.question(self, "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(
-                self.result_directory.replace("#", "/")))
+            retVal = QMessageBox.question(self, 
+                "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(
+                    self.result_directory.replace("#", "/")
+                )
+            )
             
-        if retVal == QMessageBox.StandardButton.Yes:
-            if socket.gethostname() == "sven-V5-171":
-                wizard = EcWizard(parent=self, username="sven", domain="HSH", servername="odroid/lb_share",
-                          wizardType=EcWizard.TYPE_LB_SELECTION)
-            else:
-                wizard = EcWizard(parent=None, username=self.network_username, domain=self.network_domain, servername=self.network_servername,
-                          wizardType=EcWizard.TYPE_RESULT_DESTINATION)
-                wizard = EcWizard(parent=self, username=self.network_username, domain=self.network_domain, servername=self.config["General"]["lb_server"],
-                          wizardType=EcWizard.TYPE_RESULT_DESTINATION)
+        if  retVal == QMessageBox.StandardButton.Yes:
+            wizard = EcWizard(parent=self, username=self.network_username, 
+                        domain=self.network_domain, servername=self.config["General"]["lb_server"],
+                        wizardType=EcWizard.TYPE_RESULT_DESTINATION)
             
             wizard.setModal(True)
             result = wizard.exec_()
@@ -327,6 +325,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.network_password = wizard.field("password")
                 self.network_domain = wizard.field("domainname")
                 self.network_servername = wizard.server.serverName
+                
+                self.saveConfig(base_share= wizard.field("servername"))
             
                 self.result_directory = "//" + self.network_servername + "/" + wizard.defaultShare
                 
@@ -452,16 +452,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         provides ability to select serverName share plus logon credentials and lb directory using a wizard 
         '''
-        if socket.gethostname() == "sven-V5-171":
-            wizard = EcWizard(parent=self, username="sven", domain="HSH", servername="odroid/lb_share",
-                          wizardType=EcWizard.TYPE_LB_SELECTION)
-        else:
-            wizard = EcWizard(parent=self, wizardType=EcWizard.TYPE_LB_SELECTION)
-            wizard = EcWizard(parent=self, username=self.config.get("General","username", fallback=""), 
-                              domain=self.config.get("General","domain", fallback=""), 
-                              servername=self.config.get("General","servername", fallback=""), 
-                              wizardType=EcWizard.TYPE_LB_SELECTION)
-       
+        wizard = EcWizard(parent=self, username=self.config.get("General","username", fallback=""), 
+            domain=self.config.get("General","domain", fallback=""), 
+            servername=self.config.get("General","servername", fallback=""), 
+            wizardType=EcWizard.TYPE_LB_SELECTION)
+
         wizard.setModal(True)
         result = wizard.exec_()
         print("I'm done, wizard result=" + str(result))
@@ -470,16 +465,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                   (wizard.field("username"), 
                    wizard.field("servername"), wizard.defaultShare))    
             
-            self.config["General"]["servername"] = wizard.field("servername")
-            self.config["General"]["domain"] = wizard.field("domainname")
-            self.config["General"]["username"] = wizard.field("username")
-            
-            self.config.write(open(self.configFile,'w'))
-            
             self.network_username = wizard.field("username")
             self.network_password = wizard.field("password")
             self.network_domain = wizard.field("domainname")
             self.network_servername = wizard.server.serverName
+            
+            self.saveConfig(base_share= wizard.field("servername"))
             
             self.lb_directory = "//" + self.network_servername + "/" + wizard.defaultShare
             self.lb_directory = self.lb_directory.replace("/", "#")    
@@ -544,8 +535,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             doc = QTextDocument(data, None)
             self.textEditLog.setDocument(doc)
     
-    def saveFile(self):
-        pass
+    def saveConfig(self, base_share):
+        if not(self.configFile.exists()):
+            self.configFile.touch()
+            
+        self.config.read_file(open(str(self.configFile)))
+        
+        if not(self.config.has_section("General")):
+            self.config.add_section("General")
+        self.config["General"]["winrm_port"] = self.port
+        self.config["General"]["lb_server"] = base_share
+        
+        if not(self.config.has_section("Client")):
+            self.config.add_section("Client")
+        self.config["Client"]["lb_user"] = self.client_lb_user
+        self.config["Client"]["user"] =  self.user
+        self.config["Client"]["pwd"] = self.passwd
+        self.config["Client"]["max_files"]=str(self.maxFiles)
+        self.config["Client"]["max_fileSize"]=str(round(self.maxFileSize/1024/1024))
+        
+        self.config.write(open(self.configFile,'w'))        
+
 
     def eventFilter(self, currentObject, event):
         '''

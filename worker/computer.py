@@ -8,6 +8,7 @@ from pathlib import Path
 from configparser import ConfigParser
 import logging
 import json
+import socket
 
 '''
 Created on Dec 25, 2018
@@ -69,6 +70,8 @@ class Computer(object):
         Constructor
         '''
         self.debug=False
+        if socket.gethostname()=="sven-V5-171":
+            self.debug = True
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
         self.passwd = passwd
@@ -118,6 +121,7 @@ class Computer(object):
         
         ecmanFile = "C:\\Users\\"+ self.remoteAdminUser +"\\ecman.json"
         
+        # wipe all previous state info
         command='$file = "'+ecmanFile+'";Set-Content -Path $file "{}";'
         std_out, std_err, status_code = self.runPowerShellCommand(command=command)
         
@@ -372,18 +376,20 @@ class Computer(object):
     
         shell_id = p.open_shell()
         
-        for line in script:
-            print("running: "+line)
-            encoded_ps = b64encode(line.encode('utf_16_le')).decode('ascii')
-            command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
-            std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
-            if status_code!=self.STATUS_OK:
-                break
+        script = ";".join(script)
+        
+        t0 = time.time()
+        if self.debug:
+            print("running: "+script)
+        encoded_ps = b64encode(script.encode('utf_16_le')).decode('ascii')
+        command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
+        std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
         
         p.cleanup_command(shell_id, command_id)
         p.close_shell(shell_id)
         
         if self.debug:
+            print("firewall config took: "+str(round(time.time()-t0))+"sec")
             print("std_out:")
             for line in str(std_out).split(r"\r\n"):
                 print(line)

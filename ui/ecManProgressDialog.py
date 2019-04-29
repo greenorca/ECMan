@@ -15,13 +15,14 @@ class EcManProgressDialog(QDialog):
     class inherists from QDialog, and contains the UI defined in ConfigDialog (based on configDialog.ui) 
     '''
 
-    def __init__(self, parent=None, title="Change me if you can"):
+    def __init__(self, parent=None, title="ECMan - Fortschritt"):
         '''
         Constructor        
         '''
         super(EcManProgressDialog,self).__init__(parent)
         self.ui = Ui_progressDialog()        
         self.ui.setupUi(self)
+        self.setWindowTitle(title)
         # self.ui.setWindowTitle(title)
         self.setModal(True)
         

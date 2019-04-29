@@ -290,6 +290,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     wizard = EcWizard(parent=None, username="sven.schirmer@wiss-online.ch", 
                       domain="", servername="NSSGSC01/LBV", wizardType=EcWizard.TYPE_RESULT_DESTINATION)
+    wizard = EcWizard(parent=None, username="sven", 
+                      domain="HSH", servername="odroid", wizardType=EcWizard.TYPE_RESULT_DESTINATION)
     wizard.setModal(True)
     result = wizard.exec_()
     print("I'm done, wizard result="+str(result))
