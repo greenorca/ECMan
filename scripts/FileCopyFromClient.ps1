@@ -36,7 +36,14 @@ Try{
 	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
 	
-	Compress-Archive -DestinationPath x:\$module$\$candidateName$\desktop_$candidateName$.zip -Force -Path $src -ErrorAction Ignore
+	# 7z doesnt work: cannot find file error 
+	#if (Test-Path 'C:\Programme\7-Zip\7z.exe'){ 
+	#	C:\Programme\7-Zip\7z a -tzip "x:\$module$\$candidateName$\desktop_$candidateName$.zip" $src
+	#	Write-Host "Exit Code: $lastexitcode"
+	#}
+	#else {
+		Compress-Archive -DestinationPath x:\$module$\$candidateName$\desktop_$candidateName$.zip -Force -Path $src -ErrorAction Ignore
+	#}
 	#Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
 	
 	if ($Error[0].Exception.Messsage){ 
