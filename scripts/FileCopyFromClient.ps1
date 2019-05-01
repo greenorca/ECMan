@@ -1,7 +1,6 @@
 # copy local Desktop folder remote directory
 # first, map network share to drive x:, then copy from x to Desktop
 # actual network resource replaces $dst$ (triggered by python) 
-# see full help: https://ss64.com/ps/copy-item.html
 
 $src="$src$"
 $dst="$dst$"
@@ -10,11 +9,7 @@ $server_user = "$server_user$"
 $server_pwd = "$server_pwd$"
 $domain = "$domain$"
 
-$dst=$dst.replace('#', '\')
-$dst=$dst.replace('smb:','')
-$dst=$dst.replace('/','\').trim()
-
-$maxFilesize = $maxFilesize$
+$dst=$dst.replace('#', '\').replace('smb:','').replace('/','\').trim()
 
 echo $dst
 
@@ -36,14 +31,19 @@ Try{
 	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
 	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
 	
-	# 7z doesnt work: cannot find file error 
-	#if (Test-Path 'C:\Programme\7-Zip\7z.exe'){ 
-	#	C:\Programme\7-Zip\7z a -tzip "x:\$module$\$candidateName$\desktop_$candidateName$.zip" $src
-	#	Write-Host "Exit Code: $lastexitcode"
-	#}
-	#else {
+	# use 7Zip if installed because it is faster and POSIX compatible
+	# 7z doesnt seem to work on network shares, therefore create archive locally first 
+	if (Test-Path 'C:\Programme\7-Zip\7z.exe'){ 
+		$env:Path = "C:\Programme\7-Zip;$env:Path"
+		7z a -tzip "C:\desktop_$candidateName$.zip" $src
+		if ( $LASTEXITCODE -ne 0 ) { 
+			throw [System.IO.FileNotFoundException]::new("Crashed compressing result files")
+		} 
+		Move-Item -Path "C:\desktop_$candidateName$.zip" -Destination "x:\$module$\$candidateName$" -Force
+	}
+	else {
 		Compress-Archive -DestinationPath x:\$module$\$candidateName$\desktop_$candidateName$.zip -Force -Path $src -ErrorAction Ignore
-	#}
+	}
 	#Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
 	
 	if ($Error[0].Exception.Messsage){ 

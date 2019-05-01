@@ -147,7 +147,12 @@ class Computer(object):
                 script = file.read()
         
         # replace script parameters     
-        script=script.replace("$candidate$", self.candidateLogin)
+        script=script.replace("$candidate$", self.candidateLogin).replace("$passwd$","student")
+        
+        if self.debug:
+            print("***********")
+            print(script)
+            print("***********")
         
         state, message = self.runCopyScript(script)
         if state != 0:
@@ -833,7 +838,7 @@ class Computer(object):
             self.state = Computer.State.STATE_COPY_FAIL
             return False, error.decode("850")
 
-    def retrieveClientFiles(self, filepath, server_user, server_passwd, domain, maxFileSize=150*1024*1024):
+    def retrieveClientFiles(self, filepath, server_user, server_passwd, domain):
         '''
         copy LB-data files from this machine to destination (which has to be a writable SMB share) 
         within a folder with the candidates name that will be created on destination; 
@@ -871,8 +876,6 @@ class Computer(object):
         script=script.replace('$server_user$',server_user)
         script=script.replace('$server_pwd$', server_passwd)
         script=script.replace('$domain$', domain)
-         
-        script = script.replace("$maxFilesize$", str(maxFileSize))
                 
         if self.debug:
             self.logger.info(script)

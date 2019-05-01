@@ -300,6 +300,10 @@ Set-Service wuauserv -StartupType Disabled
 Set-Service wsearch -StartupType Disabled
 Set-Service BITS -StartupType Disabled
 
+# try to setup trashbin policy via GPO-logon scripts
+echo "Clear-RecycleBin -Force" > C:\WINDOWS\System32\GroupPolicy\User\Scripts\Logon\clear_trash.ps1
+
+
 Write-Host "Generiere und einrichten SSL Zertifikate... (dauert einen Moment)"
 
 # Get the ID and security principal of the current user account
