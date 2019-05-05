@@ -19,6 +19,7 @@ from ui.Ui_MainWindow import Ui_MainWindow
 from ui.ecManConfigDialog import EcManConfigDialog
 from ui.ecManProgressDialog import EcManProgressDialog
 from ui.ecWiz import EcWizard
+import webbrowser
 
 '''
 Start app for exam deployment software
@@ -56,7 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAlle_Clients_zur_cksetzen.triggered.connect(self.resetClients)
         self.actionAlle_Clients_rebooten.triggered.connect(self.rebootAllClients)
         self.actionAlle_Clients_herunterfahren.triggered.connect(self.shutdownAllClients)
-               
+        self.actionOnlineHelp.triggered.connect(self.openHelpUrl)       
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
                 
         # self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
@@ -75,6 +76,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.show()
         
         self.detectClients()
+    
+    def openHelpUrl(self):
+        webbrowser.open(self.wikiUrl)
     
     def checkOldLogFiles(self):
         '''
@@ -235,6 +239,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.passwd = self.config.get("Client", "pwd", fallback="")    
         self.maxFiles = int(self.config.get("Client","max_files",fallback="100"))
         self.maxFileSize = int(self.config.get("Client","max_fileSize",fallback="100"))*1024*1024 # thats MB now...
+        self.wikiUrl = self.config.get("General", "wikiurl", fallback="http://git-orca.hopto.org/sven/ECMan/wiki")
     
     def openConfigDialog(self):
         '''
@@ -546,6 +551,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config["General"]["winrm_port"] = self.port
         self.config["General"]["lb_server"] = base_share
         
+        onlineUrl = self.wikiUrl
+        if not(onlineUrl.startswith("http://") or onlineUrl.startswith("https://")):
+            onlineUrl = "http://"+onlineUrl
+            
+        self.config["General"]["wikiurl"]=onlineUrl
+        
         if not(self.config.has_section("Client")):
             self.config.add_section("Client")
         self.config["Client"]["lb_user"] = self.client_lb_user
@@ -553,6 +564,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config["Client"]["pwd"] = self.passwd
         self.config["Client"]["max_files"]=str(self.maxFiles)
         self.config["Client"]["max_fileSize"]=str(round(self.maxFileSize/1024/1024))
+        
         
         self.config.write(open(self.configFile,'w'))        
 

@@ -53,7 +53,7 @@ class EcWizard(QWizard):
         self.setPage(self.PAGE_LOGON, Page1(self, username, password, servername, domain))
         self.setPage(self.PAGE_SELECT, Page2(self, self.title,self.subtitle))
         self.setWindowTitle("ECMan - {}".format(self.title))
-        self.resize(640,480)
+        self.resize(450,350)
         self.server = None
         self.defaultShare = None
         self.finished.connect(someFun)

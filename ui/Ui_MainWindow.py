@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'Ui_MainWindow.ui',
 # licensing of 'Ui_MainWindow.ui' applies.
 #
-# Created: Sun Apr 14 10:34:09 2019
+# Created: Thu May  2 13:34:09 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -158,6 +158,8 @@ class Ui_MainWindow(object):
         self.menuKonfiguration.setObjectName("menuKonfiguration")
         self.menuBatch_Operationen = QtWidgets.QMenu(self.menubar)
         self.menuBatch_Operationen.setObjectName("menuBatch_Operationen")
+        self.menuHilfe = QtWidgets.QMenu(self.menubar)
+        self.menuHilfe.setObjectName("menuHilfe")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -180,6 +182,8 @@ class Ui_MainWindow(object):
         self.actionAlle_Clients_herunterfahren.setObjectName("actionAlle_Clients_herunterfahren")
         self.actionAlle_Benutzer_benachrichtigen = QtWidgets.QAction(MainWindow)
         self.actionAlle_Benutzer_benachrichtigen.setObjectName("actionAlle_Benutzer_benachrichtigen")
+        self.actionOnlineHelp = QtWidgets.QAction(MainWindow)
+        self.actionOnlineHelp.setObjectName("actionOnlineHelp")
         self.menuKonfiguration.addAction(self.actionBearbeiten)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_zur_cksetzen)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_deaktivieren)
@@ -187,8 +191,10 @@ class Ui_MainWindow(object):
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_herunterfahren)
         self.menuBatch_Operationen.addSeparator()
         self.menuBatch_Operationen.addAction(self.actionAlle_Benutzer_benachrichtigen)
+        self.menuHilfe.addAction(self.actionOnlineHelp)
         self.menubar.addAction(self.menuKonfiguration.menuAction())
         self.menubar.addAction(self.menuBatch_Operationen.menuAction())
+        self.menubar.addAction(self.menuHilfe.menuAction())
 
         self.retranslateUi(MainWindow)
         self.tabs.setCurrentIndex(0)
@@ -217,10 +223,12 @@ class Ui_MainWindow(object):
         self.labelProgress.setText(QtWidgets.QApplication.translate("MainWindow", "Fortschritt:", None, -1))
         self.menuKonfiguration.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Konfiguration", None, -1))
         self.menuBatch_Operationen.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Batch-Operationen", None, -1))
+        self.menuHilfe.setTitle(QtWidgets.QApplication.translate("MainWindow", "Hi&lfe", None, -1))
         self.actionBearbeiten.setText(QtWidgets.QApplication.translate("MainWindow", "&Bearbeiten", None, -1))
         self.actionAlle_Clients_zur_cksetzen.setText(QtWidgets.QApplication.translate("MainWindow", "&Alle Clients zurücksetzen", None, -1))
         self.actionAlle_Clients_deaktivieren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Clients deaktivieren", None, -1))
         self.actionAlle_Clients_rebooten.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &rebooten", None, -1))
         self.actionAlle_Clients_herunterfahren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &herunterfahren", None, -1))
         self.actionAlle_Benutzer_benachrichtigen.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Benutzer benachrichtigen", None, -1))
+        self.actionOnlineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "Online-Hilfe öffnen", None, -1))
 

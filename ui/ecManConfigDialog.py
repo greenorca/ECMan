@@ -30,8 +30,9 @@ class EcManConfigDialog(QDialog):
         self.ui.lineEdit_MaxFileSize.setValidator(QIntValidator(10, 1000, self))
         
         self.ui.comboBox_LbServer.addItem("")
-        self.ui.comboBox_LbServer.addItem("//odroid/lb_share")
         self.ui.comboBox_LbServer.addItem("//NSSGSC01/LBV")
+        self.ui.comboBox_LbServer.addItem("//NSZHSC02/LBV")
+        self.ui.comboBox_LbServer.addItem("//NSBESC02/LBV")
         self.config = ConfigParser()
         self.configFile=configFile
         
@@ -46,6 +47,7 @@ class EcManConfigDialog(QDialog):
             self.ui.comboBox_LbServer.setCurrentText(self.config.get("General", "lb_server",fallback=""))
             self.ui.lineEdit_StdLogin.setText(self.config.get("Client", "lb_user",fallback="student"))
             self.ui.lineEdit_winRmPort.setText(self.config.get("General", "winrm_port",fallback="5986"))
+            self.ui.lineEdit_OnlineWiki.setText(self.config.get("General", "wikiurl", fallback="http://git-orca.hopto.org/sven/ECMan/wiki"))
             self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user", fallback="winrm"))
             self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd",fallback=""))
             self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="1000"))
@@ -73,6 +75,11 @@ class EcManConfigDialog(QDialog):
         self.config["General"]["winrm_port"] = self.ui.lineEdit_winRmPort.text()
         self.config["General"]["lb_server"] = self.ui.comboBox_LbServer.currentText()
         
+        onlineUrl = self.ui.lineEdit_OnlineWiki.text()
+        if not(onlineUrl.startswith("http://") or onlineUrl.startswith("https://")):
+            onlineUrl = "http://"+onlineUrl
+            
+        self.config["General"]["wikiurl"]=onlineUrl
         if not(self.config.has_section("Client")):
             self.config.add_section("Client")
         self.config["Client"]["lb_user"] = self.ui.lineEdit_StdLogin.text()

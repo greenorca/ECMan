@@ -324,8 +324,15 @@
     <addaction name="separator"/>
     <addaction name="actionAlle_Benutzer_benachrichtigen"/>
    </widget>
+   <widget class="QMenu" name="menuHilfe">
+    <property name="title">
+     <string>Hi&amp;lfe</string>
+    </property>
+    <addaction name="actionOnlineHelp"/>
+   </widget>
    <addaction name="menuKonfiguration"/>
    <addaction name="menuBatch_Operationen"/>
+   <addaction name="menuHilfe"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="sizePolicy">
@@ -369,6 +376,11 @@
   <action name="actionAlle_Benutzer_benachrichtigen">
    <property name="text">
     <string>Alle &amp;Benutzer benachrichtigen</string>
+   </property>
+  </action>
+  <action name="actionOnlineHelp">
+   <property name="text">
+    <string>Online-Hilfe öffnen</string>
    </property>
   </action>
  </widget>

@@ -6,204 +6,219 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>318</height>
+    <width>401</width>
+    <height>372</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>280</y>
-     <width>381</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QWidget" name="formLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>381</width>
-     <height>268</height>
-    </rect>
-   </property>
-   <layout class="QFormLayout" name="formLayout">
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>LB Server</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QComboBox" name="comboBox_LbServer">
-      <property name="editable">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Standard-Login</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="lineEdit_StdLogin">
-      <property name="toolTip">
-       <string>Benutzername der Prüfungskandidaten auf Client PC, sollte student sein</string>
-      </property>
-      <property name="text">
-       <string>student</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>WinRM-Port</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="lineEdit_winRmPort">
-      <property name="text">
-       <string>5986</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>WinRM-Login</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLineEdit" name="lineEdit_winRmUser">
-      <property name="toolTip">
-       <string>Benutzername für Remotezugriff (wie im Konfigskript für Client-PCs)</string>
-      </property>
-      <property name="text">
-       <string>winrm</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>WinRM-Passwort</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
-     <widget class="QLineEdit" name="lineEdit_winRmPwd">
-      <property name="toolTip">
-       <string>Passwort für Remotezugriff (wie im Konfigskript für Client-PCs)</string>
-      </property>
-      <property name="inputMethodHints">
-       <set>Qt::ImhHiddenText|Qt::ImhNoAutoUppercase|Qt::ImhNoPredictiveText|Qt::ImhSensitiveData</set>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="echoMode">
-       <enum>QLineEdit::Password</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="toolTip">
-       <string>Hier Limite für die maximale Dateigrösse der Lösungsdaten setzen.</string>
-      </property>
-      <property name="text">
-       <string>max. Dateigrösse (MB)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="1">
-     <widget class="QLineEdit" name="lineEdit_MaxFileSize">
-      <property name="text">
-       <string>100</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="toolTip">
-       <string>Hier Limite für die maximale Anzahl Lösungsdateien setzen.</string>
-      </property>
-      <property name="text">
-       <string>max. Dateien</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="1">
-     <widget class="QLineEdit" name="lineEdit_MaxFiles">
-      <property name="text">
-       <string>100</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="0">
-     <widget class="QLabel" name="label_8">
-      <property name="text">
-       <string>versteckte Dateien</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="1">
-     <widget class="QCheckBox" name="checkBox_HiddenFiles">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="toolTip">
-       <string>versteckte Dateien und Ordner (.*) werden derzeit ignoriert.</string>
-      </property>
-      <property name="text">
-       <string>ignorieren</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0" colspan="2">
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="2">
-     <widget class="Line" name="line_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMinimumSize</enum>
+     </property>
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::ExpandingFieldsGrow</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>LB Server</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBox_LbServer">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Standard-Login</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEdit_StdLogin">
+       <property name="toolTip">
+        <string>Benutzername der Prüfungskandidaten auf Client PC, sollte student sein</string>
+       </property>
+       <property name="text">
+        <string>student</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Online-Wiki</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="lineEdit_OnlineWiki"/>
+     </item>
+     <item row="3" column="0" colspan="2">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>WinRM-Port</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="lineEdit_winRmPort">
+       <property name="text">
+        <string>5986</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>WinRM-Login</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="lineEdit_winRmUser">
+       <property name="toolTip">
+        <string>Benutzername für Remotezugriff (wie im Konfigskript für Client-PCs)</string>
+       </property>
+       <property name="text">
+        <string>winrm</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>WinRM-Passwort</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QLineEdit" name="lineEdit_winRmPwd">
+       <property name="toolTip">
+        <string>Passwort für Remotezugriff (wie im Konfigskript für Client-PCs)</string>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhHiddenText|Qt::ImhNoAutoUppercase|Qt::ImhNoPredictiveText|Qt::ImhSensitiveData</set>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="toolTip">
+        <string>Hier Limite für die maximale Dateigrösse der Lösungsdaten setzen.</string>
+       </property>
+       <property name="text">
+        <string>max. Dateigrösse (MB)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QLineEdit" name="lineEdit_MaxFileSize">
+       <property name="text">
+        <string>100</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="toolTip">
+        <string>Hier Limite für die maximale Anzahl Lösungsdateien setzen.</string>
+       </property>
+       <property name="text">
+        <string>max. Dateien</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <widget class="QLineEdit" name="lineEdit_MaxFiles">
+       <property name="text">
+        <string>100</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>versteckte Dateien</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="1">
+      <widget class="QCheckBox" name="checkBox_HiddenFiles">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>versteckte Dateien und Ordner (.*) werden derzeit ignoriert.</string>
+       </property>
+       <property name="text">
+        <string>ignorieren</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="2">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>Prüfungsergebnisse abholen:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <tabstops>
   <tabstop>comboBox_LbServer</tabstop>
   <tabstop>lineEdit_StdLogin</tabstop>
+  <tabstop>lineEdit_OnlineWiki</tabstop>
   <tabstop>lineEdit_winRmPort</tabstop>
   <tabstop>lineEdit_winRmUser</tabstop>
   <tabstop>lineEdit_winRmPwd</tabstop>
+  <tabstop>lineEdit_MaxFileSize</tabstop>
+  <tabstop>lineEdit_MaxFiles</tabstop>
+  <tabstop>checkBox_HiddenFiles</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -214,8 +229,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>389</x>
+     <y>315</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -230,8 +245,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>389</x>
+     <y>315</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
