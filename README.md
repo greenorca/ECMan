@@ -106,9 +106,6 @@ Die folgende Tabelle beinhaltet das Ergebnis vorläufiger Aufwandsschätzungen u
 | gewichtete FPs (1)|7|7|6|6|6|
 | **Summe FPs**|32|||||
 | Aufwand (Stunden/FP) für Python (2)|12.7|||||
-| Gesamtaufwand (Stunden)|406.4|||||
-| Stundensatz (CHF)|80|||||
-| **Gesamtpreis (CHF)**|**32512**|||||
 
 (1) siehe Software Measurement and Estimation, Laird &  Brennan, 2006; ISBN: 0-714-67622-5
 
@@ -172,8 +169,6 @@ Mit Ausbaustufe 1 können Prüfungs-PCs für einfache LBs eingerichtet werden. D
 
 **FPs:** 10
 
-**Kosten:** 8000 CHF *bei 800CHF/Tag und 1FP/Tag*
-
 **Möglicher Termin:** 1.3.2019
 
 ### Ausbaustufe 2
@@ -185,8 +180,6 @@ Mit Ausbaustufe 3 können deutlich mehr LBs per Deployment-Software konfiguriert
 *Im Vorfeld von Ausbaustufe 2 ist eine Bedarfsanalyse anhand der existierenden LBs und Konsultation der Fachvorstände zur Abklärung der notwendigen Skript-Funktionalität nötig.*
 
 **FPs:** 10
-
-**Kosten:** 8000 CHF *bei 800CHF/Tag und 1FP/Tag*
 
 **Möglicher Termin:** 1.8.2019
 
