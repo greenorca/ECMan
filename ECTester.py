@@ -3,6 +3,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from worker.computer import Computer
 from ui.ecWiz import EcWizard
+from ui.ecManRemoteTerminal import EcManRemoteTerminal
 import os
 
 '''
@@ -48,7 +49,7 @@ if __name__=="__main__":
     #with open(compi.logfile_name) as log:
     #    print("\n".join(log.readlines()))
     
-    tests = ["checkUserConfig", "read_old_state", "deploy_retrieve", 
+    tests = ["open remote shell", "checkUserConfig", "read_old_state", "deploy_retrieve", 
              "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
         
         
@@ -63,7 +64,15 @@ if __name__=="__main__":
         except Exception as x:
             exit();
                 
-        if tests[choice] == "checkUserConfig":
+        if tests[choice] == "open remote shell":
+            app = QApplication.instance()
+            if app is None: 
+                app = QApplication([])
+            terminalDialog = EcManRemoteTerminal(parent=None, client=compi)
+            terminalDialog.setModal(True)
+            result = terminalDialog.exec_()        
+                
+        elif tests[choice] == "checkUserConfig":
             assert(compi.checkStatusFile())
             
         elif tests[choice] == "reset":

@@ -6,6 +6,7 @@ Created on Jan 20, 2019
 
 from time import asctime, clock
 from worker.computer import Computer
+from ui.ecManRemoteTerminal import EcManRemoteTerminal
 from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog, QWidget, QMessageBox
 from PySide2.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject
 from PySide2.QtGui import QFont, QPalette
@@ -58,6 +59,11 @@ class LbClient(QPushButton):
         act9 = menu.addAction("LB-Daten zurücksetzen")
         act9.triggered.connect(self.resetClientHomeDirectory)
         
+        act10 = menu.addAction("Powershell öffnen")
+        act10.triggered.connect(self.openTerminal)
+        
+        
+        
         menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
         menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
         
@@ -73,6 +79,11 @@ class LbClient(QPushButton):
 
         def getLog(self):
             return self.__log
+
+    def openTerminal(self):
+        terminalDialog = EcManRemoteTerminal(parent=self.parentApp, client=self.computer)
+        terminalDialog.setModal(True)
+        result = terminalDialog.exec_()
 
     def setCandidateNameDialog(self):
         '''
