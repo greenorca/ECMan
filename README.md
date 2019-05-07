@@ -1,33 +1,6 @@
-<header style="font-family:sans-serif;background-color:white; margin-top: -50px;">
-<img src="images/green_orca.png" width="120">
-<div style="display: inline-block; margin-left: 20px;">
-<h2 style="text-align:left;color: black;">Green-ORCA</h2>
-<p style="">
-Hauptstrasse 94<br>
-9052 Niederteufen<br>
-mail: <a href="mailto:schirmer@green-orca.com">schirmer@green-orca.com</a></p>
-</div>
-<br>
-<div style="display: inline-block; margin-left: 20px; margin-top: 40px;">
-<p>An: </p>
-<p style="">
-<b>Wirtschaftsinformatikschule Schweiz</b><br>
-Hohlstrasse 535<br>
-8048 Zürich<br>
-</p>
-</div>
-
-</header>
 <center>
 <h1>Automatisiertes Deployment und Retrieval für PC-basierte Prüfungen</h1>
-<h2>Vorstudie und Offerte</h2>
 </center>
-
-<!--
-## TODOS
-
-*
--->
 
 ## Management Summary
 
