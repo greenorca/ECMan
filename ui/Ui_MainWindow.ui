@@ -360,7 +360,7 @@
   </action>
   <action name="actionAlle_Clients_deaktivieren">
    <property name="text">
-    <string>Alle &amp;Clients deaktivieren</string>
+    <string>Alle Clients: Auswahl aufheben</string>
    </property>
   </action>
   <action name="actionAlle_Clients_rebooten">
