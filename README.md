@@ -4,7 +4,7 @@
 
 ## Management Summary
 
-Eine Softwarelösung soll die Bereitstellung der Prüfungsfestplatten und die Durchführung der praktischen Prüfungen in der beruflichen Grundbildung an den WISS-Standorten Bern, St.Gallen und Zürich für alle Beteiligten vereinfachen. In Folgenden werden Ist- und Sollzustand kurz beschrieben und eine Kostenplanung aufgestellt.
+Eine Softwarelösung soll die Bereitstellung der Prüfungsfestplatten und die Durchführung der praktischen Prüfungen für alle Beteiligten vereinfachen. 
 
 <figure>
   <img src="images/preview_v002.png" alt="Prototyp ECMan-SW" />
@@ -13,7 +13,7 @@ Eine Softwarelösung soll die Bereitstellung der Prüfungsfestplatten und die Du
 
 ## Ist-Situation
 
-Für (fast) jede Leistungsbeurteilung wird für jeden Lernenden eine Festplatte mit Betriebssystem, Werkzeugen und Prüfungsdaten eine Prüfungsfestplatte basierend auf einem Master-Image erzeugt. Zürich und Bern erstellen sich ihre Prüfungsplatten selbst. Die Prüfungsplatten für St. Gallen werden am Standort Zürich erstellt und per Post oder Kurier geschickt.
+Für praktische Leistungsbeurteilungen werden für jeden Lernenden eine Festplatte mit Betriebssystem, Werkzeugen und Prüfungsdaten eine Prüfungsfestplatte basierend auf einem Master-Image erzeugt.
 
 ### Probleme
 
@@ -25,7 +25,7 @@ Für (fast) jede Leistungsbeurteilung wird für jeden Lernenden eine Festplatte 
 **Fazit:** Die aktuelle Situation ist ineffektiv, ineffizient und nicht zeitgemäss. Prüfungsrelevante Daten können leicht entwendet werden.
 
 
-## Soll-Zustand WISS-ECMan
+## Soll-Zustand ECMan
 
 Das Softwareprojekt **ExamClientManager** (*ECMan*) soll Lösungen für obige Kritikpunkte liefern. Im Folgenden wird der Umfang der zu erstellenden Deploymentsoftware grob umrissen und der geschätzte Aufwand in Function points (*FP*) angegeben.
 
@@ -41,13 +41,13 @@ In den Prüfungslabors werden Festplatten mit einem Standardimage eingesetzt. Mi
 
 1. aktive Prüfungs-PCs im lokalen Netzwerk erkennen und auswählen (Win-RM basiert)
 1. Prüfungs-PCs mit Namen der Lerndenden verknüpfen
-1. ausgewählte PCs auf definierten Orginalzustand zurücksetzen (alte Prüfungsverzeichnis löschen, falls vorhanden)  
-2. Prüfungsdaten von Dozenten-PC (oder WISS-Netzwerk-Share) auswählen
+1. ausgewählte PCs auf definierten Orginalzustand zurücksetzen (alte Prüfungsverzeichnisse löschen, falls vorhanden)  
+2. Prüfungsdaten  vom Netzwerk-Share auswählen
 3. ausgewählte Prüfungsdaten ordnerweise per LAN auf ausgewählten Prüfungs-PCs laden
 4. vorläufiges Monitoring der Prüfungsverzeichnisse auf Prüfungs-PCs
 1. unerwünschte Netzwerkzugriffe (HTTP, HTTPS, Fileshares, DNS) per Firewall auf den Prüfungs-PCs während Prüfung sperren
 2. USB-Zugriffe für Prüfungs-PCs während Prüfung sperren
-5. nach Beendigung der Prüfung: Prüfungsdaten automatisiert von den Prüfungs-PCs einsammeln und auf dem Dozenten-PC bzw. WISS-Share ablegen, Archivierung der digitalen Prüfungsleistungen und Software-Protokolle (welche Dateien wurden auf welche Client-PCs für welchen Kandidaten deployed etc.)
+5. nach Beendigung der Prüfung: Prüfungsdaten automatisiert von den Prüfungs-PCs einsammeln und auf Netzlaufwerk ablegen, Archivierung der digitalen Prüfungsleistungen und Software-Protokolle (welche Dateien wurden auf welche Client-PCs für welchen Kandidaten deployed etc.)
 
 Das Deployment der Prüfungsdaten erfolgt parallel durch Ausführung von Skripten auf den Prüfungs-PCs selbst ausserhalb der Sichtweite der Kandidaten. Die Berechtigung für Dateifreigaben auf den Netzlaufwerken kann auf ActiveDirectory-Accounts der Dozenten basieren.
 
@@ -82,7 +82,7 @@ Die folgenden Voraussetzungen für die Standard-Images sind notwendig:
 <!--* Zusatz-Pakete für Powershell: nuget, install-module pshosts (siehe https://superuser.com/questions/725331/how-to-add-remove-lines-from-the-hosts-file)
 -->
 
-## Voraussetzungen Infrastruktur je Standort
+## Voraussetzungen Infrastruktur
 
 * **funktionstüchtiges LAN (mit DHCP und DNS) in Prüfungslabors** (siehe Abbildung)
 * Standort-lokale Netzwerkfreigaben für LBs mit Leserechten (Schreibrechte in Pilotphase) über AD-Accounts der Lehrpersonen. Alle notwendigen Prüfungsdaten werden (nach und nach in der Pilotphase) in entsprechenden Modulordnern (z.B. *M101_Daten*) abgelegt.
