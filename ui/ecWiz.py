@@ -34,7 +34,7 @@ class EcWizard(QWizard):
         Constructor
         '''
         super(EcWizard, self).__init__(parent)
-        
+        self.setWizardStyle(QWizard.ModernStyle)
         self.title = "LB-Auswahl"
         self.subtitle = "Wählen Sie die zu kopierende LB aus"
         self.type = self.TYPE_LB_SELECTION

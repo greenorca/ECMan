@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Ui_MainWindow.ui',
-# licensing of 'Ui_MainWindow.ui' applies.
+# Form implementation generated from reading ui file 'ui/Ui_MainWindow.ui',
+# licensing of 'ui/Ui_MainWindow.ui' applies.
 #
-# Created: Thu May  2 13:34:09 2019
+# Created: Sat May 11 21:18:47 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(865, 587)
+        MainWindow.resize(1115, 587)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("../green_orca.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -55,9 +55,6 @@ class Ui_MainWindow(object):
         self.btnDetectClient = QtWidgets.QPushButton(self.centralwidget)
         self.btnDetectClient.setObjectName("btnDetectClient")
         self.verticalLayout_2.addWidget(self.btnDetectClient)
-        self.btnSelectAllClients = QtWidgets.QPushButton(self.centralwidget)
-        self.btnSelectAllClients.setObjectName("btnSelectAllClients")
-        self.verticalLayout_2.addWidget(self.btnSelectAllClients)
         self.btnSelectExam = QtWidgets.QPushButton(self.centralwidget)
         self.btnSelectExam.setEnabled(False)
         self.btnSelectExam.setObjectName("btnSelectExam")
@@ -69,6 +66,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.btnPrepareExam)
         self.checkBoxWipeHomedir = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBoxWipeHomedir.setToolTip("")
+        self.checkBoxWipeHomedir.setChecked(True)
         self.checkBoxWipeHomedir.setObjectName("checkBoxWipeHomedir")
         self.verticalLayout_2.addWidget(self.checkBoxWipeHomedir)
         self.checkBoxBlockUsb = QtWidgets.QCheckBox(self.centralwidget)
@@ -95,8 +93,25 @@ class Ui_MainWindow(object):
         self.tab_pcs.setObjectName("tab_pcs")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.tab_pcs)
         self.verticalLayout.setObjectName("verticalLayout")
+        self.frame = QtWidgets.QFrame(self.tab_pcs)
+        self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.frame.setLineWidth(0)
+        self.frame.setObjectName("frame")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.frame)
+        self.horizontalLayout.setSpacing(4)
+        self.horizontalLayout.setContentsMargins(10, 0, 10, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.btnSelectAllClients = QtWidgets.QPushButton(self.frame)
+        self.btnSelectAllClients.setStyleSheet("text-align:center")
+        self.btnSelectAllClients.setObjectName("btnSelectAllClients")
+        self.horizontalLayout.addWidget(self.btnSelectAllClients)
+        self.btnUnselectClients = QtWidgets.QPushButton(self.frame)
+        self.btnUnselectClients.setObjectName("btnUnselectClients")
+        self.horizontalLayout.addWidget(self.btnUnselectClients)
+        self.verticalLayout.addWidget(self.frame)
         self.clientFrame = QtWidgets.QFrame(self.tab_pcs)
-        self.clientFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.clientFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.clientFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.clientFrame.setObjectName("clientFrame")
         self.verticalLayout.addWidget(self.clientFrame)
@@ -152,7 +167,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.progressBar, 2, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 865, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1115, 23))
         self.menubar.setObjectName("menubar")
         self.menuKonfiguration = QtWidgets.QMenu(self.menubar)
         self.menuKonfiguration.setObjectName("menuKonfiguration")
@@ -186,7 +201,6 @@ class Ui_MainWindow(object):
         self.actionOnlineHelp.setObjectName("actionOnlineHelp")
         self.menuKonfiguration.addAction(self.actionBearbeiten)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_zur_cksetzen)
-        self.menuBatch_Operationen.addAction(self.actionAlle_Clients_deaktivieren)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_rebooten)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_herunterfahren)
         self.menuBatch_Operationen.addSeparator()
@@ -205,7 +219,6 @@ class Ui_MainWindow(object):
         self.label.setText(QtWidgets.QApplication.translate("MainWindow", "IP-Bereich: ", None, -1))
         self.lineEditIpRange.setText(QtWidgets.QApplication.translate("MainWindow", "192.168.0.*", None, -1))
         self.btnDetectClient.setText(QtWidgets.QApplication.translate("MainWindow", "Clients erkennen", None, -1))
-        self.btnSelectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients auswählen", None, -1))
         self.btnSelectExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung auswählen", None, -1))
         self.btnPrepareExam.setToolTip(QtWidgets.QApplication.translate("MainWindow", "Achtung: bereits vorhandene Daten werden überschrieben", None, -1))
         self.btnPrepareExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung einspielen", None, -1))
@@ -214,6 +227,8 @@ class Ui_MainWindow(object):
         self.checkBoxBlockWebAccess.setText(QtWidgets.QApplication.translate("MainWindow", "Web blockieren", None, -1))
         self.btnGetExams.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfungsdaten abholen", None, -1))
         self.btnSaveExamLog.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfungslog speichern", None, -1))
+        self.btnSelectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Client-PCs auswählen", None, -1))
+        self.btnUnselectClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Client-PCs abwählen", None, -1))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_pcs), QtWidgets.QApplication.translate("MainWindow", "Client - PCs", None, -1))
         self.btnApplyCandidateNames.setText(QtWidgets.QApplication.translate("MainWindow", "Kandidatennamen zuweisen", None, -1))
         self.checkBox_OverwriteExisitingNames.setText(QtWidgets.QApplication.translate("MainWindow", "existierende Namen überschreiben", None, -1))
@@ -226,9 +241,9 @@ class Ui_MainWindow(object):
         self.menuHilfe.setTitle(QtWidgets.QApplication.translate("MainWindow", "Hi&lfe", None, -1))
         self.actionBearbeiten.setText(QtWidgets.QApplication.translate("MainWindow", "&Bearbeiten", None, -1))
         self.actionAlle_Clients_zur_cksetzen.setText(QtWidgets.QApplication.translate("MainWindow", "&Alle Clients zurücksetzen", None, -1))
-        self.actionAlle_Clients_deaktivieren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Clients deaktivieren", None, -1))
+        self.actionAlle_Clients_deaktivieren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Clients: Auswahl aufheben", None, -1))
         self.actionAlle_Clients_rebooten.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &rebooten", None, -1))
         self.actionAlle_Clients_herunterfahren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &herunterfahren", None, -1))
         self.actionAlle_Benutzer_benachrichtigen.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Benutzer benachrichtigen", None, -1))
-        self.actionOnlineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "Online-Hilfe öffnen", None, -1))
+        self.actionOnlineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "&Online-Hilfe öffnen", None, -1))
 

@@ -65,7 +65,7 @@ class Computer(object):
         STATE_IMAGEMAGICK_MISSING = -7
         STATE_GPO_BGIMAGE_FAIL = -8
     
-    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin="Sven", fetchHostname=False):
+    def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin, fetchHostname=False):
         '''
         Constructor
         '''
@@ -104,6 +104,8 @@ class Computer(object):
         
         if fetchHostname==True:
             try:
+                if (self.debug):
+                    print("scanning information")
                 self.hostname = self.getHostName()
             except Exception as ex:
                 self.logger.error("Couldn't get hostname: %s".format(str(ex)))

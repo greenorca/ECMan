@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os, sys, socket
 import subprocess, ctypes
 # from time import sleep
@@ -31,7 +33,7 @@ last_revision: 2019-03-26
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
-    def __init__(self):
+    def __init__(self, ui_demo=False):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.grid_layout = QGridLayout()
@@ -39,7 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnDetectClient.clicked.connect(self.detectClients)
         
         self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
-        
+        self.btnUnselectClients.clicked.connect(self.unselectAllCLients)
         self.btnSelectExam.clicked.connect(self.selectExamByWizard)
         self.btnSelectExam.setEnabled(True)
         
@@ -52,7 +54,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #self.btnSaveExamLog.setEnabled(False)
         
         self.actionBearbeiten.triggered.connect(self.openConfigDialog)      
-        self.actionAlle_Clients_deaktivieren.triggered.connect(self.unselectAllCLients)
         self.actionAlle_Benutzer_benachrichtigen.triggered.connect(self.sendMessage)
         self.actionAlle_Clients_zur_cksetzen.triggered.connect(self.resetClients)
         self.actionAlle_Clients_rebooten.triggered.connect(self.rebootAllClients)
@@ -74,8 +75,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.configure()
         self.show()
-        
-        self.detectClients()
+        if ui_demo == False:
+            self.detectClients()
+            
+        else:
+            for i in range(14):
+                self.addClient(i+100)
+            
     
     def openHelpUrl(self):
         webbrowser.open(self.wikiUrl)
@@ -438,7 +444,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def addClient(self, ip):
         '''
-        populate GUI with newly received client ips (only last byte required)
+        populate GUI with newly received client ips 
+        param ip: only last byte required
+        param scan: wether or not scan the Client (set to False only for GUI testing)
         '''
         self.log("new client signal received: " + str(ip))
         clientIp = self.ipRange.replace("*", str(ip))
@@ -614,6 +622,9 @@ if __name__ == '__main__':
         os.makedirs("logs")
         
     app = QApplication(sys.argv)
-    mainWin = MainWindow()
+    ui_demo=False
+    if len(sys.argv)>1:
+        ui_demo = sys.argv[1]=="--demo"
+    mainWin = MainWindow(ui_demo=ui_demo)
     ret = app.exec_()
     sys.exit(ret)

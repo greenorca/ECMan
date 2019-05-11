@@ -27,12 +27,12 @@ class LbClient(QPushButton):
         myThread.connector.checkStateSignal.connect(self.setLabel)
         myThread.connector.checkStateSignal.connect(self.setOwnToolTip)        
         QThreadPool.globalInstance().start(myThread)
+    
         menu = QMenu(self)
-        
-        act0 = menu.addAction("Ping-Message anzeigen")
+        act0 = menu.addAction("Popup-Nachricht senden")
         act0.triggered.connect(self.computer.sendMessage)
         
-        act1 = menu.addAction("Aktivierung umkehren")
+        act1 = menu.addAction("Auswahl umkehren")
         act1.triggered.connect(self.toggleSelection)
         
         act2 = menu.addAction("Kandidat-Namen setzen")
@@ -61,10 +61,8 @@ class LbClient(QPushButton):
         
         act10 = menu.addAction("Powershell öffnen")
         act10.triggered.connect(self.openTerminal)
-        
-        
-        
-        menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
+                
+        #menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
         menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
         
         self.setMenu(menu)
@@ -289,6 +287,7 @@ class LbClient(QPushButton):
         
         label = label +"\n"+ (self.computer.getCandidateName() or "-LEER-")       
         self.setText(label)
+        self.setStyleSheet("text-align:center;")
         self._colorizeWidgetByClientState()
     
     def blockUsbAccess(self):

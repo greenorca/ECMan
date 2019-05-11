@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>865</width>
+    <width>1115</width>
     <height>587</height>
    </rect>
   </property>
@@ -76,13 +76,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnSelectAllClients">
-        <property name="text">
-         <string>Alle Clients auswählen</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btnSelectExam">
         <property name="enabled">
          <bool>false</bool>
@@ -115,6 +108,9 @@
         </property>
         <property name="text">
          <string>HOME-Verzeichnis leeren</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -181,9 +177,56 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
+         <widget class="QFrame" name="frame">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="btnSelectAllClients">
+             <property name="styleSheet">
+              <string notr="true">text-align:center</string>
+             </property>
+             <property name="text">
+              <string>Alle Client-PCs auswählen</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnUnselectClients">
+             <property name="text">
+              <string>Alle Client-PCs abwählen</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
          <widget class="QFrame" name="clientFrame">
           <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
+           <enum>QFrame::NoFrame</enum>
           </property>
           <property name="frameShadow">
            <enum>QFrame::Raised</enum>
@@ -303,7 +346,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>865</width>
+     <width>1115</width>
      <height>23</height>
     </rect>
    </property>
@@ -318,7 +361,6 @@
      <string>&amp;Batch-Operationen</string>
     </property>
     <addaction name="actionAlle_Clients_zur_cksetzen"/>
-    <addaction name="actionAlle_Clients_deaktivieren"/>
     <addaction name="actionAlle_Clients_rebooten"/>
     <addaction name="actionAlle_Clients_herunterfahren"/>
     <addaction name="separator"/>
@@ -360,7 +402,7 @@
   </action>
   <action name="actionAlle_Clients_deaktivieren">
    <property name="text">
-    <string>Alle Clients: Auswahl aufheben</string>
+    <string>Alle &amp;Clients: Auswahl aufheben</string>
    </property>
   </action>
   <action name="actionAlle_Clients_rebooten">
@@ -380,7 +422,7 @@
   </action>
   <action name="actionOnlineHelp">
    <property name="text">
-    <string>Online-Hilfe öffnen</string>
+    <string>&amp;Online-Hilfe öffnen</string>
    </property>
   </action>
  </widget>
