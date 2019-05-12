@@ -344,7 +344,7 @@ class LbClient(QPushButton):
         
         def __init__(self, widget):
             QRunnable.__init__(self)
-            self.widget =widget
+            self.widget = widget
             self.computer = widget.computer
             self.connector = LbClient.StatusThreadSignal()
             

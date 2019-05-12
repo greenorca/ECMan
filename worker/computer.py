@@ -591,7 +591,7 @@ class Computer(object):
         }'''.replace("$1$", self.remoteAdminUser)
         
         if self.debug: print("CheckStatus command: "+command)
-        std_out, std_err, status = self.runPowerShellCommand(command)
+        std_out, std_err, status = self.runPowerShellCommand(command, timeout=2)
 
         if status  != self.STATUS_OK:
             if self.debug: print("Error checking status file: "+std_err)
@@ -774,7 +774,7 @@ class Computer(object):
         command = r"runas /user:Sven runas /user:student%systemroot%\system32\scrnsave.scr /s"
         self.__runRemoteCommand(command, [])
         
-    def runPowerShellCommand(self,command=""):
+    def runPowerShellCommand(self,command="", timeout=30):
         '''
         run a powershell command remotely on given ip,
         just prints std_out, std_err and status
@@ -785,7 +785,8 @@ class Computer(object):
             transport='basic',
             username=self.remoteAdminUser,
             password=self.passwd,
-            server_cert_validation='ignore')
+            server_cert_validation='ignore',
+            operation_timeout_sec=timeout+1, read_timeout_sec=timeout+2)
         
         encoded_ps = b64encode(command.encode('utf_16_le')).decode('ascii')
         shell_id = p.open_shell()
