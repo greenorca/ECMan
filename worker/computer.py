@@ -676,7 +676,9 @@ class Computer(object):
             transport='basic',
             username=self.remoteAdminUser,
             password=self.passwd,
-            server_cert_validation='ignore')
+            server_cert_validation='ignore',
+            operation_timeout_sec=1)
+        # TODO: try option in Protocol:: operation_timeout_sec=1
         
         try:
             shell_id = p.open_shell()

@@ -226,7 +226,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.appTitle = self.windowTitle() + " on " + self.ip_address
             self.setWindowTitle(self.appTitle)
         except Exception as ex:
-            self.ip_address, ok = QInputDialog.getText(self, "Keine Verbindung zum Internet",
+            self.ipRange, ok = QInputDialog.getText(self, "Keine Verbindung zum Internet",
                                                        "Möglicherweise gelingt der Sichtflug. Bitte geben Sie die lokale IP-Adresse ein:")
             
             self.log("no connection to internet:" + str(ex))
@@ -467,7 +467,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         wizard = EcWizard(parent=self, username=self.config.get("General","username", fallback=""), 
             domain=self.config.get("General","domain", fallback=""), 
-            servername=self.config.get("General","servername", fallback=""), 
+            servername=self.config.get("General","lb_server", fallback=""), 
             wizardType=EcWizard.TYPE_LB_SELECTION)
 
         wizard.setModal(True)
