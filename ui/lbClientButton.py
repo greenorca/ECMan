@@ -239,13 +239,15 @@ class LbClient(QPushButton):
         if self.computer.state == Computer.State.STATE_DEPLOYED:
             colorString = "background-color: yellow;"
             pal.setColor(QPalette.Button, Qt.yellow);
+            pal.setBrush(QPalette.Button, Qt.yellow);
         elif self.computer.state == Computer.State.STATE_FINISHED:
             colorString = "background-color: green;"
             pal.setColor(QPalette.Button, Qt.green);
+            pal.setBrush(QPalette.Button, Qt.green);
         elif self.computer.state.value < 0:
             colorString = "background-color: red;"
             pal.setColor(QPalette.Button, Qt.red);
-        
+            pal.setBrush(QPalette.Button, Qt.red);
         
         self.setPalette(pal);
             

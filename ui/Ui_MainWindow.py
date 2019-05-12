@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/Ui_MainWindow.ui',
-# licensing of 'ui/Ui_MainWindow.ui' applies.
+# Form implementation generated from reading ui file 'Ui_MainWindow.ui',
+# licensing of 'Ui_MainWindow.ui' applies.
 #
-# Created: Sat May 11 21:18:47 2019
+# Created: Mon May 13 06:59:30 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -113,6 +113,7 @@ class Ui_MainWindow(object):
         self.clientFrame = QtWidgets.QFrame(self.tab_pcs)
         self.clientFrame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.clientFrame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.clientFrame.setLineWidth(0)
         self.clientFrame.setObjectName("clientFrame")
         self.verticalLayout.addWidget(self.clientFrame)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
