@@ -591,7 +591,11 @@ class Computer(object):
         }'''.replace("$1$", self.remoteAdminUser)
         
         if self.debug: print("CheckStatus command: "+command)
+<<<<<<< HEAD
+        std_out, std_err, status = self.runPowerShellCommand(command) #, timeout=2)
+=======
         std_out, std_err, status = self.runPowerShellCommand(command, timeout=2)
+>>>>>>> refs/remotes/origin/master
 
         if status  != self.STATUS_OK:
             if self.debug: print("Error checking status file: "+std_err)
