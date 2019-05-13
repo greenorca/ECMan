@@ -3,8 +3,9 @@
 import os, sys, socket
 import subprocess, ctypes
 # from time import sleep
-from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog
-from PySide2.QtGui import QTextDocument
+from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog,\
+    QShortcut
+from PySide2.QtGui import QTextDocument, QKeySequence
 from PySide2.QtCore import QUrl, QEvent, Qt, QThreadPool
 from threading import Thread
 from configparser import ConfigParser
@@ -41,6 +42,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnDetectClient.clicked.connect(self.detectClients)
         
         self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
+        
+        shortcut = QShortcut(QKeySequence(self.tr("Ctrl+A")),self)
+        shortcut.activated.connect(self.selectAllCLients)        
+        
         self.btnUnselectClients.clicked.connect(self.unselectAllCLients)
         self.btnSelectExam.clicked.connect(self.selectExamByWizard)
         self.btnSelectExam.setEnabled(True)
