@@ -591,11 +591,7 @@ class Computer(object):
         }'''.replace("$1$", self.remoteAdminUser)
         
         if self.debug: print("CheckStatus command: "+command)
-<<<<<<< HEAD
         std_out, std_err, status = self.runPowerShellCommand(command) #, timeout=2)
-=======
-        std_out, std_err, status = self.runPowerShellCommand(command, timeout=2)
->>>>>>> refs/remotes/origin/master
 
         if status  != self.STATUS_OK:
             if self.debug: print("Error checking status file: "+std_err)
@@ -646,7 +642,7 @@ class Computer(object):
         returns False otherwise 
         '''
         command = '$summary=(Get-ChildItem -Recurse C:\\Users\\'+self.candidateLogin +'\\Desktop) | Measure-Object -property length -sum; Write-Host "Files:" $summary.Count "; Size:" $summary.Sum;'
-        out, err, status = self.runPowerShellCommand(command)
+        out, err, status = self.(command)
         
         if status != self.STATUS_OK:
             self.logger.error("Fehler beim Überprüfen der Dateien im Lösungsverzeichnis: "+err)
@@ -748,7 +744,7 @@ class Computer(object):
         # struggeling with user write permissions on img100 XOR REGEDIT KEY 
         
         for x in command:
-            out,err,status = self.runPowerShellCommand(x)
+            out,err,status = self.(x)
             if status != self.STATUS_OK:
                 if self.debug: print("error running script: "+x)
                 if self.debug: print("lets assume imagemagick isnt installed... "+err)
@@ -761,7 +757,7 @@ class Computer(object):
         command.append('Set-ItemProperty -Name NoChangingLockScreen -Path "HKLM:\\Software\\Policies\\Microsoft\\Windows\\Personalization\\" -Value 1')
 
         for x in command:
-            out,err,status = self.runPowerShellCommand(x)
+            out,err,status = self.(x)
             if status != self.STATUS_OK:
                 if self.debug: print("error setting GPO lock screen: "+x)
                 if self.debug: print("lets assume something failed on GPO stuff: "+err)
