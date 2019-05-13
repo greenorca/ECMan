@@ -47,7 +47,7 @@ class EcManConfigDialog(QDialog):
             self.ui.comboBox_LbServer.setCurrentText(self.config.get("General", "lb_server",fallback=""))
             self.ui.lineEdit_StdLogin.setText(self.config.get("Client", "lb_user",fallback="student"))
             self.ui.lineEdit_winRmPort.setText(self.config.get("General", "winrm_port",fallback="5986"))
-            self.ui.lineEdit_OnlineWiki.setText(self.config.get("General", "wikiurl", fallback="http://git-orca.hopto.org/sven/ECMan/wiki"))
+            self.ui.lineEdit_OnlineWiki.setText(self.config.get("General", "wikiurl", fallback="https://github.com/greenorca/ECMan/wiki"))
             self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user", fallback="winrm"))
             self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd",fallback=""))
             self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="1000"))

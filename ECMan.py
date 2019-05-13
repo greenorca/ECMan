@@ -246,7 +246,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.passwd = self.config.get("Client", "pwd", fallback="")    
         self.maxFiles = int(self.config.get("Client","max_files",fallback="100"))
         self.maxFileSize = int(self.config.get("Client","max_fileSize",fallback="100"))*1024*1024 # thats MB now...
-        self.wikiUrl = self.config.get("General", "wikiurl", fallback="http://git-orca.hopto.org/sven/ECMan/wiki")
+        self.wikiUrl = self.config.get("General", "wikiurl", fallback="https://github.com/greenorca/ECMan/wiki")
     
     def openConfigDialog(self):
         '''
