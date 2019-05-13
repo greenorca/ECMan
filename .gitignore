@@ -11,3 +11,5 @@ worker/logs*
 legal
 
 /.project
+/.pydevproject
+/__init__.py
