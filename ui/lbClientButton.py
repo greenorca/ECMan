@@ -15,14 +15,23 @@ class LbClient(QPushButton):
     '''
     class to handle and visualize state of lb_client_computers
     '''
-    def __init__(self, ip, remoteAdminUser, passwd, candidateLogin, parentApp):
-        self.computer = Computer(ip, remoteAdminUser=remoteAdminUser, passwd=passwd, candidateLogin=candidateLogin)
+    def __init__(self, ip, remoteAdminUser, passwd, candidateLogin, parentApp, test=False):
+        self.computer = Computer(ip, 
+                                 remoteAdminUser=remoteAdminUser, passwd=passwd, 
+                                 candidateLogin=candidateLogin,
+                                 fetchHostname=(test==False))
         QPushButton.__init__(self,self.computer.ip)
         self.parentApp = parentApp
         self.log = LbClient.Log()
         
         self.isSelected = False
         self.lastUpdate = None
+        if test==True:
+            self.computer.state=Computer.State.STATE_COPY_FAIL
+            self.setLabel()
+            self._colorizeWidgetByClientState()
+            return
+            
         myThread = LbClient.CheckStatusThread(self)
         myThread.connector.checkStateSignal.connect(self.setLabel)
         myThread.connector.checkStateSignal.connect(self.setOwnToolTip)        

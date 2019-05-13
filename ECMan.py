@@ -79,8 +79,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.detectClients()
             
         else:
-            for i in range(14):
-                self.addClient(i+100)
+            self.clientFrame.setLayout(self.grid_layout)
+            for i in range(6):
+                self.addTestClient(i+100)
             
     
     def openHelpUrl(self):
@@ -458,6 +459,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.clientFrame.setLayout(self.grid_layout)     
         # QtGui.qApp.processEvents()
         
+    def addTestClient(self, ip):
+        '''
+        populate GUI with dummy buttons 
+        param ip: only last byte required
+        '''
+        self.log("new client signal received: " + str(ip))
+        clientIp = self.ipRange.replace("*", str(ip))
+        button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd,
+                          candidateLogin=self.client_lb_user, 
+                          parentApp=self, test=True)
+        button.setMinimumHeight(50)
+        # button.installEventFilter(self)
+        self.grid_layout.addWidget(button, self.grid_layout.count() / 4, self.grid_layout.count() % 4)  
+        self.clientFrame.setLayout(self.grid_layout)     
+        # QtGui.qApp.processEvents()
+            
     def getExamPath(self):
         return self.lb_directory
     

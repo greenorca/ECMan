@@ -106,10 +106,14 @@ class Computer(object):
             try:
                 if (self.debug):
                     print("scanning information")
-                self.hostname = self.getHostName()
+                self.__hostName = self.getHostName()
             except Exception as ex:
                 self.logger.error("Couldn't get hostname: %s".format(str(ex)))
             pass
+        else:
+            self.__hostName = "Dummy-Host No {}".format(self.ip.split(".")[-1])
+            self.candidateName = "Kandidat No {}".format(self.ip.split(".")[-1])
+    
     
     def resetStatus(self, resetCandidateName=False):
         '''
@@ -535,8 +539,8 @@ class Computer(object):
         check preconfigured exam user folder
         check default ecman.json folder
         '''
-        command = '$baseDir="C:\\Users\\$1$\\"; Write-Host (Test-Path $baseDir)' .replace("$1$", self.candidateLogin)
-        if self.debug: print("CheckStatus command: "+command)
+        command = '$baseDir="C:\\Users\\$1$\\"; Write-Host (Test-Path $baseDir)'.replace("$1$", self.candidateLogin)
+        if self.debug: print("CheckUserConfig command: "+command)
         std_out, std_err, status = self.runPowerShellCommand(command)
 
         if status  != self.STATUS_OK:
@@ -548,12 +552,12 @@ class Computer(object):
         if std_out.find("False")>=0:
             if self.debug: print("Client-User {} HOME-Verzeichnis existiert nicht. Bitte erstmalig einloggen!".format(self.candidateLogin))
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
-            self.logger.warn("LBUser-verzeichnis (student) nicht vorhanden")
+            self.logger.warn("LBUser-Verzeichnis (student) nicht vorhanden")
             return False;
         
         elif std_out.find("True")>=0:
             command = '$baseDir="C:\\Users\\$1$\\"; if (Test-Path $baseDir){ } else { try { New-Item -Path $baseDir -Force -ItemType directory; } catch { Write-Host "NOK" } }' .replace("$1$", self.remoteAdminUser)
-            if self.debug: print("CheckStatus command: "+command)
+            if self.debug: print("CheckUserConfig command: "+command)
             std_out, std_err, status = self.runPowerShellCommand(command)
             
             if status  != self.STATUS_OK:
@@ -590,8 +594,10 @@ class Computer(object):
             Set-Content -Path $file "{}"; Write-Host "{}";
         }'''.replace("$1$", self.remoteAdminUser)
         
-        if self.debug: print("CheckStatus command: "+command)
-        std_out, std_err, status = self.runPowerShellCommand(command, timeout=2)
+        if self.debug: 
+            print("CheckStatus command: "+command)
+        
+        std_out, std_err, status = self.runPowerShellCommand(command)
 
         if status  != self.STATUS_OK:
             if self.debug: print("Error checking status file: "+std_err)
