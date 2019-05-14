@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'Ui_MainWindow.ui',
 # licensing of 'Ui_MainWindow.ui' applies.
 #
-# Created: Mon May 13 06:59:30 2019
-#      by: pyside2-uic  running on PySide2 5.12.0
+# Created: Tue May 14 10:23:53 2019
+#      by: pyside2-uic  running on PySide2 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -200,6 +200,8 @@ class Ui_MainWindow(object):
         self.actionAlle_Benutzer_benachrichtigen.setObjectName("actionAlle_Benutzer_benachrichtigen")
         self.actionOnlineHelp = QtWidgets.QAction(MainWindow)
         self.actionOnlineHelp.setObjectName("actionOnlineHelp")
+        self.actionOfflineHelp = QtWidgets.QAction(MainWindow)
+        self.actionOfflineHelp.setObjectName("actionOfflineHelp")
         self.menuKonfiguration.addAction(self.actionBearbeiten)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_zur_cksetzen)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_rebooten)
@@ -207,6 +209,7 @@ class Ui_MainWindow(object):
         self.menuBatch_Operationen.addSeparator()
         self.menuBatch_Operationen.addAction(self.actionAlle_Benutzer_benachrichtigen)
         self.menuHilfe.addAction(self.actionOnlineHelp)
+        self.menuHilfe.addAction(self.actionOfflineHelp)
         self.menubar.addAction(self.menuKonfiguration.menuAction())
         self.menubar.addAction(self.menuBatch_Operationen.menuAction())
         self.menubar.addAction(self.menuHilfe.menuAction())
@@ -247,4 +250,5 @@ class Ui_MainWindow(object):
         self.actionAlle_Clients_herunterfahren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &herunterfahren", None, -1))
         self.actionAlle_Benutzer_benachrichtigen.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Benutzer benachrichtigen", None, -1))
         self.actionOnlineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "&Online-Hilfe öffnen", None, -1))
+        self.actionOfflineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "Offline-Hilfe öffnen", None, -1))
 

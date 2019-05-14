@@ -64,6 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAlle_Clients_rebooten.triggered.connect(self.rebootAllClients)
         self.actionAlle_Clients_herunterfahren.triggered.connect(self.shutdownAllClients)
         self.actionOnlineHelp.triggered.connect(self.openHelpUrl)       
+        self.actionOfflineHelp.triggered.connect(self.openHelpUrlOffline)       
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
                 
         # self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
@@ -91,6 +92,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def openHelpUrl(self):
         webbrowser.open(self.wikiUrl)
+    
+    def openHelpUrlOffline(self):
+        webbrowser.open("help/Home.html")
     
     def checkOldLogFiles(self):
         '''

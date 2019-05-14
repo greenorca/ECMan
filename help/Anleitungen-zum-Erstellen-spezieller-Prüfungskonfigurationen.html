@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,body%7B%0Apadding%3A%205%25%2010%25%3B%0Afont%2Dfamily%3A%20sans%2Dserif%3B%0A%7D%0Aimg%7B%0Amax%2Dwidth%3A%20100%25%3B%0A%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<nav id="TOC">
+<ul>
+<li><a href="#anleitungen-zum-erstellen-spezieller-prüfungskonfigurationen">Anleitungen zum Erstellen spezieller Prüfungskonfigurationen</a><ul>
+<li><a href="#gezippte-prüfungsdaten-entpacken">Gezippte Prüfungsdaten entpacken</a></li>
+<li><a href="#mysql-datenbanken-aus-skripten-vorinstallieren">MySQL-Datenbanken aus Skripten vorinstallieren</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="anleitungen-zum-erstellen-spezieller-prüfungskonfigurationen">Anleitungen zum Erstellen spezieller Prüfungskonfigurationen</h1>
+<p>ECMan sucht nach dem Kopieren der Prüfungsdaten auf dem Desktop der Client-PCs nach einer Datei <code>runner.ps1</code>. Ist dieses Powershell-Skript vorhanden, wird es lokal ausgeführt. Nachfolgend zwei Vorlagen für runner.ps1 - Skripte</p>
+<h2 id="gezippte-prüfungsdaten-entpacken">Gezippte Prüfungsdaten entpacken</h2>
+<pre><code># prep script to extract zip archives plus eventually create shortcuts
+# may be useful for portable apps like ZEAL 
+
+$ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+
+Set-Location -Path $ScriptDir
+
+Write-Host $ScriptDir
+
+foreach ($zipfile in (Get-ChildItem -Path $ScriptDir | Where { $_.Name -match &quot;zip&quot; })){ 
+    Write-Host $zipfile 
+    Expand-Archive $zipfile (Get-Item -Path $ScriptDir ).Parent.Parent.FullName -Force
+    Remove-Item $zipfile -Force
+    }
+    
+# example how to create a shortcut for eclipse 
+# $objShell = New-Object -ComObject (&quot;WScript.Shell&quot;)
+# $objShortCut = $objShell.CreateShortcut(&quot;C:\Users\student\Desktop\&quot; + &quot;\Eclipse.lnk&quot;)
+# $objShortCut.TargetPath=&quot;C:\Users\student\eclipse\eclipse.exe&quot;
+# $objShortCut.Save()
+   
+# remove this very script
+Remove-Item $MyInvocation.InvocationName</code></pre>
+<h2 id="mysql-datenbanken-aus-skripten-vorinstallieren">MySQL-Datenbanken aus Skripten vorinstallieren</h2>
+<p>In den Prüfungsordner enthaltene SQL-Skripte werden gesucht und ausgeführt. SQL-Skripte sollten mit den einschlägigen Befehlen beginnen:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">DROP</span> <span class="kw">DATABASE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> db_name;
+<span class="kw">CREATE</span> <span class="kw">DATABASE</span> db_name;
+<span class="kw">USE</span> db_name;</code></pre></div>
+<p><strong>Achtung:</strong> Vorab werden alle vorhandnen Nicht-Systemdatenbanken gelöscht.</p>
+<h3 id="vorraussetzungen">Vorraussetzungen:</h3>
+<ol type="1">
+<li>MySQL-Server ( &gt;= 5.7) ist installiert</li>
+<li>PATH_Variable enthält Pfad zu den mysql-Binaries</li>
+<li>MySQL-Server wird automatisch von Windows gestartet</li>
+</ol>
+<h3 id="beispiel-skript-runner.ps1">Beispiel-Skript (runner.ps1)</h3>
+<pre><code># prep script for mysql-based database module exams 
+# first clean existing non-system DBs from mysql
+# then install sql script from desktop and remove them
+
+$scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+Set-Location -Path $scriptDir
+
+$default_dbs=&quot;information_schema&quot;,&quot;mysql&quot;,&quot;performance_schema&quot;,&quot;sys&quot;
+$dbs=(mysql -u root -proot -N -e &quot;SHOW DATABASES;&quot;) 2&gt; $null #suppress warnings
+
+foreach ($db in $dbs){
+    if ( $db -notin $default_dbs ){
+        mysqladmin -u root -proot -f drop $db 2&gt; $null
+        Write-Host &quot;dropped: $db&quot;
+    }
+}
+
+foreach ($db in (Get-ChildItem -Path $scriptDir | Where { $_.Name -match &quot;\.sql&quot;})){
+    $script = $db.FullName
+    $dosCommand = &quot;mysql -u root -proot &lt; $script&quot; # hack, powershell throws error for &quot;&lt;&quot;
+    Write-Host $dosCommand
+    cmd /C $dosCommand 2&gt; $null
+    Remove-Item $db
+}
+
+# remove this very script itself
+Remove-Item $MyInvocation.InvocationName</code></pre>
+<p><i>Hilfe generiert am 14.05.2019<i></p></body>
+</html>

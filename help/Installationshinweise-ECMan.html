@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,body%7B%0Apadding%3A%205%25%2010%25%3B%0Afont%2Dfamily%3A%20sans%2Dserif%3B%0A%7D%0Aimg%7B%0Amax%2Dwidth%3A%20100%25%3B%0A%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<nav id="TOC">
+<ul>
+<li><a href="#binärdistribution">Binärdistribution</a><ul>
+<li><a href="#erforderliche-pakete">Erforderliche Pakete</a></li>
+</ul></li>
+<li><a href="#source-distribution">Source-Distribution</a><ul>
+<li><a href="#erforderliche-pakete-installieren">Erforderliche Pakete installieren</a></li>
+<li><a href="#ecman-starten">ECMan starten</a></li>
+</ul></li>
+<li><a href="#binärdistribution-erstellen">Binärdistribution erstellen</a><ul>
+<li><a href="#cli-basiert">CLI-basiert</a></li>
+<li><a href="#mit-gui-auto-pi-to-exe">Mit GUI: auto-pi-to-exe</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="binärdistribution">Binärdistribution</h1>
+<p>Die Binärdistribution ist ein künstliches Kompilat mit (fast) allen internen Abhängigkeiten. Es existiert zunächst nur für Windows 10.</p>
+<h2 id="erforderliche-pakete">Erforderliche Pakete</h2>
+<p>Auf Windows-Rechnern wird für die Erstellung der PDF-Logdateien <a href="https://wkhtmltopdf.org/">wkhtml2pdf</a> benötigt. Ferner muss das Visual C++ 2015 (x86) Paket installiert werden: https://www.microsoft.com/de-de/download/confirmation.aspx?id=53840</p>
+<h1 id="source-distribution">Source-Distribution</h1>
+<p>ECMan ist mit Python programmiert. Dementsprechend kann der Quellcode in der Source-Distribution mit dem Python-Interpreter ausgeführt werden. Zum Ändern wird nur ein Texteditor benötigt, beim nächsten Start des ECMan sind die Änderungen schon aktiv.</p>
+<h2 id="erforderliche-pakete-installieren">Erforderliche Pakete installieren</h2>
+<ul>
+<li>Python &gt; 3.7, inklusive PIP</li>
+<li>ins ECMan-Wurzelverzeichnis wechseln, im Terminal folgenden Befehl ausführen</li>
+</ul>
+<pre><code>pip install -r requirements.txt</code></pre>
+<h2 id="ecman-starten">ECMan starten</h2>
+<p>im Terminal ins ECMan-Wurzelverzeichnis wechseln, dann</p>
+<pre><code>python3 ECMan.py</code></pre>
+<h1 id="binärdistribution-erstellen">Binärdistribution erstellen</h1>
+<p>Anhand dieser Anleitung wird auf Windows-Systemen aus den Qython-Quellen eine ausführbare EXE für Windows generiert.</p>
+<h2 id="cli-basiert">CLI-basiert</h2>
+<ol type="1">
+<li><p>Zusätzlich zu den o.g. pip-Packeten wird der <code>pyinstaller</code> benötigt:</p>
+<pre><code>pip install pyinstaller==3.4 (??)</code></pre></li>
+<li><p>im Terminal ins Wurzelverzeichnis vom ECMan wechseln, dann folgendes Kommando ausführen:</p>
+<pre><code>pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts ECMan.py</code></pre></li>
+<li><p>das Kompilat befindet sich im Unterordner <em>dist</em> und kann auf beliebige WIN10-PCs portiert werden.</p></li>
+</ol>
+<h2 id="mit-gui-auto-pi-to-exe">Mit GUI: auto-pi-to-exe</h2>
+<ol type="1">
+<li><p>Zusätzlich zu den o.g. pip-Packeten wird der <code>pyinstaller</code> benötigt:</p>
+<pre><code>pip install auto-pi-to-exe</code></pre></li>
+</ol>
+<p><i>Hilfe generiert am 14.05.2019<i></p></body>
+</html>

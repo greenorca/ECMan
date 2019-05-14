@@ -374,6 +374,7 @@
      <string>Hi&amp;lfe</string>
     </property>
     <addaction name="actionOnlineHelp"/>
+    <addaction name="actionOfflineHelp"/>
    </widget>
    <addaction name="menuKonfiguration"/>
    <addaction name="menuBatch_Operationen"/>
@@ -426,6 +427,11 @@
   <action name="actionOnlineHelp">
    <property name="text">
     <string>&amp;Online-Hilfe öffnen</string>
+   </property>
+  </action>
+  <action name="actionOfflineHelp">
+   <property name="text">
+    <string>Offline-Hilfe öffnen</string>
    </property>
   </action>
  </widget>

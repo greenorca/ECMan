@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,body%7B%0Apadding%3A%205%25%2010%25%3B%0Afont%2Dfamily%3A%20sans%2Dserif%3B%0A%7D%0Aimg%7B%0Amax%2Dwidth%3A%20100%25%3B%0A%7D%0A" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<nav id="TOC">
+<ul>
+<li><a href="#bekannte-probleme-und-workarrounds">Bekannte Probleme und Workarrounds</a></li>
+</ul>
+</nav>
+<h2 id="bekannte-probleme-und-workarrounds">Bekannte Probleme und Workarrounds</h2>
+<h3 id="client-pcs-werden-nicht-gefunden">Client-PCs werden nicht gefunden</h3>
+<ol type="1">
+<li>Der erforderliche <strong>Windows-Remotemanagement</strong> Dienst startet stark <strong>zeitverzögert</strong>. Bitte nach dem Starten der Client-PCs zwei, drei Minuten warten. Am Client - PC prüfen, ob der Windows-Remotemanagement-Dienst aktiv ist. Ggf. Firewall deaktivieren und mit ECMan erneut scannen.</li>
+<li>Ping funktioniert? Wenn ja ist unter Umständen das Setup-Skript nicht auf den Client-PCs installiert.</li>
+</ol>
+<h3 id="client-pcs-werden-gefunden-und-rot-markiert">Client-PCs werden gefunden und rot markiert</h3>
+<ol type="1">
+<li>&quot;Frisch erstellte&quot; Client-PCs haben zwar den student-Benutzer, aber noch kein HOME-Verzeichnis für diesen angelegt. Im Tooltip für den rot hinterlegten PC erscheint <code>STATE_STUDENT_ACCOUNT_NOT_READY</code>. Erstmaliges Anmelden mit dem student-Benutzer und erneutes Scannen des Netzwerks löst das Problem.</li>
+<li>Als Hostname wird <code>invalid remote user--</code> angezeigt: Die Zugangsdaten für Remotemanagement-Benutzer stimmen nicht. Fragen Sie den Ersteller der Client-Images.</li>
+</ol>
+<h3 id="blauer-startbildschirm-statt-photo-mit-kandidatennamen">Blauer Startbildschirm statt Photo mit Kandidatennamen</h3>
+<p>Client-PCs zeigen (manchmal) blauen Schirm statt Kandidatennamen nach dem Starten, und es ist nicht der <em>Blue Screen of Death</em>.</p>
+<p>Bugfix für Windows-Problem: auf &quot;anderer Nutzer anmelden&quot; klicken, dann wird das Hintergrundbild für den Anmeldebildschirm neu geladen und der Kandidatenname erscheint.</p>
+<p><i>Hilfe generiert am 14.05.2019<i></p></body>
+</html>
