@@ -49,13 +49,12 @@
 <li><p>Zusätzlich zu den o.g. pip-Packeten wird der <code>pyinstaller</code> benötigt:</p>
 <pre><code>pip install pyinstaller==3.4 (??)</code></pre></li>
 <li><p>im Terminal ins Wurzelverzeichnis vom ECMan wechseln, dann folgendes Kommando ausführen:</p>
-<pre><code>pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts ECMan.py</code></pre></li>
+<pre><code>pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts --add-data .\help;.\help ECMan.py</code></pre></li>
 <li><p>das Kompilat befindet sich im Unterordner <em>dist</em> und kann auf beliebige WIN10-PCs portiert werden.</p></li>
 </ol>
 <h2 id="mit-gui-auto-pi-to-exe">Mit GUI: auto-pi-to-exe</h2>
-<ol type="1">
-<li><p>Zusätzlich zu den o.g. pip-Packeten wird der <code>pyinstaller</code> benötigt:</p>
-<pre><code>pip install auto-pi-to-exe</code></pre></li>
-</ol>
+<pre><code>```
+pip install auto-pi-to-exe
+```</code></pre>
 <p><i>Hilfe generiert am 14.05.2019<i></p></body>
 </html>
