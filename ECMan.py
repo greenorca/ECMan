@@ -94,7 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         webbrowser.open(self.wikiUrl)
     
     def openHelpUrlOffline(self):
-        webbrowser.open("help/Home.html")
+        webbrowser.open(os.getcwd().replace("\\","/")+"/help/Home.html")
     
     def checkOldLogFiles(self):
         '''
