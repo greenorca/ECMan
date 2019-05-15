@@ -1,0 +1,51 @@
+# ECMan - Ihr Helfer für PC-basierte Prüfungen
+
+## Scene 1: Hintergrund + Text-Ticker + Sprache:
+
+```
+rm livetypetext.txt 
+touch livetypetext.txt 
+while read line; do  
+	echo $line >> livetypetext.txt; 
+	sleep 2; 
+done < src.txt
+```
+Herzlich willkommen zur ECMan Einführung!
+
+ECMan steht für ExamClient-Manager. ECMan unterstützt Sie bei der Durchführung PC-basierter Prüfungen in PC-Labors.
+
+Vom Dozenten-PC aus steuern Sie bequem die Prüfungsrechner ganzer Klassen.
+
+Folgende Funktionen stehen zur Verfügung:
+- simples Setup der Kandidatennamen
+- einfaches Aufspielen der Prüfungsdaten
+- einfaches Abholen der Daten
+- deaktivert USB und Internet bei Bedarf
+- konfigurierbare Spezialprüfungen
+
+## Scene 2: Ablauf: Hintergrund + Text-Ticker + Sprache + ECMan
+
+1. Client-PCs erkennen
+2. Namen zuweisen
+3. Prüfung auswählen 
+4. Prüfung einspielen
+5. Prüfung abholen
+
+## Scene 2.1: Konfiguration Hintergrund Sprache + ECMan - Live
+
+## Scene 3: Erkennen: Hintergrund Sprache + ECMan - Live
+
+Hinweis auf Wartezeit
+
+## Scene 4: Kandidaten zuweisen: Hintergrund Sprache + ECMan - Live
+
+
+## Scene 5: Prüfung auswählen: Hintergrund Sprache + ECMan - Live
+- Fehlermeldungen
+
+## Scene 6: Prüfung abholen: Hintergrund Sprache + ECMan - Live
+- Fehlermeldungen
+
+## Scene 6: Ausblick, weitere Features und Entwicklung: WIKI!
+
+Sorry for the begginner level question. I'd love to make a tutorial video for an OpenSource program . Can I create a live ticker like text in OBS?
