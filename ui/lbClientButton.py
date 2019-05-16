@@ -298,7 +298,6 @@ class LbClient(QPushButton):
         
         label = label +"\n"+ (self.computer.getCandidateName() or "-LEER-")       
         self.setText(label)
-        self.setStyleSheet("text-align:center;")
         self._colorizeWidgetByClientState()
     
     def blockUsbAccess(self):

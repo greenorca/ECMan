@@ -3,6 +3,7 @@
 import os, sys, socket
 import subprocess, ctypes
 # from time import sleep
+from PySide2 import QtWidgets
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog,\
     QShortcut
 from PySide2.QtGui import QTextDocument, QKeySequence
@@ -254,7 +255,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.user = self.config.get("Client", "user", fallback="")
         self.passwd = self.config.get("Client", "pwd", fallback="")    
         self.maxFiles = int(self.config.get("Client","max_files",fallback="100"))
-        self.maxFileSize = int(self.config.get("Client","max_fileSize",fallback="100"))*1024*1024 # thats MB now...
+        self.maxFileSize = int(self.config.get("Client","max_filesize",fallback="100"))*1024*1024 # thats MB now...
         self.wikiUrl = self.config.get("General", "wikiurl", fallback="https://github.com/greenorca/ECMan/wiki")
     
     def openConfigDialog(self):
@@ -325,7 +326,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         retVal = QMessageBox.StandardButton.Yes
         if self.result_directory != "":
             retVal = QMessageBox.question(self, 
-                "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen".format(
+                "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen (Ja) oder mit aktuellem Verzeichnis weiterfahren (Nein)".format(
                     self.result_directory.replace("#", "/")
                 )
             )
@@ -354,10 +355,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 print("Abbruch, kein Zielverzeichnis ausgewählt")
                 return
-                
-        else:
-            print("Abbruch, kein Zielverzeichnis ausgewählt")
+        
+        elif retVal == QMessageBox.StandardButton.Cancel:
             return
+                
              
         self.result_directory = self.result_directory.replace("/", "#")     
         self.log("save result files into: " + self.result_directory.replace("#", "\\"))
@@ -597,9 +598,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config["Client"]["user"] =  self.user
         self.config["Client"]["pwd"] = self.passwd
         self.config["Client"]["max_files"]=str(self.maxFiles)
-        self.config["Client"]["max_fileSize"]=str(round(self.maxFileSize/1024/1024))
-        
-        
+        self.config["Client"]["max_filesize"]=str(round(self.maxFileSize/1024/1024))
+                
         self.config.write(open(self.configFile,'w'))        
 
 

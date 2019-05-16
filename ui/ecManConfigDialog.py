@@ -51,13 +51,13 @@ class EcManConfigDialog(QDialog):
             self.ui.lineEdit_winRmUser.setText(self.config.get("Client","user", fallback="winrm"))
             self.ui.lineEdit_winRmPwd.setText(self.config.get("Client","pwd",fallback=""))
             self.ui.lineEdit_MaxFiles.setText(self.config.get("Client","max_files",fallback="1000"))
-            filesize=self.config.get("Client","max_fileSize",fallback="100")
+            filesize=self.config.get("Client","max_filesize",fallback="100")
             try:
                 filesize=int(filesize)
             except Exception as ex:
-                filesize=42*1024*1024        
+                filesize=42        
             
-            self.ui.lineEdit_MaxFileSize.setText(str(round(filesize/1024/1024)))
+            self.ui.lineEdit_MaxFileSize.setText(str(filesize))
             
                         
     def saveConfig(self):
@@ -97,7 +97,7 @@ class EcManConfigDialog(QDialog):
             filesize=int(filesize)
         except:
             filesize=42
-        self.config["Client"]["max_fileSize"]=str(filesize*1024*1024)
+        self.config["Client"]["max_filesize"]=str(filesize)
         
         self.config.write(open(self.configFile,'w'))
         
