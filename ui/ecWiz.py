@@ -43,6 +43,9 @@ class EcWizard(QWizard):
             self.subtitle= "Bitte Verzeichnis mit Klassennamen auswählen.<br>Das Modulverzeichnis für LB wird automatisch erstellt."
             self.type = self.TYPE_RESULT_DESTINATION
         
+        self.server = None
+        self.defaultShare = None
+        
         self.config = ConfigParser()
         self.configFile = Path(str(Path.home())+"/.ecman.conf")
         if self.configFile.exists():
@@ -50,14 +53,16 @@ class EcWizard(QWizard):
         else:
             self.configFile.touch()
         
-        self.setPage(self.PAGE_LOGON, Page1(self, username, password, servername, domain))
+        if password=="":
+            self.setPage(self.PAGE_LOGON, Page1(self, username, password, servername, domain))
+        else:
+            self.setServer(ShareBrowser(server, username,password,domain))
+        
         self.setPage(self.PAGE_SELECT, Page2(self, self.title,self.subtitle))
         self.setWindowTitle("ECMan - {}".format(self.title))
         self.resize(450,350)
-        self.server = None
-        self.defaultShare = None
-        self.finished.connect(someFun)
-    
+        
+        
     def setServer(self, server):
         self.server=server
         
@@ -282,8 +287,7 @@ class MyListWidgetItem(QListWidgetItem):
         self.isDirectory = isDirectory
         self.setText(path.split("/")[-1])
         
-def someFun(): 
-    print("event received: ")
+
     
 if __name__ == '__main__':
     import sys

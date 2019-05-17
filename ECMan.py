@@ -95,7 +95,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         webbrowser.open(self.wikiUrl)
     
     def openHelpUrlOffline(self):
-        webbrowser.open(os.getcwd().replace("\\","/")+"/help/Home.html")
+        webbrowser.open("file://"+os.getcwd().replace("\\","/")+"/help/Home.html")
     
     def checkOldLogFiles(self):
         '''
@@ -251,6 +251,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.lb_server = self.config.get("General", "lb_server", fallback="")
         self.port = self.config.get("General", "winrm_port", fallback=5986)
+        self.network_username = self.config.get("General","network_username",fallback="unknown")
         self.client_lb_user = self.config.get("Client", "lb_user", fallback="student") 
         self.user = self.config.get("Client", "user", fallback="")
         self.passwd = self.config.get("Client", "pwd", fallback="")    
@@ -493,7 +494,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''
         provides ability to select serverName share plus logon credentials and lb directory using a wizard 
         '''
-        wizard = EcWizard(parent=self, username=self.config.get("General","username", fallback=""), 
+        wizard = EcWizard(parent=self, username=self.network_username,
             domain=self.config.get("General","domain", fallback=""), 
             servername=self.config.get("General","lb_server", fallback=""), 
             wizardType=EcWizard.TYPE_LB_SELECTION)
@@ -592,6 +593,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             onlineUrl = "http://"+onlineUrl
             
         self.config["General"]["wikiurl"]=onlineUrl
+        self.config["General"]["network_username"]=self.network_username
         
         if not(self.config.has_section("Client")):
             self.config.add_section("Client")
