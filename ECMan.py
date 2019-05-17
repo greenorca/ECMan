@@ -196,7 +196,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 messageType=QMessageBox.Warning)
             return 
         
-        progressDialog = EcManProgressDialog(self, "Hello World")
+        progressDialog = EcManProgressDialog(self, "Fortschritt Kandidatenname setzen")
         progressDialog.setMaxValue(len(names))
         progressDialog.resetValue()
         progressDialog.open()        
@@ -325,11 +325,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         retVal = QMessageBox.StandardButton.Yes
         if self.result_directory != "":
-            retVal = QMessageBox.question(self, 
-                "Warnung", "Ergebnispfad bereits gesetzt: {}, neu auswählen (Ja) oder mit aktuellem Verzeichnis weiterfahren (Nein)".format(
-                    self.result_directory.replace("#", "/")
-                )
-            )
+            box=QMessageBox()
+            box.setText("Ergebnispfad bereits gesetzt: {}".format(self.result_directory.replace("#", "/")))
+            box.setInformativeText("Neu auswählen (Ja), weiter mit aktuellem Verzeichnis (Nein) oder abbrechen (Abbruch)?")
+            box.setStandardButtons(QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+            box.setDefaultButton(QMessageBox.Cancel)
+            retVal = box.exec_()
             
         if  retVal == QMessageBox.StandardButton.Yes:
             wizard = EcWizard(parent=self, username=self.network_username, 
@@ -363,7 +364,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.result_directory = self.result_directory.replace("/", "#")     
         self.log("save result files into: " + self.result_directory.replace("#", "\\"))
            
-        progressDialog = EcManProgressDialog(self, "Hello World")
+        progressDialog = EcManProgressDialog(self, "Fortschritt Ergebnisse kopieren")
         progressDialog.setMaxValue(len(clients))
         progressDialog.resetValue()
         progressDialog.open()
@@ -412,7 +413,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showMessageBox("Warnung", "keine Clients ausgewählt bzw. bereits deployed")
             return 
         
-        progressDialog = EcManProgressDialog(self, "Hello World")
+        progressDialog = EcManProgressDialog(self, "Fortschritt LB-Client-Deployment")
         progressDialog.setMaxValue(len(clients))
         progressDialog.resetValue()
         progressDialog.open()
