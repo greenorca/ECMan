@@ -22,7 +22,6 @@
 <li><a href="#ecman-starten">ECMan starten</a></li>
 </ul></li>
 <li><a href="#binärdistribution-erstellen">Binärdistribution erstellen</a><ul>
-<li><a href="#cli-basiert">CLI-basiert</a></li>
 <li><a href="#mit-gui-auto-pi-to-exe">Mit GUI: auto-pi-to-exe</a></li>
 </ul></li>
 </ul>
@@ -43,18 +42,18 @@
 <p>im Terminal ins ECMan-Wurzelverzeichnis wechseln, dann</p>
 <pre><code>python3 ECMan.py</code></pre>
 <h1 id="binärdistribution-erstellen">Binärdistribution erstellen</h1>
-<p>Anhand dieser Anleitung wird auf Windows-Systemen aus den Qython-Quellen eine ausführbare EXE für Windows generiert.</p>
-<h2 id="cli-basiert">CLI-basiert</h2>
+<p>Anhand dieser Anleitung wird auf Windows 10-Systemen aus den Qython-Quellen eine ausführbare EXE für Windows generiert. ## CLI-basiert</p>
 <ol type="1">
 <li><p>Zusätzlich zu den o.g. pip-Packeten wird der <code>pyinstaller</code> benötigt:</p>
 <pre><code>pip install pyinstaller==3.4 (??)</code></pre></li>
 <li><p>im Terminal ins Wurzelverzeichnis vom ECMan wechseln, dann folgendes Kommando ausführen:</p>
 <pre><code>pyinstaller -i images\green_orca.ico --add-data .\scripts;.\scripts --add-data .\help;.\help ECMan.py</code></pre></li>
-<li><p>das Kompilat befindet sich im Unterordner <em>dist</em> und kann auf beliebige WIN10-PCs portiert werden.</p></li>
+<li><p>Das Kompilat befindet sich im Unterordner <em>dist</em> und kann auf beliebige WIN10-PCs portiert werden. <strong>Hinweis:</strong> Kompilat ist aus <em>normalen</em> Windows nicht ausführbar, wenn mit virtualisierten Win10 erstellt!</p></li>
 </ol>
+<p><strong>Zusatz:</strong> Dieses Online-Wiki kann geclont und mit dem Shell-Skript <em>scripts/makedoc.sh</em> lokal in statische HTML-Hilfe konvertiert werden. Die erzeugten HTML-Dateien kopiert man in den <em>help</em>-Ordner. Dazu wird ein POSIX System und das <em>pandoc</em>-Package benötigt.</p>
 <h2 id="mit-gui-auto-pi-to-exe">Mit GUI: auto-pi-to-exe</h2>
 <pre><code>```
 pip install auto-pi-to-exe
 ```</code></pre>
-<p><i>Hilfe generiert am 14.05.2019<i></p></body>
+<p><i>Hilfe generiert am 17.05.2019<i></p></body>
 </html>
