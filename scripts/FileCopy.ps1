@@ -43,7 +43,7 @@ Try {
     Write-Host "Dest: " $dst
     $Error.Clear()
 
-    Copy-Item -Path "x:\" -Destination $dst -Recurse -Force
+    Copy-Item -Path "x:\*" -Destination $dst -Recurse -Force
     
     if ($Error[0].Exception.Message)
     {
