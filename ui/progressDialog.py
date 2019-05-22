@@ -8,7 +8,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtWidgets
+
 
 class Ui_progressDialog(object):
     def setupUi(self, progressDialog):
@@ -27,5 +28,5 @@ class Ui_progressDialog(object):
 
     def retranslateUi(self, progressDialog):
         progressDialog.setWindowTitle(QtWidgets.QApplication.translate("progressDialog", "Fortschritt", None, -1))
-        self.label.setText(QtWidgets.QApplication.translate("progressDialog", "Bitte warten, Aufträge werden ausgeführt", None, -1))
-
+        self.label.setText(
+            QtWidgets.QApplication.translate("progressDialog", "Bitte warten, Aufträge werden ausgeführt", None, -1))

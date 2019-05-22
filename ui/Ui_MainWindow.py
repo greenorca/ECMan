@@ -10,6 +10,7 @@
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -224,31 +225,48 @@ class Ui_MainWindow(object):
         self.lineEditIpRange.setText(QtWidgets.QApplication.translate("MainWindow", "192.168.0.*", None, -1))
         self.btnDetectClient.setText(QtWidgets.QApplication.translate("MainWindow", "Clients erkennen", None, -1))
         self.btnSelectExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung auswählen", None, -1))
-        self.btnPrepareExam.setToolTip(QtWidgets.QApplication.translate("MainWindow", "Achtung: bereits vorhandene Daten werden überschrieben", None, -1))
+        self.btnPrepareExam.setToolTip(
+            QtWidgets.QApplication.translate("MainWindow", "Achtung: bereits vorhandene Daten werden überschrieben",
+                                             None, -1))
         self.btnPrepareExam.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfung einspielen", None, -1))
-        self.checkBoxWipeHomedir.setText(QtWidgets.QApplication.translate("MainWindow", "HOME-Verzeichnis leeren", None, -1))
+        self.checkBoxWipeHomedir.setText(
+            QtWidgets.QApplication.translate("MainWindow", "HOME-Verzeichnis leeren", None, -1))
         self.checkBoxBlockUsb.setText(QtWidgets.QApplication.translate("MainWindow", "USB blockieren", None, -1))
         self.checkBoxBlockWebAccess.setText(QtWidgets.QApplication.translate("MainWindow", "Web blockieren", None, -1))
         self.btnGetExams.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfungsdaten abholen", None, -1))
         self.btnSaveExamLog.setText(QtWidgets.QApplication.translate("MainWindow", "Prüfungslog speichern", None, -1))
-        self.btnSelectAllClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Client-PCs auswählen", None, -1))
-        self.btnUnselectClients.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Client-PCs abwählen", None, -1))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_pcs), QtWidgets.QApplication.translate("MainWindow", "Client - PCs", None, -1))
-        self.btnApplyCandidateNames.setText(QtWidgets.QApplication.translate("MainWindow", "Kandidatennamen zuweisen", None, -1))
-        self.checkBox_OverwriteExisitingNames.setText(QtWidgets.QApplication.translate("MainWindow", "existierende Namen überschreiben", None, -1))
-        self.textEditCandidates.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "Copy / paste Kandidatennamen aus Excel (pro Zeile ein Name)", None, -1))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_candidates), QtWidgets.QApplication.translate("MainWindow", "Kandidaten", None, -1))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_log), QtWidgets.QApplication.translate("MainWindow", "Log", None, -1))
+        self.btnSelectAllClients.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Alle Client-PCs auswählen", None, -1))
+        self.btnUnselectClients.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Alle Client-PCs abwählen", None, -1))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_pcs),
+                             QtWidgets.QApplication.translate("MainWindow", "Client - PCs", None, -1))
+        self.btnApplyCandidateNames.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Kandidatennamen zuweisen", None, -1))
+        self.checkBox_OverwriteExisitingNames.setText(
+            QtWidgets.QApplication.translate("MainWindow", "existierende Namen überschreiben", None, -1))
+        self.textEditCandidates.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow",
+                                                                                    "Copy / paste Kandidatennamen aus Excel (pro Zeile ein Name)",
+                                                                                    None, -1))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_candidates),
+                             QtWidgets.QApplication.translate("MainWindow", "Kandidaten", None, -1))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_log),
+                             QtWidgets.QApplication.translate("MainWindow", "Log", None, -1))
         self.labelProgress.setText(QtWidgets.QApplication.translate("MainWindow", "Fortschritt:", None, -1))
         self.menuKonfiguration.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Konfiguration", None, -1))
-        self.menuBatch_Operationen.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Batch-Operationen", None, -1))
+        self.menuBatch_Operationen.setTitle(
+            QtWidgets.QApplication.translate("MainWindow", "&Batch-Operationen", None, -1))
         self.menuHilfe.setTitle(QtWidgets.QApplication.translate("MainWindow", "Hi&lfe", None, -1))
         self.actionBearbeiten.setText(QtWidgets.QApplication.translate("MainWindow", "&Bearbeiten", None, -1))
-        self.actionAlle_Clients_zur_cksetzen.setText(QtWidgets.QApplication.translate("MainWindow", "&Alle Clients zurücksetzen", None, -1))
-        self.actionAlle_Clients_deaktivieren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Clients: Auswahl aufheben", None, -1))
-        self.actionAlle_Clients_rebooten.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &rebooten", None, -1))
-        self.actionAlle_Clients_herunterfahren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle Clients &herunterfahren", None, -1))
-        self.actionAlle_Benutzer_benachrichtigen.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Benutzer benachrichtigen", None, -1))
+        self.actionAlle_Clients_zur_cksetzen.setText(
+            QtWidgets.QApplication.translate("MainWindow", "&Alle Clients zurücksetzen", None, -1))
+        self.actionAlle_Clients_deaktivieren.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Alle &Clients: Auswahl aufheben", None, -1))
+        self.actionAlle_Clients_rebooten.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Alle Clients &rebooten", None, -1))
+        self.actionAlle_Clients_herunterfahren.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Alle Clients &herunterfahren", None, -1))
+        self.actionAlle_Benutzer_benachrichtigen.setText(
+            QtWidgets.QApplication.translate("MainWindow", "Alle &Benutzer benachrichtigen", None, -1))
         self.actionOnlineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "&Online-Hilfe öffnen", None, -1))
         self.actionOfflineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "Offline-Hilfe öffnen", None, -1))
-

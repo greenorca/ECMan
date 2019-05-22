@@ -4,19 +4,20 @@ Created on Feb 22, 2019
 @author: sven
 '''
 
-from PySide2.QtWidgets import QLabel,QLineEdit, QWizard,QWizardPage,QVBoxLayout,QHBoxLayout,QApplication,\
-    QGridLayout, QListWidget, QWidget, QTreeWidget, QTreeWidgetItem, QListWidgetItem, QStyle
+from configparser import ConfigParser
 from pathlib import Path
 from socket import gaierror
-from configparser import ConfigParser
+
+from PySide2.QtWidgets import QLabel, QLineEdit, QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, QApplication, \
+    QGridLayout, QListWidget, QWidget, QTreeWidget, QTreeWidgetItem, QListWidgetItem, QStyle
+
 from worker.sharebrowser import ShareBrowser
 
-
 comboBoxData = [
-        ("Python","/path/to/python"),
-        ("PyQt5","/path/to/pyqt5"),
-        ("PySide2","/path/to/pyside2")    
-    ]
+    ("Python", "/path/to/python"),
+    ("PyQt5", "/path/to/pyqt5"),
+    ("PySide2", "/path/to/pyside2")
+]
 
 
 class EcWizard(QWizard):
@@ -25,11 +26,11 @@ class EcWizard(QWizard):
     '''
     PAGE_LOGON = 1
     PAGE_SELECT = 2
-    
+
     TYPE_LB_SELECTION = 1
     TYPE_RESULT_DESTINATION = 2
-    
-    def __init__(self, parent=None, username="", password="", servername="", domain = "", wizardType = TYPE_LB_SELECTION):
+
+    def __init__(self, parent=None, username="", password="", servername="", domain="", wizardType=TYPE_LB_SELECTION):
         '''
         Constructor
         '''
@@ -40,65 +41,67 @@ class EcWizard(QWizard):
         self.type = self.TYPE_LB_SELECTION
         if wizardType == self.TYPE_RESULT_DESTINATION:
             self.title = "Zielverzeichnis für Kandidatendaten auswählen"
-            self.subtitle= "Bitte Verzeichnis mit Klassennamen auswählen.<br>Das Modulverzeichnis für LB wird automatisch erstellt."
+            self.subtitle = "Bitte Verzeichnis mit Klassennamen auswählen.<br>Das Modulverzeichnis für LB wird automatisch erstellt."
             self.type = self.TYPE_RESULT_DESTINATION
-        
+
         self.config = ConfigParser()
-        self.configFile = Path(str(Path.home())+"/.ecman.conf")
+        self.configFile = Path(str(Path.home()) + "/.ecman.conf")
         if self.configFile.exists():
             self.config.read_file(open(str(self.configFile)))
         else:
             self.configFile.touch()
-        
+
         self.setPage(self.PAGE_LOGON, Page1(self, username, password, servername, domain))
-        self.setPage(self.PAGE_SELECT, Page2(self, self.title,self.subtitle))
+        self.setPage(self.PAGE_SELECT, Page2(self, self.title, self.subtitle))
         self.setWindowTitle("ECMan - {}".format(self.title))
-        self.resize(450,350)
+        self.resize(450, 350)
         self.server = None
         self.defaultShare = None
         self.finished.connect(someFun)
-    
+
     def setServer(self, server):
-        self.server=server
-        
+        self.server = server
+
     def connectServer(self):
         return self.server.connect()
-    
+
     def getShares(self):
         return self.server.getShares()
-    
+
     def getFolderContent(self, path):
         share = path.split("/")[0]
-        path = path.replace(share,"")    
-        return self.server.getDirectoryContent(share,path)
-        
+        path = path.replace(share, "")
+        return self.server.getDirectoryContent(share, path)
+
+
 class Page1(QWizardPage):
-    def __init__(self, parent=None, username="", password="", servername="", domain = ""):
+
+    def __init__(self, parent=None, username="", password="", servername="", domain=""):
         super(Page1, self).__init__(parent)
         self.parent = parent
         self.setTitle("Server Authentifizierung")
-        
+
         lblUsername = QLabel("Netzwerk - Benutzername")
         editUsername = QLineEdit(username)
-        self.registerField("username", editUsername) 
+        self.registerField("username", editUsername)
         lblUsername.setBuddy(editUsername)
-        
+
         lblDomainName = QLabel("Domäne")
         editDomainName = QLineEdit(domain)
-        self.registerField("domainname", editDomainName) 
+        self.registerField("domainname", editDomainName)
         lblDomainName.setBuddy(editDomainName)
-        
+
         lblPasswort = QLabel("Passwort")
         editPasswort = QLineEdit(password)
         editPasswort.setEchoMode(QLineEdit.Password)
-        self.registerField("password*", editPasswort) 
+        self.registerField("password*", editPasswort)
         lblPasswort.setBuddy(editPasswort)
-        
+
         lblServerName = QLabel("Servername")
         editServerName = QLineEdit(servername)
-        self.registerField("servername", editServerName) 
+        self.registerField("servername", editServerName)
         lblServerName.setBuddy(editServerName)
-                
+
         layout = QGridLayout()
         layout.addWidget(lblUsername)
         layout.addWidget(editUsername)
@@ -106,103 +109,102 @@ class Page1(QWizardPage):
         layout.addWidget(editDomainName)
         layout.addWidget(lblPasswort)
         layout.addWidget(editPasswort)
-        
+
         layout.addWidget(lblServerName)
         layout.addWidget(editServerName)
-        
+
         self.setLayout(layout)
-        
-    #def nextId(self):
-        
+
+    # def nextId(self):
+
     def validatePage(self):
         '''
         check if given credentials and serverName name are valid
         only then proceed to next wizard page
         '''
         print("validating page")
-        
+
         server = self.parent.field("servername")
-        
-        server = server.replace("\\","/") # get rid of those ill used backslashes
-        server = server.replace("//","") # kick leading //
-        
+
+        server = server.replace("\\", "/")  # get rid of those ill used backslashes
+        server = server.replace("//", "")  # kick leading //
+
         parts = server.split("/")
         server = parts[0]
-        share = parts[1] if len(parts)>1 else None    
-        
-        
+        share = parts[1] if len(parts) > 1 else None
+
         self.wizard().setServer(ShareBrowser(server,
-                                self.wizard().field("username"),
-                                self.wizard().field("password"),
-                                self.wizard().field("domainname")))
+                                             self.wizard().field("username"),
+                                             self.wizard().field("password"),
+                                             self.wizard().field("domainname")))
         try:
             connected = self.wizard().connectServer()
-            print("logon successful: "+str(connected))
+            print("logon successful: " + str(connected))
             if share is None:
                 shares = self.wizard().getShares()
-                if len(shares)<0:
+                if len(shares) < 0:
                     print("no shares found")
-                    
-                if not(shares==None):
+
+                if not (shares == None):
                     return True
             else:
                 print("connecting to a hidden share")
                 files = self.wizard().getFolderContent(share)
-                if files is None or len(files)==0:
+                if files is None or len(files) == 0:
                     print("nothing found in hidden share")
                 else:
                     self.wizard().defaultShare = share
                     return True
-                
+
         except gaierror as ex:
-            #TODO: we probably want to distinguish beteween logon errors and serverName not found errors,
+            # TODO: we probably want to distinguish beteween logon errors and serverName not found errors,
             # then go back to previous page  
-            self.setSubTitle("Server nicht gefunden: "+str(ex))
+            self.setSubTitle("Server nicht gefunden: " + str(ex))
         except Exception as ex:
-            self.setSubTitle("Anmeldefehler") 
+            self.setSubTitle("Anmeldefehler")
             print(ex)
-            
+
         return False
- 
+
+
 class Page2(QWizardPage):
-    def __init__(self, parent=None, title="Auswahl LB",subtitle = "Wählen Sie die zu kopierende LB aus"):
+
+    def __init__(self, parent=None, title="Auswahl LB", subtitle="Wählen Sie die zu kopierende LB aus"):
         super(Page2, self).__init__(parent)
         self.setTitle(title)
         self.setSubTitle(subtitle)
         self.validSelection = False;
-        
-   
+
     def validatePage(self, *args, **kwargs):
-        if len(self.folderList.selectedItems())==1:
+        if len(self.folderList.selectedItems()) == 1:
             item = self.folderList.selectedItems()[0]
             self.wizard().defaultShare = item.path
             return item.isDirectory
-        return False; 
- 
+        return False;
+
     def initializePage(self):
         # print("setting up page 2")
-        if self.layout()!=None:
+        if self.layout() != None:
             # print("wiping out previous entries")
-            while self.layout().count()>0:
+            while self.layout().count() > 0:
                 self.layout().removeItem(self.layout().itemAt(0))
-        
+
         self.tree = QTreeWidget()
         if self.wizard().defaultShare != None:
-            self.tree.addTopLevelItem(MyTreeWidgetItem(self.tree, self.wizard().defaultShare)) 
-        
-        else:    
+            self.tree.addTopLevelItem(MyTreeWidgetItem(self.tree, self.wizard().defaultShare))
+
+        else:
             shares = self.wizard().getShares()
-            if shares==None:
+            if shares == None:
                 print("No shares found...")
                 return
-            print(",".join([x.name for x in shares]))         
-            
-        
+            print(",".join([x.name for x in shares]))
+
             for m in shares:
-                if m.name not in ["ADMIN$","C$","IPC$","NETLOGON","SYSVOL"]:
-                    #button = QPushButton(m.name)
-                    #button.clicked.connect(self.btnClicked)
-                    self.tree.addTopLevelItem(MyTreeWidgetItem(self.tree, m))  
+                if m.name not in ["ADMIN$", "C$", "IPC$", "NETLOGON", "SYSVOL"]:
+                    # button = QPushButton(m.name)
+                    # button.clicked.connect(self.btnClicked)
+                    self.tree.addTopLevelItem(MyTreeWidgetItem(self.tree, m))
 
         shareListBox = QWidget()
         shareListBoxLayout = QVBoxLayout()
@@ -210,7 +212,7 @@ class Page2(QWizardPage):
         self.tree.itemClicked.connect(self.treeViewItemClicked)
         shareListBoxLayout.addWidget(self.tree)
         shareListBox.setLayout(shareListBoxLayout)
-        
+
         self.folderList = QListWidget()
         # self.folderList.itemClicked.connect(self.validateSelection)
         folderListBox = QWidget()
@@ -220,43 +222,45 @@ class Page2(QWizardPage):
         if self.wizard().type == EcWizard.TYPE_RESULT_DESTINATION:
             folderListHeaderMessage = "Klasse hier auswählen"
         folderListBoxLayout.addWidget(QLabel(folderListHeaderMessage))
-        
+
         folderListBoxLayout.addWidget(self.folderList)
         folderListBox.setLayout(folderListBoxLayout)
-        
+
         layout = QHBoxLayout()
         layout.addWidget(shareListBox)
         layout.addWidget(folderListBox)
         self.setLayout(layout)
-        
-    #===========================================================================
+
+    # ===========================================================================
     # def btnClicked(self):
     #     print("I've been clicked:: " + self.sender().text())
-    #===========================================================================
-      
-    def treeViewItemClicked(self,item):
-        print("received treeview click on: "+str(item))
+    # ===========================================================================
+
+    def treeViewItemClicked(self, item):
+        print("received treeview click on: " + str(item))
         self.folderList.clear()
         self.validSelection = False;
-        hasChildren = item.childCount()>0 # don't add children again
+        hasChildren = item.childCount() > 0  # don't add children again
         try:
             content = self.wizard().getFolderContent(item.path)
-            content = sorted(content, key = lambda entry: (not(entry.isDirectory), entry.filename))
-            for x in content:                
-                if not(x.filename.startswith(".")): 
-                    newItemPath = item.path+"/"+x.filename
-                    icon = QStyle.SP_DirIcon if x.isDirectory else QStyle.SP_FileIcon 
+            content = sorted(content, key=lambda entry: (not (entry.isDirectory), entry.filename))
+            for x in content:
+                if not (x.filename.startswith(".")):
+                    newItemPath = item.path + "/" + x.filename
+                    icon = QStyle.SP_DirIcon if x.isDirectory else QStyle.SP_FileIcon
                     self.folderList.addItem(MyListWidgetItem(
                         self.style().standardIcon(icon),
                         newItemPath, x.isDirectory, self.folderList))
-                    if not(hasChildren) and x.isDirectory:
+                    if not (hasChildren) and x.isDirectory:
                         item.addChild(MyTreeWidgetItem(self.tree, newItemPath))
         except Exception as ex:
             # smb.smb_structs.OperationFailure ??
             print(str(ex))
-            pass  
+            pass
 
-#===============================================================================
+        # ===============================================================================
+
+
 # class QIComboBox(QComboBox):
 #     def __init__(self,parent=None):
 #         super(QIComboBox, self).__init__(parent)
@@ -264,42 +268,47 @@ class Page2(QWizardPage):
 #     #@pyside2Property(str)
 #     def currentItemData(self):
 #         return self.itemData(self.currentIndex()).toString()
-#===============================================================================
-class MyTreeWidgetItem(QTreeWidgetItem):  
-      
+# ===============================================================================
+class MyTreeWidgetItem(QTreeWidgetItem):
+
     def __init__(self, treeview, path):
         super(MyTreeWidgetItem, self).__init__(treeview=treeview, strings=[path])
-        if type(path)==str:
+        if type(path) == str:
             self.path = path
-        else: 
+        else:
             self.path = path.name
         self.setText(0, self.path.split("/")[-1])
-   
+
+
 class MyListWidgetItem(QListWidgetItem):
+
     def __init__(self, icon, path, isDirectory, listView):
         super(MyListWidgetItem, self).__init__(icon, path, listView)
         self.path = path
         self.isDirectory = isDirectory
         self.setText(path.split("/")[-1])
-        
-def someFun(): 
+
+
+def someFun():
     print("event received: ")
-    
+
+
 if __name__ == '__main__':
     import sys
+
     app = QApplication(sys.argv)
-    wizard = EcWizard(parent=None, username="sven.schirmer@wiss-online.ch", 
+    wizard = EcWizard(parent=None, username="sven.schirmer@wiss-online.ch",
                       domain="", servername="NSSGSC01/LBV", wizardType=EcWizard.TYPE_RESULT_DESTINATION)
-    wizard = EcWizard(parent=None, username="sven", 
+    wizard = EcWizard(parent=None, username="sven",
                       domain="HSH", servername="odroid", wizardType=EcWizard.TYPE_RESULT_DESTINATION)
     wizard.setModal(True)
     result = wizard.exec_()
-    print("I'm done, wizard result="+str(result))
-    if result==1:
-        print("selected values: %s - %s - %s - %s"%
-              (wizard.field("username"), "*****", wizard.field("servername"), wizard.defaultShare))    
-    #app.exec_()
-    
+    print("I'm done, wizard result=" + str(result))
+    if result == 1:
+        print("selected values: %s - %s - %s - %s" %
+              (wizard.field("username"), "*****", wizard.field("servername"), wizard.defaultShare))
+        # app.exec_()
+
 '''    
     smbclient -k //win-serverName/share$/folder
 tree connect failed: NT_STATUS_BAD_NETWORK_NAME

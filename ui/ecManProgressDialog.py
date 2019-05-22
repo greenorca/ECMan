@@ -4,8 +4,9 @@ Created on Jan 28, 2019
 @author: sven
 '''
 from PySide2.QtWidgets import QDialog
+
 from ui.progressDialog import Ui_progressDialog
-from PySide2.QtWidgets import QApplication
+
 
 class EcManProgressDialog(QDialog):
     '''
@@ -19,24 +20,24 @@ class EcManProgressDialog(QDialog):
         '''
         Constructor        
         '''
-        super(EcManProgressDialog,self).__init__(parent)
-        self.ui = Ui_progressDialog()        
+        super(EcManProgressDialog, self).__init__(parent)
+        self.ui = Ui_progressDialog()
         self.ui.setupUi(self)
         self.setWindowTitle(title)
         # self.ui.setWindowTitle(title)
         self.setModal(True)
-        
+
     def setMaxValue(self, value):
         self.ui.progressBar.setMaximum(value)
         pass
-    
+
     def resetValue(self):
         self.ui.progressBar.setValue(0)
-    
+
     def incrementValue(self):
         print("incrementing progressbar")
-        self.ui.progressBar.setValue(self.ui.progressBar.value()+1)
-        print("incrementing progressbar, new value="+str(self.ui.progressBar.value()))
+        self.ui.progressBar.setValue(self.ui.progressBar.value() + 1)
+        print("incrementing progressbar, new value=" + str(self.ui.progressBar.value()))
         if self.ui.progressBar.maximum() == self.ui.progressBar.value():
             self.done(0)
         pass
