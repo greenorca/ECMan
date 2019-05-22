@@ -27,7 +27,6 @@ class LbClient(QPushButton):
         QPushButton.__init__(self, self.computer.ip)
         self.parentApp = parentApp
         self.log = LbClient.Log()
-
         self.isSelected = False
         self.lastUpdate = None
         if test == True:
@@ -234,37 +233,24 @@ class LbClient(QPushButton):
         self._colorizeWidgetByClientState()
 
     def _colorizeWidgetByClientState(self):
-        colorString = ""
-        pal = QPalette()
-        # set black background
-
-        self.setAutoFillBackground(True);
-        pal.setColor(QPalette.Button, Qt.lightGray);
+        #self.setAutoFillBackground(True);
+        #pal = QPalette()
+        #pal.setColor(QPalette.Button, Qt.lightGray)
+        color_string = ""
         if self.computer.state == Computer.State.STATE_DEPLOYED:
-            colorString = "background-color: yellow;"
-            pal.setColor(QPalette.Button, Qt.yellow);
-            pal.setBrush(QPalette.Button, Qt.yellow);
+            color_string = "background-color: #FF7700;"
         elif self.computer.state == Computer.State.STATE_FINISHED:
-            colorString = "background-color: green;"
-            pal.setColor(QPalette.Button, Qt.green);
-            pal.setBrush(QPalette.Button, Qt.green);
+            color_string = "background-color: #33BB33;"
+
         elif self.computer.state.value < 0:
-            colorString = "background-color: red;"
-            pal.setColor(QPalette.Button, Qt.red);
-            pal.setBrush(QPalette.Button, Qt.red);
+            color_string = "background-color: red;"
 
-        self.setPalette(pal);
-
-        fontStyle = "font-weight:normal;";
-        myFont = QFont()
-        myFont.setBold(False)
+        font_style = "font-weight: normal;"
         if self.isSelected:
-            fontStyle = "font-weight:bold;";
-            myFont.setBold(True)
+            font_style = "font-weight: bold;"
 
-        self.setFont(myFont)
-
-        # self.setStyleSheet("QPushButton {"+ colorString + fontStyle +"}")
+        #self.setPalette(pal)
+        self.setStyleSheet(color_string + font_style)
 
     def select(self):
         if self.computer.state != Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY:
