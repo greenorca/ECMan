@@ -8,18 +8,18 @@ import socket
 import time
 
 from PySide2 import QtCore
-from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject, Signal
+from PySide2.QtCore import QThreadPool, QRunnable, QThread, QObject
 
 from ui.lbClientButton import LbClient
-
+from worker.computer import Computer
 
 # from worker.computer import Computer
 
 
 class MySignals(QObject):
-    addClient = Signal(int)
-    updateClientLabel = Signal(int)
-    threadFinished = Signal(int)
+    addClient = QtCore.Signal(int)
+    updateClientLabel = QtCore.Signal(int)
+    threadFinished = QtCore.Signal(int)
 
 
 class ScannerTask(QRunnable):
@@ -133,6 +133,9 @@ class RetrieveResultsTask(QRunnable):
 
         except Exception as ex:
             print("crashed retrieving results into dst: {} because of {}".format(self.dst, ex))
+            self.client.computer.state = Computer.State.STATE_RETRIVAL_FAIL
+            self.client.log("Ergebnisdaten kopieren gescheitert. Client offline? "+str(ex))
+            self.client._colorizeWidgetByClientState()
             pass
 
         self.connector.threadFinished.emit(1)
