@@ -16,7 +16,8 @@ from PySide2.QtGui import QTextDocument, QKeySequence
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog, \
     QShortcut
 
-from ui.Ui_MainWindow import Ui_MainWindow
+#from ui.Ui_MainWindow import Ui_MainWindow
+from ui.Ui_MainWindow2 import Ui_MainWindow
 from ui.ecLoginWizard import EcLoginWizard
 from ui.ecManConfigDialog import EcManConfigDialog
 from ui.ecManProgressDialog import EcManProgressDialog
@@ -56,7 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnSelectExam.setEnabled(True)
 
         self.btnPrepareExam.clicked.connect(self.prepareExam)
-        self.btnPrepareExam.setEnabled(True)
+        self.btnPrepareExam.setEnabled(False)
 
         self.btnGetExams.clicked.connect(self.retrieveExamFilesByWizard)
         self.btnGetExams.setEnabled(True)
@@ -72,7 +73,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionOfflineHelp.triggered.connect(self.openHelpUrlOffline)
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
 
-        # self.progressBar.setStyleSheet("QProgressBar { background-color: #CD96CD; width: 10px; margin: 0.5px; }")
+        self.btnBlockUsb.clicked.connect(self.blockUsb)
+        self.btnBlockWebAccess.clicked.connect(self.blockWebAccess)
+
         self.appTitle = 'ECMan - Exam Client Manager'
         self.setWindowTitle(self.appTitle)
 
@@ -101,6 +104,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dummy, 
         '''
         pass
+
+    def blockUsb(self):
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())
+                   if self.grid_layout.itemAt(i).widget().isSelected]
+
+        for client in clients:
+            client.blockUsbAccessThread()
+
+
+    def blockWebAccess(self):
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())
+                   if self.grid_layout.itemAt(i).widget().isSelected]
+        for client in clients:
+            client.blockInternetAccessThread()
 
     def resetClients(self):
         '''
@@ -284,9 +301,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if type(enable) != bool:
             raise Exception("Invalid parameter, must be boolean")
 
+        self.btnNameClients.setEnabled(enable)
         self.btnSelectAllClients.setEnabled(enable)
+        self.btnUnselectClients.setEnabled(enable)
         self.btnPrepareExam.setEnabled(enable)
         self.btnGetExams.setEnabled(enable)
+        self.btnSaveExamLog.setEnabled(enable)
         self.btnDetectClient.setEnabled(enable)
 
     def retrieveExamFilesByWizard(self):
@@ -509,10 +529,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         print("I'm done, wizard result=" + str(result))
         if result == 1:
             self.lb_directory = wizard.selectedPath
-            self.setWindowTitle(self.appTitle + " - LB-Verzeichnis::" + self.lb_directory.split("#")[-1])
+            self.setWindowTitle(self.appTitle + " - LB-Verzeichnis::" + self.lb_directory.split("/")[-1])
             self.log("setup LB directory: " + self.lb_directory.split("/")[-1])
             self.btnPrepareExam.setEnabled(True)
-
+            self.lblExamName.setText(self.lb_directory)
         else:
             self.log("no valid share selected")
 

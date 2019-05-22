@@ -105,7 +105,6 @@ class ScannerWorker(QThread):
     def addClient(self, ip):
         self.addClientSignal.emit(ip)
 
-
 class RetrieveResultsTask(QRunnable):
 
     def __init__(self, client: LbClient, dst: str, server_user, server_passwd, server_domain, maxFiles=100,

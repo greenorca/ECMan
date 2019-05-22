@@ -178,7 +178,7 @@ class LbClient(QPushButton):
         starts remote copy process for path,
         wipes remote non-system files in user home dir before if reset=True 
         '''
-        if path == None or path == False:
+        if path is None or path is False:
             path = self.parentApp.getExamPath()
 
         if server_user == "" or server_passwd == "":
@@ -193,7 +193,7 @@ class LbClient(QPushButton):
             self.log.append(msg)
             return
 
-        if reset == True:
+        if reset is True:
             success = self.computer.resetClientHomeDirectory()
             self.log.append(" Client-Daten gelöscht: " + str(success))
         else:
@@ -205,16 +205,6 @@ class LbClient(QPushButton):
             self.log.append(" Fehler Prüfungsdaten zum Client kopieren: " + path + ", Ursache: " + error)
         else:
             self.log.append(" Prüfungsdaten zum Client kopieren erfolgreich: " + path.replace("#", "/"))
-
-            if self.parentApp.checkBoxBlockUsb.checkState() == Qt.CheckState.Checked:
-                success = self.computer.disableUsbAccess(block=True)
-                print(" USB gesperrt: " + str(success))
-                self.log.append(" USB gesperrt: " + str(success))
-
-            if self.parentApp.checkBoxBlockWebAccess.checkState() == Qt.CheckState.Checked:
-                success = self.computer.blockInternetAccess(block=True)
-                print(" Internet gesperrt: " + str(success))
-                self.log.append(" Internet gesperrt: " + str(success))
 
         self.setOwnToolTip()
         self._colorizeWidgetByClientState()
