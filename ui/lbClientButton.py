@@ -250,7 +250,7 @@ class LbClient(QPushButton):
             font_style = "font-weight: bold;"
 
         #self.setPalette(pal)
-        self.setStyleSheet(color_string + font_style)
+        self.setStyleSheet("LbClient {"+color_string + font_style+"}")
 
     def select(self):
         if self.computer.state != Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY:
