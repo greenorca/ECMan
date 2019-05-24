@@ -72,6 +72,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionOnlineHelp.triggered.connect(self.openHelpUrl)
         self.actionOfflineHelp.triggered.connect(self.openHelpUrlOffline)
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
+        self.btnNameClients.clicked.connect(self.activateNameTab)
 
         self.btnBlockUsb.clicked.connect(self.blockUsb)
         self.btnBlockWebAccess.clicked.connect(self.blockWebAccess)
@@ -93,6 +94,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for i in range(6):
                 self.addTestClient(i + 100)
 
+
+    def activateNameTab(self):
+        self.tabs.setCurrentWidget(self.tab_candidates)
+
     def openHelpUrl(self):
         webbrowser.open(self.config.get("General", "wikiurl", fallback="https://github.com/greenorca/ECMan/wiki"))
 
@@ -100,9 +105,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         webbrowser.open("file://" + os.getcwd().replace("\\", "/") + "/help/Home.html")
 
     def checkOldLogFiles(self):
-        '''
-        dummy, 
-        '''
+        """
+        dummy,
+        """
         pass
 
     def blockUsb(self):
@@ -120,9 +125,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             client.blockInternetAccessThread()
 
     def resetClients(self):
-        '''
+        """
         resets remote files and configuration for all connected clients
-        '''
+        """
 
         items = ["Nein", "Ja"]
         item, ok = QInputDialog().getItem(self, "LB-Status zurücksetzen?",
@@ -145,10 +150,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.start()
 
     def closeEvent(self, event):
-        '''
+        """
         overrides closeEvent of base class, clean up
-        
-        '''
+
+        """
         print("cleaning up...")
         #         try:* especially remove shares created on Windows hosts
         #             for share in self.sharenames:
@@ -160,16 +165,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).closeEvent(event)
 
     def selectAllCLients(self):
-        '''
-        marks / selects all connected client pcs 
-        '''
+        """
+        marks / selects all connected client pcs
+        """
         for i in range(self.grid_layout.count()):
             self.grid_layout.itemAt(i).widget().select()
 
     def unselectAllCLients(self):
-        '''
-        unmarks / unselects all connected client pcs 
-        '''
+        """
+        unmarks / unselects all connected client pcs
+        """
         for i in range(self.grid_layout.count()):
             self.grid_layout.itemAt(i).widget().unselect()
 
@@ -191,10 +196,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 )
 
     def applyCandidateNames(self):
-        '''
+        """
         reads candidate names from respective textEditField (line by line)
         and applies these names to (random) client pcs
-        '''
+        """
         names = self.textEditCandidates.toPlainText().rstrip().splitlines()
         # cleanup and remove duplicate names
         names = [x.strip() for x in names]
@@ -222,10 +227,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()
 
+        self.tabs.setCurrentWidget(self.tab_pcs)
+
     def configure(self):
-        '''
-        sets inial values for app 
-        '''
+        """
+        sets inial values for app
+        """
         self.port = 5986
         self.server = None
 
@@ -258,9 +265,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.log("no connection to internet:" + str(ex))
 
     def readConfigFile(self):
-        '''
+        """
         reads config file into class variables
-        '''
+        """
         self.config = ConfigParser()
         self.config.read_file(open(str(self.configFile)))
 
@@ -274,9 +281,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.config.get("Client", "max_filesize", fallback="100")) * 1024 * 1024  # thats MB now...
 
     def openConfigDialog(self):
-        '''
+        """
         opens configuration dialog
-        '''
+        """
         configDialog = EcManConfigDialog(self)
         result = configDialog.exec_()
         if result == 1:
@@ -285,10 +292,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return result
 
     def log(self, message):
-        '''
+        """
         basic logging functionality
         TODO: improve...
-        '''
+        """
         self.logger.log(message)
 
     def updateProgressBar(self, value):
@@ -310,9 +317,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnDetectClient.setEnabled(enable)
 
     def retrieveExamFilesByWizard(self):
-        '''
+        """
         retrieve exam files for all clients
-        '''
+        """
         # find all suitable clients (required array for later threading)
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())
                    if self.grid_layout.itemAt(i).widget().isSelected and
@@ -400,9 +407,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pass
 
     def copyFilesToClient(self):
-        '''
+        """
         copies selected exam folder to all connected clients that are selected and not in STATE_DEPLOYED or STATE_FINISHED
-        '''
+        """
         if self.lb_directory == None or self.lb_directory == "":
             self.showMessageBox("Fehler", "Kein Prüfungsordner ausgewählt")
             return
@@ -428,9 +435,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.start()
 
     def detectClients(self):
-        '''
+        """
         starts portscan to search for winrm enabled clients
-        '''
+        """
         ip_range = self.lineEditIpRange.text()
         if not (ip_range.endswith('*')):
             self.showMessageBox('Eingabefehler', 'Gültiger IP-V4 Bereich endet mit * (z.B. 192.168.0.*)')
@@ -457,11 +464,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker.start()
 
     def addClient(self, ip):
-        '''
-        populate GUI with newly received client ips 
+        """
+        populate GUI with newly received client ips
         param ip: only last byte required
         param scan: wether or not scan the Client (set to False only for GUI testing)
-        '''
+        """
         self.log("new client signal received: " + str(ip))
         clientIp = self.ipRange.replace("*", str(ip))
         button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd,
@@ -473,10 +480,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # QtGui.qApp.processEvents()
 
     def addTestClient(self, ip):
-        '''
-        populate GUI with dummy buttons 
+        """
+        populate GUI with dummy buttons
         param ip: only last byte required
-        '''
+        """
         self.log("new client signal received: " + str(ip))
         clientIp = self.ipRange.replace("*", str(ip))
         button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd,
@@ -492,9 +499,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return self.lb_directory
 
     def getServerCredentialsByWizard(self):
-        '''
-        open server config and login dialog, returns server object or None 
-        '''
+        """
+        open server config and login dialog, returns server object or None
+        """
         wizard = EcLoginWizard(parent=self,
                                username=self.config.get("General", "username", fallback=""),
                                domain=self.config.get("General", "domain", fallback=""),
@@ -514,9 +521,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return None
 
     def selectExamByWizard(self):
-        '''
-        provides ability to select serverName share plus logon credentials and lb directory using a wizard 
-        '''
+        """
+        provides ability to select serverName share plus logon credentials and lb directory using a wizard
+        """
 
         if self.server == None or self.server.connect() is False:
             self.server = self.getServerCredentialsByWizard()
@@ -537,9 +544,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.log("no valid share selected")
 
     def saveExamLog(self):
-        '''
+        """
         on demand, store all client logs as PDF
-        '''
+        """
         if self.result_directory == None or len(self.result_directory) == 0:
             self.showMessageBox("Fehler",
                                 "Ergebnispfad für Prüfungsdaten nicht gesetzt.<br>Bitte zuerst Prüfungsdaten abholen.",
@@ -588,18 +595,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.textEditLog.setDocument(doc)
 
     def saveConfig(self):
-        '''
+        """
         write to file what's currently set in config
-        '''
+        """
         if not (self.configFile.exists()):
             self.configFile.touch()
 
         self.config.write(open(self.configFile, 'w'))
 
     def eventFilter(self, currentObject, event):
-        '''
+        """
         unused, define mouseover events (with tooltips) for LbClient widgets
-        '''
+        """
         if event.type() == QEvent.Enter:
             if isinstance(currentObject, LbClient):
                 print("Mouseover event catched")
@@ -613,9 +620,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return False
 
     def showMessageBox(self, title, message, messageType=QMessageBox.Information):
-        '''
+        """
         convinence wrapper
-        '''
+        """
         msg = QMessageBox(messageType, title, message, parent=self)
         if messageType != QMessageBox.Information:
             msg.setStandardButtons(QMessageBox.Abort)

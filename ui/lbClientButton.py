@@ -1,8 +1,8 @@
-'''
+"""
 Created on Jan 20, 2019
 
 @author: sven
-'''
+"""
 
 from time import asctime, clock
 
@@ -15,9 +15,9 @@ from worker.computer import Computer
 
 
 class LbClient(QPushButton):
-    '''
+    """
     class to handle and visualize state of lb_client_computers
-    '''
+    """
 
     def __init__(self, ip, remoteAdminUser, passwd, candidateLogin, parentApp, test=False):
         self.computer = Computer(ip,
@@ -96,18 +96,18 @@ class LbClient(QPushButton):
         result = terminalDialog.exec_()
 
     def setCandidateNameDialog(self):
-        '''
+        """
         opens GUI dialog to enter a candidate name, call actual setter method
-        '''
+        """
         candidateName, ok = QInputDialog.getText(self, "Eingabe", "Name des Kandidaten eingeben")
         if ok and (len(candidateName) != 0):
             self.setCandidateName(candidateName)
         pass
 
     def setCandidateName(self, candidateName, doUpdate=True, doReset=False):
-        '''
-        sets candidate name on remote computer 
-        '''
+        """
+        sets candidate name on remote computer
+        """
         self.computer.setCandidateName(candidateName, doReset)
         if doUpdate:
             self.setLabel()
@@ -144,12 +144,12 @@ class LbClient(QPushButton):
         self.resetComputerStatus(resetCandidateName=None)
 
     def resetComputerStatus(self, resetCandidateName=None):
-        '''
+        """
         resets client status **and data!**
         resets candidate name if resetCandidateName = True,
         opens a confirmation dialog if resetCandidateName = None (default),
         skips client name reset if resetCandidateName = False
-        '''
+        """
         if resetCandidateName == None:
             items = ["Nein", "Ja"]
             item, ok = QInputDialog().getItem(self, "Client-Status zurücksetzen?", "Kandidat-Name zurücksetzen? ",
@@ -173,10 +173,10 @@ class LbClient(QPushButton):
             self.computer.resetClientHomeDirectory()
 
     def deployClientFiles(self, server_user, server_passwd, server_domain, path=None, reset=False):
-        '''
+        """
         starts remote copy process for path,
-        wipes remote non-system files in user home dir before if reset=True 
-        '''
+        wipes remote non-system files in user home dir before if reset=True
+        """
         if path is None or path is False:
             path = self.parentApp.getExamPath()
 
@@ -238,12 +238,12 @@ class LbClient(QPushButton):
         #pal.setColor(QPalette.Button, Qt.lightGray)
         color_string = ""
         if self.computer.state == Computer.State.STATE_DEPLOYED:
-            color_string = "background-color: #FF7700;"
+            color_string = "background-color: #FF7700; "
         elif self.computer.state == Computer.State.STATE_FINISHED:
-            color_string = "background-color: #33BB33;"
+            color_string = "background-color: #33BB33; "
 
         elif self.computer.state.value < 0:
-            color_string = "background-color: red;"
+            color_string = "background-color: red; "
 
         font_style = "font-weight: normal;"
         if self.isSelected:
@@ -264,9 +264,9 @@ class LbClient(QPushButton):
         self._colorizeWidgetByClientState()
 
     def toggleSelection(self):
-        '''
+        """
         set or reset selection state
-        '''
+        """
         if self.isSelected:
             self.unselect()
         else:
@@ -331,9 +331,9 @@ class LbClient(QPushButton):
         checkStateSignal = Signal()
 
     class CheckStatusThread(QRunnable):
-        '''
+        """
         get the hostname asynchronously
-        '''
+        """
 
         def __init__(self, widget):
             QRunnable.__init__(self)
@@ -357,9 +357,9 @@ class LbClient(QPushButton):
             self.widget.setLabel()
 
     class ShutdownTask(QRunnable):
-        '''
-        simple thread to shutdown given pc (respectively the pc attached to this widget) 
-        '''
+        """
+        simple thread to shutdown given pc (respectively the pc attached to this widget)
+        """
 
         def __init__(self, widget):
             QRunnable.__init__(self)
