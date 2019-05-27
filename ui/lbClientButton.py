@@ -252,7 +252,7 @@ class LbClient(QPushButton):
             font_style = 'font-weight: bold; '
 
         #self.setPalette(pal)
-        self.setStyleSheet(color_string + font_style)
+        self.setStyleSheet("LbClient {"+color_string + font_style+"}")
 
     def select(self):
         if self.computer.state != Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY:
@@ -347,16 +347,16 @@ class LbClient(QPushButton):
             # sleep(random.randint(2,5))
             try:
                 self.computer.checkStatusFile()
-                self.connector.checkStateSignal.emit()
                 print("fetching this computers name")
                 self.computer.getHostName()
                 print("finished fetching this computers name")
+                self.connector.checkStateSignal.emit()
 
             except Exception as ex:
                 self.widget.log.append("crashed fetching this computers name: " + str(ex))
                 pass
 
-            self.widget.setLabel()
+            # self.widget.setLabel() -- evil, caused SIGSEGV crashes
 
     class ShutdownTask(QRunnable):
         """
