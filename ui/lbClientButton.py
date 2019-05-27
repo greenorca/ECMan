@@ -6,7 +6,8 @@ Created on Jan 20, 2019
 
 from time import asctime, clock
 
-from PySide2.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject
+from PySide2 import QtCore
+from PySide2.QtCore import Qt, QThreadPool, QRunnable, QObject
 from PySide2.QtGui import QFont, QPalette
 from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog, QMessageBox
 
@@ -25,6 +26,7 @@ class LbClient(QPushButton):
                                  candidateLogin=candidateLogin,
                                  fetchHostname=(test == False))
         QPushButton.__init__(self, self.computer.ip)
+        self.setAttribute(QtCore.Qt.WA_StyledBackground)
         self.parentApp = parentApp
         self.log = LbClient.Log()
         self.isSelected = False
@@ -238,19 +240,19 @@ class LbClient(QPushButton):
         #pal.setColor(QPalette.Button, Qt.lightGray)
         color_string = ""
         if self.computer.state == Computer.State.STATE_DEPLOYED:
-            color_string = "background-color: #FF7700; "
+            color_string = 'background-color: #FFDD00; '
         elif self.computer.state == Computer.State.STATE_FINISHED:
-            color_string = "background-color: #33BB33; "
+            color_string = 'background-color: #33BB33; '
 
         elif self.computer.state.value < 0:
-            color_string = "background-color: red; "
+            color_string = 'background-color: red; '
 
-        font_style = "font-weight: normal;"
+        font_style = 'font-weight: normal; '
         if self.isSelected:
-            font_style = "font-weight: bold;"
+            font_style = 'font-weight: bold; '
 
         #self.setPalette(pal)
-        self.setStyleSheet("LbClient {"+color_string + font_style+"}")
+        self.setStyleSheet(color_string + font_style)
 
     def select(self):
         if self.computer.state != Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY:
@@ -328,7 +330,7 @@ class LbClient(QPushButton):
 
     class StatusThreadSignal(QObject):
 
-        checkStateSignal = Signal()
+        checkStateSignal = QtCore.Signal()
 
     class CheckStatusThread(QRunnable):
         """
