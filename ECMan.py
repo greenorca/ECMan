@@ -302,12 +302,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.progressBar.setValue(value)
         if (value == self.progressBar.maximum()):
             self.enableButtons(True)
+            self.progressBar.setEnabled(False)
 
     def enableButtons(self, enable):
 
         if type(enable) != bool:
             raise Exception("Invalid parameter, must be boolean")
-
         self.btnNameClients.setEnabled(enable)
         self.btnSelectAllClients.setEnabled(enable)
         self.btnUnselectClients.setEnabled(enable)
