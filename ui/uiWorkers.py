@@ -79,7 +79,7 @@ class ScannerWorker(QThread):
         ipRange: str like 192.168.0.*
         ipAdress: this machines ipAdress as string
         '''
-        QtCore.QThread.__init__(self)
+        QThread.__init__(self)
         self.ipRange = ipRange
         self.ipAdress = ipAdress
         self.counter = 0
@@ -155,7 +155,7 @@ class RetrieveResultsWorker(QThread):
         ctor, required params:
         clients: array of lbClient instances to copy data from    
         '''
-        QtCore.QThread.__init__(self)
+        QThread.__init__(self)
         self.clients = clients
         self.dst = dst
         self.cnt = 0
@@ -181,7 +181,7 @@ class RetrieveResultsWorker(QThread):
 
 
 # Inherit from QThread
-class CopyExamsWorker(QtCore.QThread):
+class CopyExamsWorker(QThread):
     '''
     does threaded copying of lb data,
     signals "done threads"    
@@ -195,7 +195,7 @@ class CopyExamsWorker(QtCore.QThread):
         clients: array of lbClient instances to copy data to
         resets 
         '''
-        QtCore.QThread.__init__(self)
+        QThread.__init__(self)
         self.clients = clients
         self.src = src
         self.server_user = server_user
@@ -219,10 +219,10 @@ class CopyExamsWorker(QtCore.QThread):
         self.updateProgressSignal.emit(1)
 
 
-class CopyExamsTask(QtCore.QRunnable):
+class CopyExamsTask(QRunnable):
 
     def __init__(self, client, src, server_user, server_passwd, server_domain, reset):
-        QtCore.QRunnable.__init__(self)
+        QRunnable.__init__(self)
         self.client = client
         self.src = src
         self.server_user = server_user
@@ -236,7 +236,7 @@ class CopyExamsTask(QtCore.QRunnable):
         self.connector.threadFinished.emit(1)
 
 
-class ResetClientsWorker(QtCore.QThread):
+class ResetClientsWorker(QThread):
     '''
     does threaded copying of lb data,
     signals "done threads"    
@@ -251,7 +251,7 @@ class ResetClientsWorker(QtCore.QThread):
         ctor, required params:
         clients: array of lbClient instances to copy data to        
         '''
-        QtCore.QThread.__init__(self)
+        QThread.__init__(self)
         self.clients = clients
         self.resetCandidateNames = resetCandidateNames
 
@@ -276,13 +276,13 @@ class ResetClientsWorker(QtCore.QThread):
         self.updateClientSignal.emit(self)
 
 
-class ResetClientTask(QtCore.QRunnable):
+class ResetClientTask(QRunnable):
     '''
     runnable thread to reset logical state of client (without restarting it)
     '''
 
     def __init__(self, client, resetCandidateName):
-        QtCore.QRunnable.__init__(self)
+        QRunnable.__init__(self)
         self.client = client
         self.resetCandidateName = resetCandidateName
         self.connector = MySignals()
@@ -303,26 +303,27 @@ class ResetClientTask(QtCore.QRunnable):
 ############################################
 
 
-class SetCandidateNameTask(QtCore.QRunnable):
+class SetCandidateNameTask(QRunnable):
     '''
     runnable thread to set candidate name of client computer
     '''
 
     def __init__(self, client, candidateName):
-        QtCore.QRunnable.__init__(self)
+        QRunnable.__init__(self)
         self.client = client
         self.candidateName = candidateName
         self.connector = MySignals()
 
     def run(self):
+        time.sleep(0.25)
         try:
-            self.client.setCandidateName(self.candidateName, doUpdate=True, doReset=False)
+            self.client.setCandidateName(self.candidateName, doUpdate=False, doReset=False)
         except Exception as ex:
             print("Died while setting candidate name: " + str(ex))
         self.connector.threadFinished.emit(1)
 
 
-class SetCandidateNamesWorker(QtCore.QThread):
+class SetCandidateNamesWorker(QThread):
     '''
     does threaded candidate setup,
     signals "done threads"    
@@ -336,7 +337,7 @@ class SetCandidateNamesWorker(QtCore.QThread):
         clients: array of lbClient instances to copy data to
         candidateNames: array of strings (no further string cleanup is done in here)        
         '''
-        QtCore.QThread.__init__(self)
+        QThread.__init__(self)
         self.clients = clients
         self.candidateNames = candidateNames
 
@@ -347,32 +348,27 @@ class SetCandidateNamesWorker(QtCore.QThread):
         threads.setMaxThreadCount(10)
         for i in range(len(self.candidateNames)):
             task = SetCandidateNameTask(self.clients[i], self.candidateNames[i])
-            task.connector.threadFinished.connect(self.updateProgress())
+            task.connector.threadFinished.connect(self.updateProgress)
+            task.connector.threadFinished.connect(self.clients[i].setLabel)
             threads.start(task)
             print("candidate name setter thread started for " + self.candidateNames[i])
 
         print("done thread setup, should all be running now")
-        # maxThreads = threads.activeThreadCount()
-        # while threads.activeThreadCount() > 0:
-        #    self.updateProgress.emit(maxThreads - threads.activeThreadCount())
-        #    time.sleep(1)
-        # self.updateProgress.emit(maxThreads)    
 
     def updateProgress(self):
         self.updateProgressSignal.emit(1)
-        # TODO        
 
 
 ############################################
 
 
-class SendMessageTask(QtCore.QRunnable):
+class SendMessageTask(QRunnable):
     '''
     runnable thread to send messages to a client computer
     '''
 
     def __init__(self, client, message):
-        QtCore.QRunnable.__init__(self)
+        QRunnable.__init__(self)
         self.client = client
         self.message = message
 

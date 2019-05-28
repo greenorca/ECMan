@@ -1,3 +1,4 @@
-Beispiel-Kommandos (auswählen, mit ENTER abschicken)::Write-Host "Hello World :)"
-Desktop auflisten::Get-ChildItem C:\Users\student\Desktop | ForEach-Object { Write-Host $_.Name", size:"$_.Length", "$_.Attributes }
+Beispiel-Kommandos (mit ENTER abschicken)::Write-Host "Hello World :)"
+Desktop-Baustruktur anzeigen::tree /F C:\Users\student\Desktop
+Desktop-Dateien auflisten::Get-ChildItem C:\Users\student\Desktop | ForEach-Object { Write-Host $_.Name", size:"$_.Length", "$_.Attributes }
 Teste Internet-Zugriff::$x=Test-NetConnection; Write-Host $x.ComputerName"@"$x.RemoteAddress"ping ok:"$x.PingSucceeded

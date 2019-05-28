@@ -1,28 +1,30 @@
 # from worker.computer import Computer
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QDialog
-
+from PySide2.QtWidgets import QApplication, QDialog,QTextEdit
+import xml.etree.ElementTree as ET
 from ui.remoteTerminal import Ui_Dialog
 from worker.computer import Computer
 
 
 class EcManRemoteTerminal(QDialog):
-    '''
+    """
     QDialog based remote admin dialog for ECMan app
     adapted from https://www.codementor.io/deepaksingh04/design-simple-dialog-using-pyqt5-designer-tool-ajskrd09n
     and https://stackoverflow.com/questions/19379120/how-to-read-a-config-file-using-python#19379306
-    class inherists from QDialog, and contains the UI defined in ConfigDialog (based on configDialog.ui) 
-    '''
+    class inherists from QDialog, and contains the UI defined in ConfigDialog (based on configDialog.ui)
+    """
 
     def __init__(self, parent=None, client: Computer = None):
-        '''
-        Constructor        
-        '''
+        """
+        Constructor
+        """
         super(EcManRemoteTerminal, self).__init__(parent)
         self.client = client
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.ui.txtCommand.returnPressed.connect(self.sendCommand)
+
+        self.ui.resultField.setLineWrapMode(QTextEdit.WidgetWidth)
 
         with open("scripts/ps_samples.txt") as commands:
             for line in commands:
@@ -37,11 +39,11 @@ class EcManRemoteTerminal(QDialog):
         self.previousCommandIndex = 0
 
     def keyPressEvent(self, event):
-        '''
+        """
         enter previous commands in shell
         :param event:
         :return:
-        '''
+        """
         super(EcManRemoteTerminal, self).keyPressEvent(event)
         if len(self.commandHistory) > 0:
             if event.key() == Qt.Key_Up:
@@ -62,14 +64,21 @@ class EcManRemoteTerminal(QDialog):
 
     def execCommand(self, command):
         self.ui.resultField.append("<b>" + self.ui.txtCommand.text() + "</b><br>")
+        #QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.setCursor(Qt.WaitCursor)
         out, error, state = self.client.runPowerShellCommand(command)
-
+        self.setCursor(Qt.ArrowCursor)
+        #QApplication.restoreOverrideCursor()
         if state == 0:
             self.ui.resultField.append(
                 "<pre>" + out.replace("\\r\\n\\r\\n", "\\r\\n").replace("<", "&lt;").replace(">", "&gt;") + "</pre>")
         else:
+            message = error.replace("#< CLIXML\r\n","")
+            tree = ET.fromstring(message)
+            message = [x.text for x in tree.getchildren() if x.tag.endswith("S")][:2]
+            message = "".join(message).replace("_x000D__x000A_","")
             self.ui.resultField.append(
-                "<span color='red'>" + "<pre>" + error.replace("<", "&lt;").replace(">", "&gt;") + "</pre>" + "</span>")
+                "<span color='red'>" + "<pre>" + message.replace("<", "&lt;").replace(">", "&gt;") + "</pre>" + "</span>")
 
     def sendCommand(self):
         self.commandHistory.append(self.ui.txtCommand.text())

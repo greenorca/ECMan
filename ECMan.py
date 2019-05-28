@@ -94,7 +94,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for i in range(6):
                 self.addTestClient(i + 100)
 
-
     def activateNameTab(self):
         self.tabs.setCurrentWidget(self.tab_candidates)
 
@@ -218,15 +217,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 messageType=QMessageBox.Warning)
             return
 
-        progressDialog = EcManProgressDialog(self, "Fortschritt Kandidatenname setzen")
+        progressDialog = EcManProgressDialog(self, "Fortschritt Kandidatennamen setzen")
         progressDialog.setMaxValue(len(names))
         progressDialog.resetValue()
-        progressDialog.open()
 
         self.worker = SetCandidateNamesWorker(clients, names)
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()
 
+        progressDialog.open()
         self.tabs.setCurrentWidget(self.tab_pcs)
 
     def configure(self):

@@ -318,7 +318,6 @@ class LbClient(QPushButton):
 
         def run(self):
             self.widget.computer.blockInternetAccess()
-            self.widget.setOwnToolTip()
 
     class AllowInternetThread(QRunnable):
 
@@ -328,17 +327,15 @@ class LbClient(QPushButton):
 
         def run(self):
             self.widget.computer.allowInternetAccess()
-            self.widget.setOwnToolTip()
 
     class StatusThreadSignal(QObject):
 
-        checkStateSignal = QtCore.Signal()
+        checkStateSignal = QtCore.Signal(int)
 
     class CheckStatusThread(QRunnable):
         """
         get the hostname asynchronously
         """
-
         def __init__(self, widget):
             QRunnable.__init__(self)
             self.widget = widget
@@ -352,13 +349,12 @@ class LbClient(QPushButton):
                 print("fetching this computers name")
                 self.computer.getHostName()
                 print("finished fetching this computers name")
-                self.connector.checkStateSignal.emit()
 
             except Exception as ex:
                 self.widget.log.append("crashed fetching this computers name: " + str(ex))
                 pass
 
-            # self.widget.setLabel() -- evil, caused SIGSEGV crashes
+            self.connector.checkStateSignal.emit(1)
 
     class ShutdownTask(QRunnable):
         """

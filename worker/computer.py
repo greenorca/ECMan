@@ -22,9 +22,9 @@ Created on Dec 25, 2018
 class File:
 
     def __init__(self, name: str, isDir: bool, size=None, date=""):
-        '''
+        """
         create a new file
-        '''
+        """
         self.name = name.replace("\\", "/")
         self.size = size
         self.date = date
@@ -39,9 +39,9 @@ class File:
             self.children.append(child)
 
     def getSubFolder(self, name: str):
-        '''
+        """
         finds and returns subfolder for give name
-        '''
+        """
         subfolders = [f for f in self.children if f.isDirectory]
         result = [f for f in subfolders if f.name.split("/")[-1] == name]
         if len(result) > 0 and result[0] != []:
@@ -51,14 +51,14 @@ class File:
 
 
 class Computer(object):
-    '''
+    """
     class to administer instances of computers
-    '''
+    """
 
     class State(Enum):
-        '''
+        """
         enumeration of various computer states
-        '''
+        """
         STATE_INIT = 0
         STATE_DEPLOYED = 1
         STATE_FINISHED = 2
@@ -73,9 +73,9 @@ class Computer(object):
         STATE_GPO_BGIMAGE_FAIL = -8
 
     def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin, fetchHostname=False):
-        '''
+        """
         Constructor
-        '''
+        """
         self.debug = False
         if socket.gethostname() == "sven-V5-171":
             self.debug = True
@@ -122,11 +122,11 @@ class Computer(object):
             self.candidateName = "Kandidat No {}".format(self.ip.split(".")[-1])
 
     def resetStatus(self, resetCandidateName=False):
-        '''
-        resets remote status file and internal status variables 
-        by overwriting remote ecman.json file with an empty file 
-        (and eventually recreating the usename) 
-        '''
+        """
+        resets remote status file and internal status variables
+        by overwriting remote ecman.json file with an empty file
+        (and eventually recreating the usename)
+        """
 
         self.logger.info(
             "PC LB-Status zurücksetzen " + ("inklusive Benutzernamen" if resetCandidateName == True else ""))
@@ -146,9 +146,9 @@ class Computer(object):
         self.state = Computer.State.STATE_INIT
 
     def resetClientHomeDirectory(self):
-        '''
+        """
         removes all non-system files within client directories
-        '''
+        """
         self.logger.info("PC Benutzerdaten zurücksetzen")
 
         script = ""
@@ -172,10 +172,10 @@ class Computer(object):
             self.logger.error("PC Benutzerdaten zurücksetzen gescheitert: " + str(message))
 
     def __runRemoteCommand(self, command="ipconfig", params=['/all']):
-        '''
+        """
         try to run a regular cmd program with given parameters on given winrm-host (ip)
         just prints std_out, std_err and status
-        '''
+        """
         print(command + ", " + str(params))
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
@@ -196,9 +196,9 @@ class Computer(object):
         return status_code
 
     def sendMessage(self, message=""):
-        '''
+        """
         sends a message in a little popup window on client computer
-        '''
+        """
         if message == "" or type(message) != str:
             message = "Verbindungstest Kandidat: " + str(self.getCandidateName())
         else:
@@ -223,10 +223,10 @@ class Computer(object):
         return status_code
 
     def getRemoteFileListing(self):
-        '''
+        """
         reads remote LB-Daten directory
         returns nicely formatted HTML list
-        '''
+        """
         if self.state != Computer.State.STATE_DEPLOYED and \
                 self.state != Computer.State.STATE_FINISHED:
             return "Not yet deployed: " + self.state.name
@@ -284,12 +284,12 @@ class Computer(object):
         return self.remoteFileListing
 
     def parseFile(self, line):
-        '''
+        """
         turn a line (like this one: 07.01.2019 15:59 23 local_client_test.txt)
         from windows-dir command into a file object
         returns String for subdirectories (that should have been created before) e.g. "Verzeichnis von C:\\Users\\"+self.candidateLogin+"\\Desktop\<<<\\\LB_Daten\\M104\\sub2"
         or None if a line did not matter ()e.g.  " 1 Datei(en), 28 Bytes"
-        '''
+        """
         match = re.match(
             "^(?P<date>[0-9]{2}\.[0-9]{2}\.[0-9]{4})\s+(?P<time>[0-9]{2}:[0-9]{2})\s+(?P<size>[0-9]+)\s+(?P<name>\S+)",
             line)
@@ -308,13 +308,13 @@ class Computer(object):
         return None
 
     def disableUsbAccess(self, block=True):
-        '''
+        """
         block or unblock usb access for usbsticks etc
         PARAM block =True blocks, block=False reenables access
         https://redmondmag.com/articles/2017/06/27/prevent-the-use-of-usb-media-in-windows-10.aspx
         set HKLM:\\SYSTEM\CurrentControlSet\\Services\\USBSTOR\\Start
         4: blocks; 3 unblocks
-        '''
+        """
         self.logger.info("blockiere USB-Speicher")
 
         psCommand = 'Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR\\" -Name Start -Value ' + str(
@@ -330,10 +330,10 @@ class Computer(object):
         return True
 
     def isUsbBlocked(self):
-        '''
+        """
         reads blocking status of this client (from registry)
         and returns USB-ENABLED or USB-BLOCKED
-        '''
+        """
         psCommand = 'Get-ItemPropertyValue -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR\\" -Name Start'
         std_out, std_err, status = self.runPowerShellCommand(psCommand)
 
@@ -347,16 +347,16 @@ class Computer(object):
         return self.__usbBlocked
 
     def allowInternetAccess(self):
-        '''
-        convenience function to remove previously configured firewall rules 
-        '''
+        """
+        convenience function to remove previously configured firewall rules
+        """
         return self.blockInternetAccess(block=False)
 
     def blockInternetAccess(self, block=True):
-        '''
+        """
         blocks or unblocks web access on client machine,
         returns True if commands were successful, False in case of errors
-        '''
+        """
         blockList = [
             {"name": "Block Http", "port": 80, "protocol": "TCP"},
             {"name": "Block Https", "port": 443, "protocol": "TCP"},
@@ -430,8 +430,8 @@ class Computer(object):
         return self.__internetBlocked
 
     def isFirewallServiceEnabled(self):
-        '''
-        '''
+        """
+        """
         testCommand = 'Get-NetFirewallProfile | Where-Object {$_.Enabled -ne "true"}'
         std_out, std_err, status = self.runPowerShellCommand(command=testCommand)
 
@@ -444,9 +444,9 @@ class Computer(object):
         return True
 
     def configureFirewallService(self, enable=True):
-        '''
+        """
         enable or disable windows defender firewall service for all network profiles
-        '''
+        """
         testCommand = 'Set-NetFirewallProfile -Enabled {}'.format(enable)
         std_out, std_err, status = self.runPowerShellCommand(command=testCommand)
 
@@ -462,10 +462,10 @@ class Computer(object):
         return True
 
     def testPing(self, dst):
-        '''
+        """
         simple ping test to a remote dst; use e.g before retrieving client files to make sure firewall allows access,
-        returns True on Success, False otherwise 
-        '''
+        returns True on Success, False otherwise
+        """
 
         textCommandPing = 'try { Clear-DNSClientCache; if (Test-Connection "$1$" -Quiet -Count 1 )  { Write-Host PING_OK } else { Write-Host PING_NOK } } catch { Write-host DNS_FAIL }'.replace(
             '$1$', dst)
@@ -482,10 +482,10 @@ class Computer(object):
         return True
 
     def testInternetBlocked(self):
-        '''
-        testing web connectivity (first clear local dns cache, then ping www.wiss.ch, then try http protocol 
-        fixed: cleared cached DNS 
-        '''
+        """
+        testing web connectivity (first clear local dns cache, then ping www.wiss.ch, then try http protocol
+        fixed: cleared cached DNS
+        """
 
         testWebConnectivityHost = "www.wiss.ch"
 
@@ -507,10 +507,10 @@ class Computer(object):
         return self.__internetBlocked
 
     def setCandidateName(self, candidateName, reset=False):
-        '''
-        sets given candidate name on remote machine 
+        """
+        sets given candidate name on remote machine
         by writing it to a file on the winrm user home directory
-        '''
+        """
 
         command = '''
             $file = "C:\\Users\\$0$\\ecman.json";
@@ -536,9 +536,9 @@ class Computer(object):
         return status
 
     def getCandidateName(self, remote=False):
-        '''
+        """
         returns candidate name configured for this client
-        '''
+        """
         if remote == False:
             return self.candidateName
 
@@ -547,10 +547,10 @@ class Computer(object):
         return self.candidateName
 
     def checkUserConfig(self):
-        '''
+        """
         check preconfigured exam user folder
         check default ecman.json folder
-        '''
+        """
         command = '$baseDir="C:\\Users\\$1$\\"; Write-Host (Test-Path $baseDir)'.replace("$1$", self.candidateLogin)
         if self.debug: print("CheckUserConfig command: " + command)
         std_out, std_err, status = self.runPowerShellCommand(command)
@@ -592,10 +592,10 @@ class Computer(object):
         return False
 
     def checkStatusFile(self):
-        '''
-        checks if file C:\\Users\\winrm\\ecman.json exists on client, 
+        """
+        checks if file C:\\Users\\winrm\\ecman.json exists on client,
         creates it if it doesn't exists and retrieves its content
-        '''
+        """
         if not (self.checkUserConfig()):
             return False;
 
@@ -657,10 +657,10 @@ class Computer(object):
         self.logger.info("Created bunch of files: " + str(status))
 
     def checkFileSanity(self, maxFiles=100, maxFileSize=1000000):
-        '''
+        """
         returns True if remote Desktop contains less than maxFiles with a total size less than maxFileSize (in bytes)
-        returns False otherwise 
-        '''
+        returns False otherwise
+        """
         command = '$summary=(Get-ChildItem -Recurse C:\\Users\\' + self.candidateLogin + '\\Desktop) | Measure-Object -property length -sum; Write-Host "Files:" $summary.Count "; Size:" $summary.Sum;'
         out, err, status = self.runPowerShellCommand(command)
 
@@ -684,10 +684,10 @@ class Computer(object):
         return errors == 0
 
     def getHostName(self):
-        '''
+        """
         returns hostname for given ip
         fetches remote hostname only if local attribute is empty
-        '''
+        """
         if self.__hostName != "" and self.__hostName != "--unknown--":
             return self.__hostName
 
@@ -750,9 +750,9 @@ class Computer(object):
         return True
 
     def setLockScreenPicture(self, file="C:\\Windows\\Web\\Screen\\img100.jpg"):
-        '''
+        """
         add currently set candidate name to lock screen image for this computer
-        '''
+        """
         command = []
         # command.append('takeown /F "{0}"'.format(file))
         # command.append('icacls "{0}" /grant winrm:("d","f")'.format(file))
@@ -792,20 +792,20 @@ class Computer(object):
         return True
 
     def blankScreen(self):
-        '''
+        """
         supposed to blank screen on WIN computer; doesn't work remote yet...
-        '''
+        """
         # command = r"powershell (Add-Type '[DllImport(\"user32.dll\")]^public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' -Name a -Pas)::SendMessage(-1,0x0112,0xF170,2)"
         # command = r"%systemroot%\system32\scrnsave.scr /s"
         command = r"runas /user:Sven runas /user:student%systemroot%\system32\scrnsave.scr /s"
         self.__runRemoteCommand(command, [])
 
     def runPowerShellCommand(self, command=""):  # , timeout=30):
-        '''
+        """
         run a powershell command remotely on given ip,
         just prints std_out, std_err and status
-        returns std_out, std_err and status (0 == good) instead of True and False  
-        '''
+        returns std_out, std_err and status (0 == good) instead of True and False
+        """
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
@@ -823,11 +823,11 @@ class Computer(object):
         return std_out.decode("850").rstrip(), std_err.decode("850").rstrip(), status_code
 
     def deployClientFiles(self, filepath, server_user, server_passwd, domain):
-        '''
-        copy the content of filepath (recursively) to this client machine 
+        """
+        copy the content of filepath (recursively) to this client machine
         prints std_out, std_err and status
         returns True on success, False otherwise
-        '''
+        """
         script = ""
         try:
             with open("scripts/FileCopy.ps1") as file:
@@ -863,12 +863,12 @@ class Computer(object):
             return False, error.decode("850")
 
     def retrieveClientFiles(self, filepath, server_user, server_passwd, domain):
-        '''
-        copy LB-data files from this machine to destination (which has to be a writable SMB share) 
-        within a folder with the candidates name that will be created on destination; 
+        """
+        copy LB-data files from this machine to destination (which has to be a writable SMB share)
+        within a folder with the candidates name that will be created on destination;
         breaks if Computer state is not deployed or candidate name is empty
         returns True on success, False otherwise
-        '''
+        """
 
         if self.candidateName == "":
             if self.getCandidateName(True) == "":
@@ -923,9 +923,9 @@ class Computer(object):
             return False, error.decode("850")
 
     def runCopyScript(self, script):
-        '''
+        """
         internes Kopierskript
-        '''
+        """
         p = Protocol(
             endpoint='https://' + self.ip + ':5986/wsman',
             transport='basic',
@@ -953,13 +953,13 @@ class Computer(object):
         return status, std_out
 
     def __runPowerShellScript(self, scriptfile="FileCopy.ps1", isFile=True):
-        '''
+        """
         run the content of a powershell script given in scriptfile
         if isFile=True, scriptFile must contain path to Powershell script,
-        if isFile==False, scriptFile is treaded as scripting string 
+        if isFile==False, scriptFile is treaded as scripting string
         prints std_out, std_err and status
         returns std_out
-        '''
+        """
         script = ""
         if isFile == True:
             with open(scriptfile) as file:
