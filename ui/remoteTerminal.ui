@@ -15,7 +15,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTextBrowser" name="resultField"/>
+       <widget class="QTextBrowser" name="resultField">
+           <property name="lineWrapMode">
+               <enum>QTextEdit::FixedColumnWidth</enum>
+           </property>
+           <property name="lineWrapColumnOrWidth">
+               <number>40</number>
+           </property>
+       </widget>
    </item>
    <item>
     <widget class="QLineEdit" name="txtCommand"/>

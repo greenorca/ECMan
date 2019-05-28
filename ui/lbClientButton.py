@@ -7,8 +7,7 @@ Created on Jan 20, 2019
 from time import asctime, clock
 
 from PySide2 import QtCore
-from PySide2.QtCore import Qt, QThreadPool, QRunnable, QObject
-from PySide2.QtGui import QFont, QPalette
+from PySide2.QtCore import QThreadPool, QRunnable, QObject
 from PySide2.QtWidgets import QPushButton, QMenu, QInputDialog, QMessageBox
 
 from ui.ecManRemoteTerminal import EcManRemoteTerminal
@@ -94,7 +93,7 @@ class LbClient(QPushButton):
 
     def openTerminal(self):
         terminalDialog = EcManRemoteTerminal(parent=self.parentApp, client=self.computer)
-        terminalDialog.setModal(True)
+        terminalDialog.setModal(False)
         result = terminalDialog.exec_()
 
     def setCandidateNameDialog(self):
