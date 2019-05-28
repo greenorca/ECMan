@@ -92,7 +92,10 @@ class LbClient(QPushButton):
             return self.__log
 
     def openTerminal(self):
-        QThreadPool.globalInstance().start(LbClient.RemoteShellTask(self.parentApp, self.computer));
+        #QThreadPool.globalInstance().start(LbClient.RemoteShellTask(self.parentApp, self.computer));
+        terminalDialog = EcManRemoteTerminal(parent=self.parentApp, client=self.computer)
+        terminalDialog.setModal(False)
+        terminalDialog.exec_()
 
     def setCandidateNameDialog(self):
         """
@@ -374,12 +377,16 @@ class LbClient(QPushButton):
                 self.widget.setStyleSheet("QPushButton {" + colorString + "}")
 
     class RemoteShellTask(QRunnable):
-        
+        """
+        a weak attempt to get the remote shell non-modal to allow multiple instances
+        abandon for now since it either stays modal or doesn't work at a ll on WIN and MAC
+        worked perfectly well on Linux :-)
+        """
         def __init__(self, parentApp, client:Computer):
             QRunnable.__init__(self)
             self.terminalDialog = EcManRemoteTerminal(parent=parentApp, client=client)
             self.terminalDialog.setModal(False)
         
         def run(self):
-            self.terminalDialog.show()
+            self.terminalDialog.exec_()
             
