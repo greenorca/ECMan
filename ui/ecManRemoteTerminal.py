@@ -2,7 +2,7 @@
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QApplication, QDialog,QTextEdit
 import xml.etree.ElementTree as ET
-from ui.remoteTerminal import Ui_Dialog
+from ui.remoteTerminal import Ui_Form
 from worker.computer import Computer
 
 
@@ -20,7 +20,7 @@ class EcManRemoteTerminal(QDialog):
         """
         super(EcManRemoteTerminal, self).__init__(parent)
         self.client = client
-        self.ui = Ui_Dialog()
+        self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.ui.txtCommand.returnPressed.connect(self.sendCommand)
 
