@@ -45,7 +45,7 @@ class LbClient(QPushButton):
         act0 = menu.addAction("Popup-Nachricht senden")
         act0.triggered.connect(self.computer.sendMessage)
 
-        act1 = menu.addAction("Auswahl umkehren")
+        act1 = menu.addAction("Client-PC auswählen")
         act1.triggered.connect(self.toggleSelection)
 
         act2 = menu.addAction("Kandidat-Namen setzen")
@@ -72,7 +72,7 @@ class LbClient(QPushButton):
         act9 = menu.addAction("LB-Daten zurücksetzen")
         act9.triggered.connect(self.resetClientHomeDirectory)
 
-        act10 = menu.addAction("Powershell öffnen")
+        act10 = menu.addAction("Remote Shell öffnen")
         act10.triggered.connect(self.openTerminal)
 
         # menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
@@ -92,9 +92,7 @@ class LbClient(QPushButton):
             return self.__log
 
     def openTerminal(self):
-        terminalDialog = EcManRemoteTerminal(parent=self.parentApp, client=self.computer)
-        terminalDialog.setModal(False)
-        result = terminalDialog.exec_()
+        QThreadPool.globalInstance().start(LbClient.RemoteShellTask(self.parentApp, self.computer));
 
     def setCandidateNameDialog(self):
         """
@@ -264,14 +262,19 @@ class LbClient(QPushButton):
         self.isSelected = False
         self._colorizeWidgetByClientState()
 
-    def toggleSelection(self):
+    def toggleSelection(self, event):
         """
         set or reset selection state
         """
+        toggleText = "Client-PC auswählen" 
         if self.isSelected:
             self.unselect()
         else:
             self.select()
+            toggleText = "Client-PC abwählen" 
+        
+        self.menu().actions()[1].setText(toggleText)
+        
 
     def setLabel(self):
         label = self.computer.ip
@@ -373,3 +376,14 @@ class LbClient(QPushButton):
             else:
                 colorString = "background-color: red;"
                 self.widget.setStyleSheet("QPushButton {" + colorString + "}")
+
+    class RemoteShellTask(QRunnable):
+        
+        def __init__(self, parentApp, client:Computer):
+            QRunnable.__init__(self)
+            self.terminalDialog = EcManRemoteTerminal(parent=parentApp, client=client)
+            self.terminalDialog.setModal(False)
+        
+        def run(self):
+            self.terminalDialog.show()
+            
