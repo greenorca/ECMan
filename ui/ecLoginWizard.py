@@ -1,8 +1,8 @@
-'''
+"""
 Created on Feb 22, 2019
 
 @author: sven
-'''
+"""
 
 from socket import gaierror
 
@@ -13,15 +13,15 @@ from worker.sharebrowser import ShareBrowser
 
 
 class EcLoginWizard(QWizard):
-    '''
-    wizard for selection of CIFS/SMB based exam shares based on user specified login credentials and serverName names 
-    '''
+    """
+    wizard for selection of CIFS/SMB based exam shares based on user specified login credentials and serverName names
+    """
     PAGE_LOGON = 1
 
     def __init__(self, parent=None, username="", servername="", domain=""):
-        '''
+        """
         Constructor
-        '''
+        """
         super(EcLoginWizard, self).__init__(parent)
         self.setWizardStyle(QWizard.ModernStyle)
         self.title = "An Netzwerk anmelden"
@@ -73,9 +73,9 @@ class LoginPage(QWizardPage):
         self.setLayout(layout)
 
     def validatePage(self):
-        '''
+        """
         only proceed to next wizard page if given credentials and serverName name are valid
-        '''
+        """
         print("validating page")
 
         serverName = self.wizard().field("servername")
@@ -104,7 +104,7 @@ class LoginPage(QWizardPage):
                     server.defaultShare = hiddenShareName
                     return True
             else:
-                raise "logon error"
+                raise Exception("logon error")
 
         except gaierror as ex:
             # we probably want to distinguish beteween logon errors and serverName not found errors,

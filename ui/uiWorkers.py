@@ -1,8 +1,8 @@
-'''
+"""
 Created on Jan 19, 2019
 
 @author: sven
-'''
+"""
 
 import socket
 import time
@@ -23,9 +23,9 @@ class MySignals(QObject):
 
 
 class ScannerTask(QRunnable):
-    '''
+    """
     scanning thread; see https://stackoverflow.com/questions/26174743/making-a-fast-port-scanner
-    '''
+    """
 
     def __init__(self, ip, port, timeout=1):
         QRunnable.__init__(self)
@@ -63,22 +63,22 @@ class ScannerTask(QRunnable):
 
 
 class ScannerWorker(QThread):
-    '''
+    """
     does threaded scanning of IP range and port,
-    signals "done threads" and successful ips     
+    signals "done threads" and successful ips
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
-    '''
+    """
 
     updateProgressSignal = QtCore.Signal(int)
     # signal returns only last byte of IP adress
     addClientSignal = QtCore.Signal(int)
 
     def __init__(self, ipRange: str, ipAdress: str):
-        '''
+        """
         ctor, required params:
         ipRange: str like 192.168.0.*
         ipAdress: this machines ipAdress as string
-        '''
+        """
         QThread.__init__(self)
         self.ipRange = ipRange
         self.ipAdress = ipAdress
@@ -143,18 +143,18 @@ class RetrieveResultsTask(QRunnable):
 
 # Inherit from QThread
 class RetrieveResultsWorker(QThread):
-    '''
+    """
     does threaded retrieval of lb data,
-    signals "done threads"    
+    signals "done threads"
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
-    '''
+    """
     updateProgressSignal = QtCore.Signal(int)
 
     def __init__(self, clients: [], dst, server_user, server_passwd, server_domain, maxFiles=100, maxFileSize=100000):
-        '''
+        """
         ctor, required params:
-        clients: array of lbClient instances to copy data from    
-        '''
+        clients: array of lbClient instances to copy data from
+        """
         QThread.__init__(self)
         self.clients = clients
         self.dst = dst
@@ -173,6 +173,7 @@ class RetrieveResultsWorker(QThread):
             thread = RetrieveResultsTask(client, self.dst, self.server_user, self.server_passwd, self.server_domain,
                                          self.maxFiles, self.maxFileSize)
             thread.connector.threadFinished.connect(self.updateProgress)
+            thread.connector.threadFinished.connect(client.setLabel)
             threads.start(thread)
             time.sleep(0.3)
 
@@ -182,19 +183,19 @@ class RetrieveResultsWorker(QThread):
 
 # Inherit from QThread
 class CopyExamsWorker(QThread):
-    '''
+    """
     does threaded copying of lb data,
-    signals "done threads"    
+    signals "done threads"
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
-    '''
+    """
     updateProgressSignal = QtCore.Signal(int)
 
     def __init__(self, clients: [], src, server_user, server_passwd, server_domain, reset):
-        '''
+        """
         ctor, required params:
         clients: array of lbClient instances to copy data to
-        resets 
-        '''
+        resets
+        """
         QThread.__init__(self)
         self.clients = clients
         self.src = src
@@ -212,6 +213,7 @@ class CopyExamsWorker(QThread):
             thread = CopyExamsTask(client, self.src, self.server_user, self.server_passwd, self.server_domain,
                                    self.reset)
             thread.connector.threadFinished.connect(self.updateProgress)
+            thread.connector.threadFinished.connect(client.setLabel)
             threads.start(thread)
             print("copy thread started for " + client.computer.getHostName())
 
@@ -237,20 +239,20 @@ class CopyExamsTask(QRunnable):
 
 
 class ResetClientsWorker(QThread):
-    '''
+    """
     does threaded copying of lb data,
-    signals "done threads"    
+    signals "done threads"
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
-    '''
+    """
     updateProgressSignal = QtCore.Signal(int)
     # signal returns only last byte of IP adress
     updateClientSignal = QtCore.Signal(int)
 
     def __init__(self, clients: [], resetCandidateNames=True):
-        '''
+        """
         ctor, required params:
-        clients: array of lbClient instances to copy data to        
-        '''
+        clients: array of lbClient instances to copy data to
+        """
         QThread.__init__(self)
         self.clients = clients
         self.resetCandidateNames = resetCandidateNames
@@ -262,8 +264,8 @@ class ResetClientsWorker(QThread):
         threads.setMaxThreadCount(10)
         for client in self.clients:
             thread = ResetClientTask(client, self.resetCandidateNames)
-            thread.connector.updateClientLabel.connect(self.updateClientLabel)
             thread.connector.threadFinished.connect(self.updateProgress)
+            thread.connector.threadFinished.connect(client.setLabel)
             threads.start(thread)
             print("reset thread started for " + client.computer.getHostName())
 
@@ -272,14 +274,11 @@ class ResetClientsWorker(QThread):
     def updateProgress(self, val):
         self.updateProgressSignal.emit(1)
 
-    def updateClientLabel(self):
-        self.updateClientSignal.emit(self)
-
 
 class ResetClientTask(QRunnable):
-    '''
+    """
     runnable thread to reset logical state of client (without restarting it)
-    '''
+    """
 
     def __init__(self, client, resetCandidateName):
         QRunnable.__init__(self)
@@ -296,7 +295,6 @@ class ResetClientTask(QRunnable):
         except Exception as ex:
             print("Died reseting client@{}, cause: ".format(self.client.computer.getHostName()) + str(ex))
 
-        self.connector.updateClientLabel.emit(self)
         self.connector.threadFinished.emit(1)
 
 
@@ -304,9 +302,9 @@ class ResetClientTask(QRunnable):
 
 
 class SetCandidateNameTask(QRunnable):
-    '''
+    """
     runnable thread to set candidate name of client computer
-    '''
+    """
 
     def __init__(self, client, candidateName):
         QRunnable.__init__(self)
@@ -324,19 +322,19 @@ class SetCandidateNameTask(QRunnable):
 
 
 class SetCandidateNamesWorker(QThread):
-    '''
+    """
     does threaded candidate setup,
-    signals "done threads"    
+    signals "done threads"
     source: https://stackoverflow.com/questions/20657753/python-pyside-and-progress-bar-threading#20661135
-    '''
+    """
     updateProgressSignal = QtCore.Signal(int)
 
     def __init__(self, clients: list, candidateNames: list):
-        '''
+        """
         ctor, required params:
         clients: array of lbClient instances to copy data to
-        candidateNames: array of strings (no further string cleanup is done in here)        
-        '''
+        candidateNames: array of strings (no further string cleanup is done in here)
+        """
         QThread.__init__(self)
         self.clients = clients
         self.candidateNames = candidateNames
@@ -363,9 +361,9 @@ class SetCandidateNamesWorker(QThread):
 
 
 class SendMessageTask(QRunnable):
-    '''
+    """
     runnable thread to send messages to a client computer
-    '''
+    """
 
     def __init__(self, client, message):
         QRunnable.__init__(self)

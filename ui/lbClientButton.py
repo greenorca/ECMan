@@ -207,8 +207,6 @@ class LbClient(QPushButton):
         else:
             self.log.append(" Prüfungsdaten zum Client kopieren erfolgreich: " + path.replace("#", "/"))
 
-        self.setOwnToolTip()
-        self._colorizeWidgetByClientState()
 
     def retrieveClientFiles(self, filepath, server_user, server_passwd, server_domain, maxFiles=500,
                             maxFileSize=10000000):
@@ -230,9 +228,6 @@ class LbClient(QPushButton):
         except Exception as ex:
             self.log.append(msg=" Exception beim Kopieren der Resultate: " + str(ex))
             self.computer.state = Computer.State.STATE_RETRIVAL_FAIL
-
-        self.setOwnToolTip()
-        self._colorizeWidgetByClientState()
 
     def _colorizeWidgetByClientState(self):
         #self.setAutoFillBackground(True);
@@ -286,15 +281,14 @@ class LbClient(QPushButton):
 
         label = label + "\n" + (self.computer.getCandidateName() or "-LEER-")
         self.setText(label)
+        self.setOwnToolTip()
         self._colorizeWidgetByClientState()
 
     def blockUsbAccess(self):
         self.computer.disableUsbAccess(True)
-        self.setOwnToolTip()
 
     def allowUsbAccess(self):
         self.computer.disableUsbAccess(False)
-        self.setOwnToolTip()
 
     def blockUsbAccessThread(self):
         QThreadPool.globalInstance().start(LbClient.blockUsbAccess(self))
@@ -311,7 +305,6 @@ class LbClient(QPushButton):
     def blockInternetAccess(self, block=True):
         print('blocking internet access: ' + str(block))
         self.computer.blockInternetAccess(block)
-        self.setOwnToolTip()
 
     class BlockInternetThread(QRunnable):
 
