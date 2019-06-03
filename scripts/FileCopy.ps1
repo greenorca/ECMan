@@ -49,7 +49,7 @@ Try {
     {
         throw [System.IO.FileNotFoundException]::new("Cannot copy: "+$Error[0].Exception.Message)
     }
-    $mypath=$dst+$src.split("\")[-1]+"\runner.ps1"
+    $mypath=$dst+"\runner.ps1"
     Write-Host "executing " $mypath
     if (Test-Path $mypath) { Invoke-Expression $mypath }
     
