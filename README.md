@@ -7,7 +7,7 @@
 Eine Softwarelösung soll die Bereitstellung der Prüfungsfestplatten und die Durchführung der praktischen Prüfungen für alle Beteiligten vereinfachen. 
 
 <figure>
-  <img src="images/preview_v002.png" alt="Prototyp ECMan-SW" />
+  <img src="screenshots_doku/clients_retrival_success.png" alt="Prototyp ECMan-SW" />
   <p style="font-style:italic;margin-top:0px;">Prototyp ECMan-SW</p>
 </figure>
 
