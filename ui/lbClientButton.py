@@ -51,8 +51,8 @@ class LbClient(QPushButton):
         act2 = menu.addAction("Kandidat-Namen setzen")
         act2.triggered.connect(self.setCandidateNameDialog)
 
-        act3 = menu.addAction("Dateien zum Client kopieren")
-        act3.triggered.connect(self.deployClientFiles)
+        # act3 = menu.addAction("Dateien zum Client kopieren")
+        # act3.triggered.connect(self.deployClientFiles)
 
         act4 = menu.addAction("USB sperren")
         act4.triggered.connect(self.blockUsbAccessThread)
