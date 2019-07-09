@@ -144,6 +144,7 @@ class Computer(object):
             self.candidateName = ""
 
         self.state = Computer.State.STATE_INIT
+        self.lb_dataDirectory = ""
 
     def resetClientHomeDirectory(self):
         """

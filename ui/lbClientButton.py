@@ -280,6 +280,7 @@ class LbClient(QPushButton):
             label = label + "\n" + self.computer.getHostName()
 
         label = label + "\n" + (self.computer.getCandidateName() or "-LEER-")
+        label = label + "\n" + (self.computer.lb_dataDirectory)
         self.setText(label)
         self.setOwnToolTip()
         self._colorizeWidgetByClientState()
