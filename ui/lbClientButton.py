@@ -79,6 +79,8 @@ class LbClient(QPushButton):
         menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
 
         self.setMenu(menu)
+        self.select()
+
 
     class Log:
 
