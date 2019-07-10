@@ -78,7 +78,7 @@ class ShareSelectionPage(QWizardPage):
                     self.setSubTitle("Ungültiges Prüfungsverzeichnis ausgewählt")
                     return False
             else:
-                if re.compile("^(UIFZ|IFZ)[0-9]{3}$").match(item.name) == None:
+                if re.compile("^(UIFZ|IFZ)-").match(item.name) == None:
                     self.setSubTitle("Ungültiges Klassenverzeichnis ausgewählt")
                     return False
 

@@ -3,7 +3,7 @@
 # created by Sven Schirmer
 
 # make sure to spare Desktop
-$whitelist="Desktop","zeal-portable","eclipse"
+$whitelist="Desktop","zeal-portable","eclipse","AppData","Arduino"
 
 $user="$candidate$"
 $passwd = "$passwd$"
