@@ -267,7 +267,7 @@ $erg = Get-LocalUser | Where-Object { $_.Name -eq "student" }
 if (-not($erg)) {
 	Write-Host "Benutzer nicht vorhanden"; 
 	New-LocalUser -Name student -Password($student_pwd| ConvertTo-SecureString -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires -UserMayNotChangePassword
-	Add-LocalGroupMember -Group B-Passsenutzer -Member student  -ErrorAction Ignore;
+	Add-LocalGroupMember -Group Benutzer -Member student  -ErrorAction Ignore;
 } 
 else { 
 	write-host "Benutzer 'student' vorhanden, alles palletti" 
