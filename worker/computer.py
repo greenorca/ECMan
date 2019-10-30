@@ -329,7 +329,7 @@ class Computer(object):
 
         self.__usbBlocked = True if std_out.rstrip() == "4" else False
 
-        print("USB blockiert für "+self.candidateName+": "+str(block))
+        print("USB blockiert für "+self.__hostName+": "+str(block))
 
         return True
 
@@ -427,7 +427,7 @@ class Computer(object):
             self.__internetBlocked = "unbekannt"
             return False
 
-        print("Internet blockiert für "+self.candidateName+": "+str(block))
+        print("Internet blockiert für "+self.__hostName+": "+str(block))
         self.__internetBlocked = block
         return True
 

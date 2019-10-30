@@ -7,17 +7,11 @@ import re
 
 from PySide2.QtWidgets import QLabel, QWizard, QWizardPage, QVBoxLayout, QHBoxLayout, QListWidget, QWidget, QTreeWidget, \
     QTreeWidgetItem, QListWidgetItem, QStyle
-
-comboBoxData = [
-    ("Python", "/path/to/python"),
-    ("PyQt5", "/path/to/pyqt5"),
-    ("PySide2", "/path/to/pyside2")
-]
-
+from PySide2.QtCore import Qt
 
 class EcShareWizard(QWizard):
     '''
-    wizard for selection of CIFS/SMB based exam shares based on user specified login credentials and serverName names 
+    wizard to select CIFS/SMB based exam shares based on user specified login credentials and serverName names
     '''
     PAGE_SELECT = 1
 
@@ -74,12 +68,12 @@ class ShareSelectionPage(QWizardPage):
             item = self.tree.selectedItems()[0]
             self.wizard().selectedPath = "//" + self.wizard().server.serverName + "/" + item.path
             if self.wizard().type == EcShareWizard.TYPE_LB_SELECTION:
-                if re.compile("^M[1-9][0-9]{2}($|_.*$)").match(item.name) == None:
-                    self.setSubTitle("Ungültiges Prüfungsverzeichnis ausgewählt")
+                if re.compile("^M[1-9][0-9]{2}").match(item.name) == None:
+                    self.setSubTitle("Bitte Prüfungsverzeichnis alá M101 oder M226A auswählen")
                     return False
             else:
-                if re.compile("^(UIFZ|IFZ)-").match(item.name) == None:
-                    self.setSubTitle("Ungültiges Klassenverzeichnis ausgewählt")
+                if re.compile("^(UIFZ|IFZ|ICT)-").match(item.name) == None:
+                    self.setSubTitle("Bitte Klassenverzeichnis alá UIFZ-926-001 oder IFZ-926-001 auswählen")
                     return False
 
             self.setSubTitle("")
@@ -174,3 +168,4 @@ class MyListWidgetItem(QListWidgetItem):
         self.path = path
         self.isDirectory = isDirectory
         self.setText(path.split("/")[-1])
+        self.setFlags(self.flags() & Qt.ItemIsSelectable) #

@@ -95,7 +95,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.addTestClient(i + 100)
 
     def activateNameTab(self):
+        if self.textEditCandidates.toPlainText()=="":
+            candidates = "\n".join(str(x+1) for x in range(self.grid_layout.count()))
+            self.textEditCandidates.setText(candidates)
+
         self.tabs.setCurrentWidget(self.tab_candidates)
+
 
     def openHelpUrl(self):
         webbrowser.open(self.config.get("General", "wikiurl", fallback="https://github.com/greenorca/ECMan/wiki"))
@@ -110,18 +115,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pass
 
     def blockUsb(self):
+        block = self.btnBlockUsb.text() == "USB blockieren"
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())
                    if self.grid_layout.itemAt(i).widget().isSelected]
 
-        for client in clients:
-            client.blockUsbAccessThread()
+        if block:
+            for client in clients:
+                client.blockUsbAccessThread()
+            self.btnBlockUsb.setText("USB freigeben")
+        else:
+            for client in clients:
+                client.allowUsbAccessThread()
+            self.btnBlockUsb.setText("USB blockieren")
 
 
     def blockWebAccess(self):
+        block = self.btnBlockWebAccess.text() == "Web blockieren"
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())
                    if self.grid_layout.itemAt(i).widget().isSelected]
-        for client in clients:
-            client.blockInternetAccessThread()
+        if block:
+            for client in clients:
+                client.blockInternetAccessThread()
+
+            self.btnBlockWebAccess.setText("Web freigeben")
+
+        else:
+            for client in clients:
+                client.allowInternetAccessThread()
+
+            self.btnBlockWebAccess.setText("Web blockieren")
+
+
 
     def resetClients(self):
         """
@@ -314,6 +338,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnGetExams.setEnabled(enable)
         self.btnSaveExamLog.setEnabled(enable)
         self.btnDetectClient.setEnabled(enable)
+        self.btnBlockWebAccess.setEnabled(enable)
+        self.btnBlockUsb.setEnabled(enable)
 
     def retrieveExamFilesByWizard(self):
         """
