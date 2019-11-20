@@ -258,24 +258,24 @@ class Computer(object):
                 remoteFiles = remoteFiles[remoteFiles.find("Verzeichnis"):]  # cut the first few lines
                 lines = remoteFiles.split("\r\n")
                 self.remoteFileListing = "<h4>Dateien</h4><ul>\n"
-                for line in lines[:-4]:
-                    file = None
-                    if len(line) > 0 and not (line.endswith(".")):
-                        file = self.parseFile(line)
-                        if type(file) == File and type(currentDir) == File:
-                            file.name = currentDir.name + "/" + file.name
-                            currentDir.addChild(file)
-                        elif type(file) == str and not (type(currentDir) is list) and not (
-                        currentDir.name.endswith(file)):
-                            currentDir = currentDir.getSubFolder(file)
-                            if currentDir == []:
-                                currentDir = self.lb_files.getSubFolder(file)
-                                if type(currentDir) == list and len(currentDir) > 0:
-                                    currentDir = [x for x in currentDir if x != []]
-                                    currentDir = currentDir[0]
-
-                        if line.find("<DIR>") < 0:
-                            self.remoteFileListing += "<li>" + line.replace("Verzeichnis von ", "") + "</li>\n"
+                # for line in lines[:-4]:
+                #     file = None
+                #     if len(line) > 0 and not (line.endswith(".")):
+                #         file = self.parseFile(line)
+                #         if type(file) == File and type(currentDir) == File:
+                #             file.name = currentDir.name + "/" + file.name
+                #             currentDir.addChild(file)
+                #         elif type(file) == str and not (type(currentDir) is list) and not (
+                #         currentDir.name.endswith(file)):
+                #             currentDir = currentDir.getSubFolder(file)
+                #             if currentDir == []:
+                #                 currentDir = self.lb_files.getSubFolder(file)
+                #                 if type(currentDir) == list and len(currentDir) > 0:
+                #                     currentDir = [x for x in currentDir if x != []]
+                #                     currentDir = currentDir[0]
+                #
+                #         if line.find("<DIR>") < 0:
+                #             self.remoteFileListing += "<li>" + line.replace("Verzeichnis von ", "") + "</li>\n"
 
                 self.remoteFileListing += "</ul>"
             else:

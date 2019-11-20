@@ -46,7 +46,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.grid_layout = QGridLayout()
 
         self.btnDetectClient.clicked.connect(self.detectClients)
-
+        self.lineEditIpRange.returnPressed.connect(self.detectClients)
         self.btnSelectAllClients.clicked.connect(self.selectAllCLients)
 
         shortcut = QShortcut(QKeySequence(self.tr("Ctrl+A")), self)
@@ -307,10 +307,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         opens configuration dialog
         """
-        configDialog = EcManConfigDialog(self)
-        result = configDialog.exec_()
+        config_dialog = EcManConfigDialog(self)
+        result = config_dialog.exec_()
         if result == 1:
-            configDialog.saveConfig()
+            config_dialog.saveConfig()
             self.readConfigFile()
         return result
 
