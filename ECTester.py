@@ -23,7 +23,7 @@ def printMenu(items):
 
 if __name__ == "__main__":
 
-    default_ip = "192.168.0.142"
+    default_ip = "172.23.43.2"
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     print("cd: " + dname)
@@ -58,10 +58,10 @@ if __name__ == "__main__":
     # with open(compi.logfile_name) as log:
     #    print("\n".join(log.readlines()))
 
-    tests = ["open remote shell", "checkUserConfig", "read_old_state", "deploy_retrieve",
+    tests = ["open remote shell", "checkUserConfig", "testRemoteFileList" ,"read_old_state", "deploy_retrieve",
              "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
 
-    currentTest = "1"
+    currentTest = "2"
     while (currentTest > "0" and currentTest[0] < "a"):
         printMenu(tests)
         currentTest = input("Testauswahl?")
@@ -79,6 +79,10 @@ if __name__ == "__main__":
             terminalDialog = EcManRemoteTerminal(parent=None, client=compi)
             terminalDialog.setModal(True)
             result = terminalDialog.exec_()
+
+        elif tests[choice] == "testRemoteFileList":
+            x = compi.getRemoteFileListing()
+            assert(x)
 
         elif tests[choice] == "checkUserConfig":
             assert (compi.checkStatusFile())
