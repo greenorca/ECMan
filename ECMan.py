@@ -679,7 +679,3 @@ if __name__ == '__main__':
     mainWin = MainWindow(ui_demo=ui_demo)
     ret = app.exec_()
     sys.exit(ret)
-
-
-
-
