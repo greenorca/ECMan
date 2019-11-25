@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>401</width>
-    <height>372</height>
+    <height>435</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,7 +61,11 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="lineEdit_OnlineWiki"/>
+      <widget class="QLineEdit" name="lineEdit_OnlineWiki">
+       <property name="text">
+        <string>https://github.com/greenorca/ECMan/wiki</string>
+       </property>
+      </widget>
      </item>
      <item row="3" column="0" colspan="2">
       <widget class="Line" name="line_2">
@@ -144,7 +148,7 @@
      <item row="9" column="1">
       <widget class="QLineEdit" name="lineEdit_MaxFileSize">
        <property name="text">
-        <string>100</string>
+        <string>1000</string>
        </property>
       </widget>
      </item>
@@ -161,7 +165,7 @@
      <item row="10" column="1">
       <widget class="QLineEdit" name="lineEdit_MaxFiles">
        <property name="text">
-        <string>100</string>
+        <string>1000</string>
        </property>
       </widget>
      </item>

@@ -55,7 +55,7 @@ class EcManConfigDialog(QDialog):
             self.ui.lineEdit_winRmUser.setText(self.config.get("Client", "user", fallback="winrm"))
             self.ui.lineEdit_winRmPwd.setText(self.config.get("Client", "pwd", fallback=""))
             self.ui.lineEdit_MaxFiles.setText(self.config.get("Client", "max_files", fallback="1000"))
-            filesize = self.config.get("Client", "max_filesize", fallback="100")
+            filesize = self.config.get("Client", "max_filesize", fallback="1000")
             try:
                 filesize = int(filesize)
             except Exception as ex:
