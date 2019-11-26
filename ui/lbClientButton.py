@@ -142,7 +142,7 @@ class LbClient(QPushButton):
             remoteFiles = "ERROR: " + remoteFiles.decode()
 
         self.setToolTip("<h4>Status</h4>"
-                        + "Deployment-Status"+self.computer.state.name + "<br>"
+                        + "Deployment-Status: "+self.computer.state.name + "<br>"
                         + "USB gesperrt: " + str(self.computer.isUsbBlocked()) + "<br>"
                         + "Internet gesperrt: " + str(self.computer.isInternetBlocked()) + "<br>"
                         + remoteFiles + "<hr>"
