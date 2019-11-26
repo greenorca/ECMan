@@ -9,7 +9,7 @@ build/*
 logs/*
 worker/logs*
 legal
-
+/.idea
 /.project
 /.pydevproject
 /__init__.py
