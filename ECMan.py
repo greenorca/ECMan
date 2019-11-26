@@ -420,8 +420,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.log("starting to retrieve files")
 
-        self.worker = RetrieveResultsWorker(clients, self.result_directory, self.server.user,
-                                            self.server.password, self.server.domain, self.maxFiles, self.maxFileSize)
+        self.worker = RetrieveResultsWorker(clients, self.server.user, self.server.password, self.server.domain,
+                                            self.result_directory, self.maxFiles, self.maxFileSize)
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()
 
@@ -453,8 +453,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         progressDialog.resetValue()
         progressDialog.open()
 
-        self.worker = CopyExamsWorker(clients, self.lb_directory, self.server.user,
-                                      self.server.password, self.server.domain,
+        self.worker = CopyExamsWorker(clients, self.server.user, self.server.password, self.server.domain,
+                                      src = self.lb_directory,
                                       reset=(self.checkBoxWipeHomedir.checkState() == Qt.CheckState.Checked))
         self.worker.updateProgressSignal.connect(progressDialog.incrementValue)
         self.worker.start()
