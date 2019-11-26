@@ -88,15 +88,19 @@ class ScannerWorker(QThread):
     # function in it's own "thread". 
     def run(self):
         # searching for clients
-        threads = QThreadPool()
-        threads.setMaxThreadCount(20)
+        self.threads = QThreadPool()
+        self.threads.setMaxThreadCount(20)
         for i in range(254):
             remote_ip = self.ipRange.replace("*", str(i + 1))
             tScanner = ScannerTask(remote_ip, 5986)
             tScanner.connector.addClient.connect(self.addClient)
             tScanner.connector.threadFinished.connect(self.updateProgress)
 
-            threads.start(tScanner)
+            self.threads.start(tScanner)
+
+    def abort(self):
+        for thread in self.threads.children():
+            thread.quit();
 
     def updateProgress(self, value):
         self.counter = self.counter + 1

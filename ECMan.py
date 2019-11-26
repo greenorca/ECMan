@@ -468,6 +468,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showMessageBox('Eingabefehler', 'Gültiger IP-V4 Bereich endet mit * (z.B. 192.168.0.*)')
             return
 
+        try:
+            self.worker.abort()
+        except Exception as ex:
+            print("crashed on stopping existing scanner thread: "+str(ex))
+
         self.ipRange = ip_range
         self.progressBar.setEnabled(True)
         self.progressBar.setValue(0)
