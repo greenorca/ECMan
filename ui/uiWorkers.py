@@ -79,7 +79,7 @@ class EcManWorker(QThread):
         :return:
         '''
         for thread in self.threads.children():
-            thread.quit();
+            thread.quit()
 
 class EcManCopyWorker(EcManWorker):
 
