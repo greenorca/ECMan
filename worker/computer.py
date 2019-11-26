@@ -73,9 +73,14 @@ class Computer(object):
         STATE_GPO_BGIMAGE_FAIL = -8
 
     def __init__(self, ipAddress, remoteAdminUser, passwd, candidateLogin, fetchHostname=False):
-        """
-        Constructor
-        """
+        '''
+        constructor
+        :param ipAddress: IP of client machine
+        :param remoteAdminUser: remote admin account
+        :param passwd:
+        :param candidateLogin: student account
+        :param fetchHostname: set to True to read hostname during constructor call
+        '''
         self.debug = False
         if socket.gethostname() == "sven-V5-171":
             self.debug = True
@@ -122,11 +127,12 @@ class Computer(object):
             self.candidateName = "Kandidat No {}".format(self.ip.split(".")[-1])
 
     def resetStatus(self, resetCandidateName=False):
-        """
+        '''
         resets remote status file and internal status variables
         by overwriting remote ecman.json file with an empty file
-        (and eventually recreating the usename)
-        """
+        :param resetCandidateName: if set to false, candidate name is erased remotely
+        :return:
+        '''
 
         self.logger.info(
             "PC LB-Status zurücksetzen " + ("inklusive Benutzernamen" if resetCandidateName == True else ""))
@@ -147,9 +153,10 @@ class Computer(object):
         self.lb_dataDirectory = ""
 
     def resetClientHomeDirectory(self):
-        """
+        '''
         removes all non-system files within client directories
-        """
+        :return: nothing
+        '''
         self.logger.info("PC Benutzerdaten zurücksetzen")
 
         script = ""
@@ -172,19 +179,31 @@ class Computer(object):
         if state != 0:
             self.logger.error("PC Benutzerdaten zurücksetzen gescheitert: " + str(message))
 
+    def getRemoteConnection(self, timeout=4):
+        '''
+        create a remote connection
+        :return: remote connection
+        '''
+        p = Protocol(
+            endpoint='https://' + self.ip + ':5986/wsman',
+            transport='basic',
+            username=self.remoteAdminUser,
+            password=self.passwd,
+            server_cert_validation='ignore',
+            read_timeout_sec=timeout+5,
+            operation_timeout_sec=timeout)
+        shell_id = p.open_shell()
+
+        return p, shell_id
+
     def __runRemoteCommand(self, command="ipconfig", params=['/all']):
         """
         try to run a regular cmd program with given parameters on given winrm-host (ip)
         just prints std_out, std_err and status
         """
         print(command + ", " + str(params))
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.remoteAdminUser,
-            password=self.passwd,
-            server_cert_validation='ignore')
-        shell_id = p.open_shell()
+        p, shell_id = self.getRemoteConnection()
+
         command_id = p.run_command(shell_id, command, params)
         std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
         print("message: ")
@@ -205,14 +224,7 @@ class Computer(object):
         else:
             message = str(self.candidateName) + ":: " + message
 
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.remoteAdminUser,
-            password=self.passwd,
-            server_cert_validation='ignore')
-
-        shell_id = p.open_shell()
+        p, shell_id = self.getRemoteConnection()
 
         command_id = p.run_command(shell_id, "msg", [self.candidateLogin, message])
         std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
@@ -233,14 +245,8 @@ class Computer(object):
             return "Not yet deployed: " + self.state.name
 
         if time.time() - self.last_sync > self.minSynTime or self.remoteFileListing == "":
-            p = Protocol(
-                endpoint='https://' + self.ip + ':5986/wsman',
-                transport='basic',
-                username=self.remoteAdminUser,
-                password=self.passwd,
-                server_cert_validation='ignore')
+            p, shell_id = self.getRemoteConnection()
 
-            shell_id = p.open_shell()
             lbFileRoot = r"C:\Users\\" + self.candidateLogin + r"\Desktop"
             command_id = p.run_command(shell_id, "dir", [lbFileRoot, "/S"])
             std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
@@ -378,6 +384,7 @@ class Computer(object):
             self.logger.info("reaktiviere Internet")
             for entry in blockList:
                 command = '$r = Get-NetFirewallRule -DisplayName "{0}" 2> $null; if ($r) { Remove-NetFirewallRule -DisplayName "{0}" } else { write-host "Rule exists, noting to do" }'
+                #command = '$r = m "{0}" 2> $null; if ($r) { Remove-NetFirewallRule -DisplayName "{0}" } else { write-host "Rule exists, noting to do" }'
                 command = command.replace("{0}", entry['name'])
                 script.append(command)
 
@@ -397,14 +404,7 @@ class Computer(object):
             script.append("Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force")
             script.append("Set-SmbServerConfiguration -EnableSMB2Protocol $false -Force")
 
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.remoteAdminUser,
-            password=self.passwd,
-            server_cert_validation='ignore')
-
-        shell_id = p.open_shell()
+        p, shell_id = self.getRemoteConnection(timeout=20)
 
         script = ";".join(script)
 
@@ -568,14 +568,14 @@ class Computer(object):
             if self.debug: print("Error checking user folder on LB client: " + std_err)
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
             self.logger.error("Fehler beim Prüfen des LBUser-Verzeichnis (student): {}".format(str(std_err)))
-            return False;
+            return False
 
         if std_out.find("False") >= 0:
             if self.debug: print("Client-User {} HOME-Verzeichnis existiert nicht. Bitte erstmalig einloggen!".format(
                 self.candidateLogin))
             self.state = Computer.State.STATE_STUDENT_ACCOUNT_NOT_READY
             self.logger.warn("LBUser-Verzeichnis (student) nicht vorhanden")
-            return False;
+            return False
 
         elif std_out.find("True") >= 0:
             command = '$baseDir="C:\\Users\\$1$\\"; if (Test-Path $baseDir){ } else { try { New-Item -Path $baseDir -Force -ItemType directory; } catch { Write-Host "NOK" } }'.replace(
@@ -587,15 +587,15 @@ class Computer(object):
                 if self.debug: print("Error checking remote-admin folder: " + std_err)
                 self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
                 self.logger.error("Fehler beim Prüfen des WinRM User-verzeichnisses")
-                return False;
+                return False
 
             if std_out.find("NOK") >= 0:
                 if self.debug: print("Client remote admin folder does not exist.")
                 self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
                 self.logger.warn("WinRM User-verzeichnis nicht vorhanden")
-                return False;
+                return False
 
-            return True;
+            return True
 
         print("computer.checkUserConfig: you shouldnt see this message at all: " + std_out)
         return False
@@ -606,7 +606,7 @@ class Computer(object):
         creates it if it doesn't exists and retrieves its content
         """
         if not (self.checkUserConfig()):
-            return False;
+            return False
 
         command = '''
         $file = "C:\\Users\\$1$\\ecman.json"; 
@@ -625,9 +625,9 @@ class Computer(object):
         if status != self.STATUS_OK:
             if self.debug: print("Error checking status file: " + std_err)
             self.logger.error("Fehler beim Lesen des Status-Datei ecman.conf: " + std_err)
-            return False;
+            return False
 
-        self.statusFile = std_out;
+        self.statusFile = std_out
         self.logger.info("Remote status file: {}".format(std_out))
 
         # parse std_out for status info
@@ -657,9 +657,14 @@ class Computer(object):
                 print("fetched client state: " + self.state.name)
                 print("fetched previous data dir: " + self.lb_dataDirectory)
 
-        return True;
+        return True
 
     def createBunchOfStupidFiles(self, numberOfFiles=1000):
+        '''
+        really only for testing purposes
+        :param numberOfFiles: number of files to create on remote machines Desktop
+        :return:
+        '''
         command = 'for /l %x in (1, 1, {0}) do echo %x > C:\\Users\\' + \
                   self.candidateLogin + '\\Desktop\\LB_Daten\\%x.txt'.format(numberOfFiles)
         status = self.__runRemoteCommand(command, [])
@@ -675,7 +680,7 @@ class Computer(object):
 
         if status != self.STATUS_OK:
             self.logger.error("Fehler beim Überprüfen der Dateien im Lösungsverzeichnis: " + err)
-            return False;
+            return False
 
         self.logger.info(out)
 
@@ -700,17 +705,11 @@ class Computer(object):
         if self.__hostName != "" and self.__hostName != "--unknown--":
             return self.__hostName
 
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.remoteAdminUser,
-            password=self.passwd,
-            server_cert_validation='ignore',
-            operation_timeout_sec=1)
+        p, shell_id = self.getRemoteConnection()
+
         # TODO: try option in Protocol:: operation_timeout_sec=1
 
         try:
-            shell_id = p.open_shell()
             command_id = p.run_command(shell_id, 'hostname', [])
             std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
 
@@ -815,16 +814,10 @@ class Computer(object):
         just prints std_out, std_err and status
         returns std_out, std_err and status (0 == good) instead of True and False
         """
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.remoteAdminUser,
-            password=self.passwd,
-            server_cert_validation='ignore')
+        p, shell_id = self.getRemoteConnection()
         # operation_timeout_sec=timeout+1, read_timeout_sec=timeout+2)
 
         encoded_ps = b64encode(command.encode('utf_16_le')).decode('ascii')
-        shell_id = p.open_shell()
         command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
         std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
         p.cleanup_command(shell_id, command_id)
@@ -935,14 +928,8 @@ class Computer(object):
         """
         internes Kopierskript
         """
-        p = Protocol(
-            endpoint='https://' + self.ip + ':5986/wsman',
-            transport='basic',
-            username=self.remoteAdminUser,
-            password=self.passwd,
-            server_cert_validation='ignore')
+        p, shell_id = self.getRemoteConnection(timeout=20)
 
-        shell_id = p.open_shell()
         encoded_ps = b64encode(script.encode('utf_16_le')).decode('ascii')
         command_id = p.run_command(shell_id, 'powershell -encodedcommand {0}'.format(encoded_ps), [])
         std_out, std_err, status = p.get_command_output(shell_id, command_id)
