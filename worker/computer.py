@@ -240,9 +240,6 @@ class Computer(object):
         reads remote LB-Daten directory
         returns nicely formatted HTML list
         """
-        if self.state != Computer.State.STATE_DEPLOYED and \
-                self.state != Computer.State.STATE_FINISHED:
-            return "Not yet deployed: " + self.state.name
 
         if time.time() - self.last_sync > self.minSynTime or self.remoteFileListing == "":
             p, shell_id = self.getRemoteConnection()

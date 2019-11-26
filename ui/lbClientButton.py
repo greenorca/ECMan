@@ -77,7 +77,6 @@ class LbClient(QPushButton):
 
         # menu.addAction("Bildschirm schwärzen").triggered.connect(self.computer.blankScreen)
         menu.addAction("Client herunterfahren").triggered.connect(self.shutdownClient)
-
         self.setMenu(menu)
         self.select()
 
@@ -92,6 +91,11 @@ class LbClient(QPushButton):
 
         def getLog(self):
             return self.__log
+
+    def enterEvent(self, QEvent):
+        self.setOwnToolTip()
+        pass
+
 
     def openTerminal(self):
         #QThreadPool.globalInstance().start(LbClient.RemoteShellTask(self.parentApp, self.computer));
@@ -123,11 +127,11 @@ class LbClient(QPushButton):
         QThreadPool.globalInstance().start(LbClient.ShutdownTask(self))
 
     def setOwnToolTip(self):
-        if self.lastUpdate != None and clock() - self.lastUpdate < 0.05:
+        if self.lastUpdate != None and clock() - self.lastUpdate < 0.7:
             return
 
         self.lastUpdate = clock()
-
+        print("generating tooltip again")
         errorLog = ""
         if len(self.log.getLog()) > 0:
             errorLog = "<h4>Log: </h4>" + "</p><p>".join(self.log.getLog()) + "</p>"
@@ -138,10 +142,10 @@ class LbClient(QPushButton):
             remoteFiles = "ERROR: " + remoteFiles.decode()
 
         self.setToolTip("<h4>Status</h4>"
-                        + self.computer.state.name + "<br>"
+                        + "Deployment-Status"+self.computer.state.name + "<br>"
                         + "USB gesperrt: " + str(self.computer.isUsbBlocked()) + "<br>"
-                        + "Internet gesperrt: " + str(self.computer.isInternetBlocked())
-                        + remoteFiles
+                        + "Internet gesperrt: " + str(self.computer.isInternetBlocked()) + "<br>"
+                        + remoteFiles + "<hr>"
                         + errorLog)
 
     def resetComputerStatusConfirm(self):
