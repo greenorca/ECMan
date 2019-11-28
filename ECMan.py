@@ -33,7 +33,7 @@ from worker.logfile_handler import LogfileHandler
 '''
 Start app for exam deployment software
 author: Sven Schirmer
-last_revision: 2019-03-26
+last_revision: 2019-11-28
 
 '''
 
@@ -152,14 +152,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         resets remote files and configuration for all connected clients
         """
 
-        items = ["Ja","Nein"]
-        item, ok = QInputDialog().getItem(self, "LB-Status zurücksetzen?",
-                                          "USB-Sticks und Internet werden freigeben.\nDaten im Benutzerverzeichnis werden NICHT gelöscht.\nKandidaten-Namen ebenfalls zurücksetzen? ",
+        items = ["Ja, Namen zurücksetzen","Nein, Namen beibehalten"]
+        item, ok = QInputDialog().getItem(self, "LB-Status zurücksetzen",
+                                          "USB-Sticks und Internet werden freigeben.\nDaten im Benutzerverzeichnis werden NICHT gelöscht.\nKandidaten-Namen zurücksetzen? ",
                                           items, 0, False)
         if ok is False:
             return
 
-        resetCandidateName = True if item == "Ja" else False
+        resetCandidateName = True if item.startsWith("Ja") else False
 
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
 
@@ -299,9 +299,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.client_lb_user = self.config.get("Client", "lb_user", fallback="student")
         self.user = self.config.get("Client", "user", fallback="")
         self.passwd = self.config.get("Client", "pwd", fallback="")
-        self.maxFiles = int(self.config.get("Client", "max_files", fallback="100"))
+        self.maxFiles = int(self.config.get("Client", "max_files", fallback="1000"))
         self.maxFileSize = int(
-            self.config.get("Client", "max_filesize", fallback="100")) * 1024 * 1024  # thats MB now...
+            self.config.get("Client", "max_filesize", fallback="1000")) * 1024 * 1024  # thats MB now...
 
     def openConfigDialog(self):
         """
@@ -356,7 +356,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showMessageBox("Achtung", "Keine Clients ausgewählt bzw. deployed")
             return
 
-        unknownClients = [c for c in clients if c.computer.getCandidateName() == ""]
+        unknownClients = [c for c in clients if c.computer.getCandidateName() == "" or c.computer.getCandidateName() == None]
 
         for unknown in unknownClients:
             unknown.computer.state = Computer.State.STATE_RETRIVAL_FAIL
@@ -376,15 +376,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         retVal = QMessageBox.StandardButton.Yes
         if self.result_directory != "":
-            box = QMessageBox()
-            box.setText("Ergebnispfad bereits gesetzt: {}".format(self.result_directory.replace("#", "/")))
-            box.setInformativeText(
-                "Neu auswählen (Ja), weiter mit aktuellem Verzeichnis (Nein) oder abbrechen (Abbruch)?")
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-            box.setDefaultButton(QMessageBox.Cancel)
-            retVal = box.exec_()
 
-        if retVal == QMessageBox.StandardButton.Yes:
+            items = ["Ergebnispfad neu auswählen", "Weiter mit bisherigem Verzeichnis"]
+            item, ok = QInputDialog().getItem(self, "Achtung",
+                          "LB-Ergebnisverzeichnis ist bereits ausgewählt.\nErneutes Abholen kann existierende Ergebnisse überschreiben.\nWas möchten Sie tun?",
+                          items, 0, False)
+
+            if ok is False:
+                return
+
+        if self.result_directory == "" or item == "Ergebnispfad neu auswählen":
 
             if self.server is None or self.server.connect() != True:
                 self.server = self.getServerCredentialsByWizard()
@@ -393,6 +394,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             wizard = EcShareWizard(parent=self, server=self.server,
                                    wizardType=EcShareWizard.TYPE_RESULT_DESTINATION)
+
 
             wizard.setModal(True)
             result = wizard.exec_()
@@ -406,9 +408,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 print("Abbruch, kein Zielverzeichnis ausgewählt")
                 return
-
-        elif retVal == QMessageBox.StandardButton.Cancel:
-            return
 
         self.result_directory = self.result_directory.replace("/", "#")
         self.log("save result files into: " + self.result_directory.replace("#", "\\"))
@@ -449,7 +448,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         if len(clients) == 0:
-            self.showMessageBox("Warnung", "keine Clients ausgewählt, keine Namen vergeben oder Prüfungen bereits deployed")
+            self.showMessageBox("Warnung", "Keine Client-PCs ausgewählt oder Prüfungen bereits aktiv")
             return
 
 
