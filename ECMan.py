@@ -152,7 +152,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         resets remote files and configuration for all connected clients
         """
 
-        items = ["Nein", "Ja"]
+        items = ["Ja","Nein"]
         item, ok = QInputDialog().getItem(self, "LB-Status zurücksetzen?",
                                           "USB-Sticks und Internet werden freigeben.\nDaten im Benutzerverzeichnis werden NICHT gelöscht.\nKandidaten-Namen ebenfalls zurücksetzen? ",
                                           items, 0, False)
