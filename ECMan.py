@@ -441,12 +441,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())
                    if self.grid_layout.itemAt(i).widget().isSelected and
-                   self.grid_layout.itemAt(i).widget().computer.state not in [Computer.State.STATE_DEPLOYED,
+                    self.grid_layout.itemAt(i).widget().computer.state not in [Computer.State.STATE_DEPLOYED,
                                                                               Computer.State.STATE_FINISHED]]
 
-        if len(clients) == 0:
-            self.showMessageBox("Warnung", "keine Clients ausgewählt bzw. bereits deployed")
+        if len([x for x in clients if x.computer.candidateName == None]) > 0:
+            self.showMessageBox("Warnung", "Bitte Kandidatenname für alle PCs vergeben")
             return
+
+        if len(clients) == 0:
+            self.showMessageBox("Warnung", "keine Clients ausgewählt, keine Namen vergeben oder Prüfungen bereits deployed")
+            return
+
+
 
         progressDialog = EcManProgressDialog(self, "Fortschritt LB-Client-Deployment")
         progressDialog.setMaxValue(len(clients))

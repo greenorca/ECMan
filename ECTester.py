@@ -23,7 +23,7 @@ def printMenu(items):
 
 if __name__ == "__main__":
 
-    default_ip = "172.23.43.2"
+    default_ip = "172.23.24.13"
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     print("cd: " + dname)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     #    print("\n".join(log.readlines()))
 
     tests = ["open remote shell", "checkUserConfig", "testRemoteFileList" ,"read_old_state", "deploy_retrieve",
-             "testInternet", "setCandidateName", "testUsbBlocking", "reset"]
+             "testInternet", "setCandidateName", "getCandidateName", "testUsbBlocking", "reset"]
 
     currentTest = "2"
     while (currentTest > "0" and currentTest[0] < "a"):
@@ -124,6 +124,10 @@ if __name__ == "__main__":
             compi.setCandidateName(candidateName)
             print("remote candidate name is: " + compi.getCandidateName())
             print("please check login screen...")
+
+        elif tests[choice] == "getCandidateName":
+            print("Remote Name: "+str(compi.getCandidateName(True)))
+            print("Lokaler Name: "+str(compi.candidateName))
 
         elif tests[choice] == "deploy_retrieve":
             # thats the local stuff on tuxedo machine
