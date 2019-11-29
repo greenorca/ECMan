@@ -219,10 +219,10 @@ class LbClient(QPushButton):
         try:
             if self.computer.checkFileSanity(maxFiles, maxFileSize):
 
-                status, error = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
-                if status != True:
+                status = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
+                if status == True:
                     self.log.append(msg=" Fehler beim Kopieren der Resultate: " +
-                                        filepath + ", Ursache: " + error)
+                                        filepath)
                 else:
                     self.log.append(msg=" Resultate erfolgreich kopiert: " +
                                         filepath)

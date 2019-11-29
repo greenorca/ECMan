@@ -69,7 +69,9 @@ class LoginPage(QWizardPage):
         layout.addWidget(editPasswort)
         layout.addWidget(lblServerName)
         layout.addWidget(editServerName)
-
+        self.setButtonText(QWizard.FinishButton,"Ok")
+        self.setButtonText(QWizard.BackButton,"Zurück")
+        self.setButtonText(QWizard.CancelButton,"Abbrechen")
         self.setLayout(layout)
 
     def validatePage(self):
