@@ -1,6 +1,6 @@
 '''
 Created on Feb 22, 2019
-
+provides Wizard to traverse SMB shares and select appropriate entries
 @author: sven
 '''
 import re
@@ -28,12 +28,14 @@ class EcShareWizard(QWizard):
         self.title = "LB-Auswahl"
         self.subtitle = "Wählen Sie das gewünschte Modul links aus"
         self.type = self.TYPE_LB_SELECTION
+        button_name = "Auswahl abschliessen"
         if wizardType == self.TYPE_RESULT_DESTINATION:
             self.title = "Zielverzeichnis für Kandidatendaten auswählen"
             self.subtitle = "Bitte Klassenverzeichnis links auswählen.<br>Das Modulverzeichnis für LB wird automatisch erstellt."
             self.type = self.TYPE_RESULT_DESTINATION
+            button_name = "Ergebnisse abholen"
 
-        self.setPage(self.PAGE_SELECT, ShareSelectionPage(self, self.title, self.subtitle))
+        self.setPage(self.PAGE_SELECT, ShareSelectionPage(self, self.title, self.subtitle, button_name))
         self.setWindowTitle("ECMan - {}".format(self.title))
         self.resize(450, 350)
         self.server = server
@@ -54,11 +56,14 @@ class EcShareWizard(QWizard):
 
 class ShareSelectionPage(QWizardPage):
 
-    def __init__(self, parent=None, title="Auswahl LB", subtitle="Wählen Sie das Prüfungsmodul aus"):
+    def __init__(self, parent=None, title="Auswahl LB", subtitle="Wählen Sie das Prüfungsmodul aus", button_name="Fertig"):
         super(ShareSelectionPage, self).__init__(parent)
         self.setTitle(title)
         self.setSubTitle(subtitle)
         self.validSelection = False;
+        self.setButtonText(QWizard.FinishButton, button_name)
+        self.setButtonText(QWizard.CancelButton, "Abbrechen")
+        self.setButtonText(QWizard.BackButton, "Zurück")
 
     def validatePage(self, *args, **kwargs):
         '''
