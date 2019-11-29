@@ -206,10 +206,10 @@ class LbClient(QPushButton):
         else:
             self.log.append(" Löschen der Client-Daten nicht gewünscht.")
 
-        status, error = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain)
+        status = self.computer.deployClientFiles(path, server_user, server_passwd, server_domain)
 
-        if status != True:
-            self.log.append(" Fehler Prüfungsdaten zum Client kopieren: " + path + ", Ursache: " + error)
+        if status is  False:
+            self.log.append(" Fehler Prüfungsdaten zum Client kopieren: " + path)
         else:
             self.log.append(" Prüfungsdaten zum Client kopieren erfolgreich: " + path.replace("#", "/"))
 
@@ -220,7 +220,7 @@ class LbClient(QPushButton):
             if self.computer.checkFileSanity(maxFiles, maxFileSize):
 
                 status = self.computer.retrieveClientFiles(filepath, server_user, server_passwd, server_domain)
-                if status == True:
+                if status != True:
                     self.log.append(msg=" Fehler beim Kopieren der Resultate: " +
                                         filepath)
                 else:
@@ -369,7 +369,7 @@ class LbClient(QPushButton):
             self.widget = widget
 
         def run(self):
-            if self.widget.computer.shutdown() == True:
+            if self.widget.computer.shutdown() is True:
                 self.widget.deleteLater()
 
             else:
