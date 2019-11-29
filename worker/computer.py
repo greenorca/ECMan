@@ -512,7 +512,7 @@ class Computer(object):
 
         return self.__internetBlocked
 
-    def setCandidateName(self, candidateName, reset=False):
+    def setCandidateName(self, candidateName):
         """
         sets given candidate name on remote machine
         by writing it to a file on the winrm user home directory
@@ -535,9 +535,6 @@ class Computer(object):
             self.setLockScreenPicture()
 
         self.logger.info("Kandidat name gesetzt: {}".format(self.candidateName))
-
-        if reset == True:
-            self.reboot()
 
         return status
 
@@ -765,7 +762,7 @@ class Computer(object):
             \"rectangle 0,40,5000,260\" {0} {0}'.format(file))
 
         command.append("magick convert -font arial -fill white -pointsize 120 -draw \
-            \"text 600,200 '{0}'\" {1} {1}".format(self.getCandidateName(), file))
+            \"text 600,200 '{0}'\" {1} {1}".format(self.candidateName, file))
         # struggeling with user write permissions on img100 XOR REGEDIT KEY 
 
         for x in command:
@@ -849,17 +846,24 @@ class Computer(object):
             print(script)
             print("***********************************")
 
-        status, error = self.runCopyScript(script)
+        try:
+            status, error = self.runCopyScript(script)
 
-        if status == self.STATUS_OK:
-            self.lb_dataDirectory = filepath.split("/")[-1]
-            self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
-            self.filepath = filepath
-            self.state = Computer.State.STATE_DEPLOYED
-            return True, ""
-        else:
-            self.state = Computer.State.STATE_COPY_FAIL
-            return False, error.decode("850")
+            if status == self.STATUS_OK:
+                self.lb_dataDirectory = filepath.split("/")[-1]
+                self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
+                self.filepath = filepath
+                self.state = Computer.State.STATE_DEPLOYED
+                return True
+            else:
+                self.logger.error(error.decode("850"))
+
+        except Exception as e:
+            print(e)
+            self.logger.error(str(e))
+
+        self.state = Computer.State.STATE_COPY_FAIL
+        return False
 
     def retrieveClientFiles(self, filepath, server_user, server_passwd, domain):
         """
@@ -913,13 +917,13 @@ class Computer(object):
             self.logger.info(
                 "<h3>Kopieren der Prüfungsleistungen auf Server war erfolgreich.</h3> <p>Details: " + error.decode(
                     "850").replace('\r\n', '<br>\n').replace('\n', '<br>\n') + "</p>")
-            return True, error.decode("850")
+            return True
 
         else:
             self.state = Computer.State.STATE_RETRIVAL_FAIL
-            self.logger.warn(
+            self.logger.critical(
                 "Kopieren der Prüfungsleistungen auf Server nicht erfolgreich: {}".format(error.decode("850")))
-            return False, error.decode("850")
+            return False
 
     def runCopyScript(self, script):
         """
