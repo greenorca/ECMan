@@ -360,7 +360,7 @@ class SetCandidateNameTask(EcManTask):
     def run(self):
         time.sleep(0.25)
         try:
-            self.client.setCandidateName(self.candidateName, doUpdate=False, doReset=False)
+            self.client.setCandidateName(self.candidateName, doUpdate=False)
         except Exception as ex:
             print("Died while setting candidate name: " + str(ex))
         self.connector.threadFinished.emit(1)

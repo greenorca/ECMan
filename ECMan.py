@@ -159,7 +159,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ok is False:
             return
 
-        resetCandidateName = True if item.startsWith("Ja") else False
+        resetCandidateName = True if item.startswith("Ja") else False
 
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
 
