@@ -14,7 +14,7 @@ from PySide2.QtCore import QEvent, Qt, QThreadPool
 from PySide2.QtGui import QTextDocument, QKeySequence
 # from time import sleep
 from PySide2.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QGridLayout, QInputDialog, \
-    QShortcut
+    QShortcut, QStatusBar
 
 #from ui.Ui_MainWindow import Ui_MainWindow
 from ui.Ui_MainWindow2 import Ui_MainWindow
@@ -93,6 +93,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.clientFrame.setLayout(self.grid_layout)
             for i in range(6):
                 self.addTestClient(i + 100)
+
+        self.statusBar = QStatusBar();
+        self.setStatusBar(self.statusBar)
 
     def activateNameTab(self):
         if self.textEditCandidates.toPlainText()=="":
@@ -483,6 +486,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.progressBar.setValue(0)
 
         self.enableButtons(enable=False)
+        self.clientCount = 0
         # clear previous client buttons
         try:
             for i in reversed(range(self.grid_layout.count())):
@@ -505,6 +509,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         param scan: wether or not scan the Client (set to False only for GUI testing)
         """
         self.log("new client signal received: " + str(ip))
+        self.clientCount += 1
+        self.statusBar.showMessage(str(self.clientCount)+ " clients detected", 0)
+
         clientIp = self.ipRange.replace("*", str(ip))
         button = LbClient(clientIp, remoteAdminUser=self.user, passwd=self.passwd,
                           candidateLogin=self.client_lb_user, parentApp=self)

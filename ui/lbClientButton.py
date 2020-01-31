@@ -116,7 +116,7 @@ class LbClient(QPushButton):
         """
         sets candidate name on remote computer
         """
-        self.computer.setCandidateName(candidateName.replace(" ","_"))
+        self.computer.setCandidateName(candidateName.replace(" ","_").replace(",","_").replace(";","_"))
         if doUpdate:
             self.setLabel()
 
