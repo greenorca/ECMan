@@ -71,6 +71,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAlle_Clients_herunterfahren.triggered.connect(self.shutdownAllClients)
         self.actionOnlineHelp.triggered.connect(self.openHelpUrl)
         self.actionOfflineHelp.triggered.connect(self.openHelpUrlOffline)
+        self.actionSortClientByCandidateName.triggered.connect(self.sortButtonsByCandidateName)
+        self.actionSortClientByComputerName.triggered.connect(self.sortButtonsByComputerName)
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
         self.btnNameClients.clicked.connect(self.activateNameTab)
 
@@ -96,6 +98,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.statusBar = QStatusBar();
         self.setStatusBar(self.statusBar)
+
+    def sortButtonsByCandidateName(self):
+        '''
+        sort LbClient-widgets by candidate name
+        :return: nothing
+        '''
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+        clients = sorted(clients, key=lambda client: client.computer.candidateName)
+        self.arrangeClientButtons(clients)
+
+    def sortButtonsByComputerName(self):
+        '''
+        supposed to sort LbClient-widgets by candidate name
+        :return: nothing
+        '''
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+        clients = sorted(clients, key=lambda client: client.computer.getHostName())
+        self.arrangeClientButtons(clients)
+
+    def arrangeClientButtons(self, clients):
+        try:
+            for i in reversed(range(self.grid_layout.count())):
+                self.grid_layout.removeItem(self.grid_layout.itemAt(i))
+        except:
+            pass
+
+        self.clientFrame.setLayout(self.grid_layout)
+        for button in clients:
+            self.grid_layout.addWidget(button, self.grid_layout.count() / 4, self.grid_layout.count() % 4)
+
+        self.clientFrame.setLayout(self.grid_layout)
+
 
     def activateNameTab(self):
         if self.textEditCandidates.toPlainText()=="":

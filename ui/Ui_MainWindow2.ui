@@ -447,7 +447,7 @@
      <x>0</x>
      <y>0</y>
      <width>795</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuKonfiguration">
@@ -473,8 +473,16 @@
     <addaction name="actionOnlineHelp"/>
     <addaction name="actionOfflineHelp"/>
    </widget>
+   <widget class="QMenu" name="menuAnsicht">
+    <property name="title">
+     <string>Ansicht</string>
+    </property>
+    <addaction name="actionSortClientByCandidateName"/>
+    <addaction name="actionSortClientByComputerName"/>
+   </widget>
    <addaction name="menuKonfiguration"/>
    <addaction name="menuBatch_Operationen"/>
+   <addaction name="menuAnsicht"/>
    <addaction name="menuHilfe"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
@@ -529,6 +537,16 @@
   <action name="actionOfflineHelp">
    <property name="text">
     <string>Offline-&amp;Hilfe öffnen</string>
+   </property>
+  </action>
+  <action name="actionSortClientByCandidateName">
+   <property name="text">
+    <string>Clients nach Kandidatenname sortieren</string>
+   </property>
+  </action>
+  <action name="actionSortClientByComputerName">
+   <property name="text">
+    <string>Clients nach Rechnername sortieren</string>
    </property>
   </action>
  </widget>

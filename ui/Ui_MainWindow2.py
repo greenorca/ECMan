@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/Ui_MainWindow2.ui',
-# licensing of 'ui/Ui_MainWindow2.ui' applies.
+# Form implementation generated from reading ui file 'Ui_MainWindow2.ui',
+# licensing of 'Ui_MainWindow2.ui' applies.
 #
-# Created: Wed May 22 09:54:42 2019
-#      by: pyside2-uic  running on PySide2 5.12.3
+# Created: Fri Jan 31 14:50:03 2020
+#      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -212,7 +212,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.line_3, 1, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 795, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 795, 22))
         self.menubar.setObjectName("menubar")
         self.menuKonfiguration = QtWidgets.QMenu(self.menubar)
         self.menuKonfiguration.setObjectName("menuKonfiguration")
@@ -220,6 +220,8 @@ class Ui_MainWindow(object):
         self.menuBatch_Operationen.setObjectName("menuBatch_Operationen")
         self.menuHilfe = QtWidgets.QMenu(self.menubar)
         self.menuHilfe.setObjectName("menuHilfe")
+        self.menuAnsicht = QtWidgets.QMenu(self.menubar)
+        self.menuAnsicht.setObjectName("menuAnsicht")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -246,6 +248,10 @@ class Ui_MainWindow(object):
         self.actionOnlineHelp.setObjectName("actionOnlineHelp")
         self.actionOfflineHelp = QtWidgets.QAction(MainWindow)
         self.actionOfflineHelp.setObjectName("actionOfflineHelp")
+        self.actionSortClientByCandidateName = QtWidgets.QAction(MainWindow)
+        self.actionSortClientByCandidateName.setObjectName("actionSortClientByCandidateName")
+        self.actionSortClientByComputerName = QtWidgets.QAction(MainWindow)
+        self.actionSortClientByComputerName.setObjectName("actionSortClientByComputerName")
         self.menuKonfiguration.addAction(self.actionBearbeiten)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_zur_cksetzen)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_rebooten)
@@ -254,8 +260,11 @@ class Ui_MainWindow(object):
         self.menuBatch_Operationen.addAction(self.actionAlle_Benutzer_benachrichtigen)
         self.menuHilfe.addAction(self.actionOnlineHelp)
         self.menuHilfe.addAction(self.actionOfflineHelp)
+        self.menuAnsicht.addAction(self.actionSortClientByCandidateName)
+        self.menuAnsicht.addAction(self.actionSortClientByComputerName)
         self.menubar.addAction(self.menuKonfiguration.menuAction())
         self.menubar.addAction(self.menuBatch_Operationen.menuAction())
+        self.menubar.addAction(self.menuAnsicht.menuAction())
         self.menubar.addAction(self.menuHilfe.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -291,6 +300,7 @@ class Ui_MainWindow(object):
         self.menuKonfiguration.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Konfiguration", None, -1))
         self.menuBatch_Operationen.setTitle(QtWidgets.QApplication.translate("MainWindow", "Tools", None, -1))
         self.menuHilfe.setTitle(QtWidgets.QApplication.translate("MainWindow", "Hi&lfe", None, -1))
+        self.menuAnsicht.setTitle(QtWidgets.QApplication.translate("MainWindow", "Ansicht", None, -1))
         self.actionBearbeiten.setText(QtWidgets.QApplication.translate("MainWindow", "&Bearbeiten", None, -1))
         self.actionAlle_Clients_zur_cksetzen.setText(QtWidgets.QApplication.translate("MainWindow", "&Alle Clients zurücksetzen", None, -1))
         self.actionAlle_Clients_deaktivieren.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Clients: Auswahl aufheben", None, -1))
@@ -299,4 +309,6 @@ class Ui_MainWindow(object):
         self.actionAlle_Benutzer_benachrichtigen.setText(QtWidgets.QApplication.translate("MainWindow", "Alle &Benutzer benachrichtigen", None, -1))
         self.actionOnlineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "&Online-Hilfe öffnen", None, -1))
         self.actionOfflineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "Offline-&Hilfe öffnen", None, -1))
+        self.actionSortClientByCandidateName.setText(QtWidgets.QApplication.translate("MainWindow", "Clients nach Kandidatenname sortieren", None, -1))
+        self.actionSortClientByComputerName.setText(QtWidgets.QApplication.translate("MainWindow", "Clients nach Rechnername sortieren", None, -1))
 
