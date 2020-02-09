@@ -472,6 +472,7 @@
     </property>
     <addaction name="actionOnlineHelp"/>
     <addaction name="actionOfflineHelp"/>
+    <addaction name="actionVersionInfo"/>
    </widget>
    <widget class="QMenu" name="menuAnsicht">
     <property name="title">
@@ -547,6 +548,11 @@
   <action name="actionSortClientByComputerName">
    <property name="text">
     <string>Clients nach Rechnername sortieren</string>
+   </property>
+  </action>
+  <action name="actionVersionInfo">
+   <property name="text">
+    <string>Versionsinfo</string>
    </property>
   </action>
  </widget>

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'Ui_MainWindow2.ui',
 # licensing of 'Ui_MainWindow2.ui' applies.
 #
-# Created: Fri Jan 31 14:50:03 2020
+# Created: Sun Feb  9 09:10:14 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -252,6 +252,8 @@ class Ui_MainWindow(object):
         self.actionSortClientByCandidateName.setObjectName("actionSortClientByCandidateName")
         self.actionSortClientByComputerName = QtWidgets.QAction(MainWindow)
         self.actionSortClientByComputerName.setObjectName("actionSortClientByComputerName")
+        self.actionVersionInfo = QtWidgets.QAction(MainWindow)
+        self.actionVersionInfo.setObjectName("actionVersionInfo")
         self.menuKonfiguration.addAction(self.actionBearbeiten)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_zur_cksetzen)
         self.menuBatch_Operationen.addAction(self.actionAlle_Clients_rebooten)
@@ -260,6 +262,7 @@ class Ui_MainWindow(object):
         self.menuBatch_Operationen.addAction(self.actionAlle_Benutzer_benachrichtigen)
         self.menuHilfe.addAction(self.actionOnlineHelp)
         self.menuHilfe.addAction(self.actionOfflineHelp)
+        self.menuHilfe.addAction(self.actionVersionInfo)
         self.menuAnsicht.addAction(self.actionSortClientByCandidateName)
         self.menuAnsicht.addAction(self.actionSortClientByComputerName)
         self.menubar.addAction(self.menuKonfiguration.menuAction())
@@ -311,4 +314,5 @@ class Ui_MainWindow(object):
         self.actionOfflineHelp.setText(QtWidgets.QApplication.translate("MainWindow", "Offline-&Hilfe öffnen", None, -1))
         self.actionSortClientByCandidateName.setText(QtWidgets.QApplication.translate("MainWindow", "Clients nach Kandidatenname sortieren", None, -1))
         self.actionSortClientByComputerName.setText(QtWidgets.QApplication.translate("MainWindow", "Clients nach Rechnername sortieren", None, -1))
+        self.actionVersionInfo.setText(QtWidgets.QApplication.translate("MainWindow", "Versionsinfo", None, -1))
 

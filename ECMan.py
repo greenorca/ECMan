@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
 import ctypes
-import os
+import os, os.path
+import time
 import socket
 import subprocess
 import sys
@@ -33,10 +34,11 @@ from worker.logfile_handler import LogfileHandler
 '''
 Start app for exam deployment software
 author: Sven Schirmer
-last_revision: 2019-11-28
-
+last revision: see github
 '''
 
+# this information is used for "Info", only adjust for official releases
+version = "2020-02-10"
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
@@ -73,6 +75,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionOfflineHelp.triggered.connect(self.openHelpUrlOffline)
         self.actionSortClientByCandidateName.triggered.connect(self.sortButtonsByCandidateName)
         self.actionSortClientByComputerName.triggered.connect(self.sortButtonsByComputerName)
+        self.actionVersionInfo.triggered.connect(self.showVersionInfo)
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
         self.btnNameClients.clicked.connect(self.activateNameTab)
 
@@ -704,6 +707,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             msg.setStandardButtons(QMessageBox.Abort)
         return msg.exec_()
 
+    def showVersionInfo(self):
+        info = "<b>Offizielles Release:</b><br>" + version
+        try:
+            modDate = time.localtime(os.path.getmtime(__file__))
+            info = info + "<br><br><b>Diese Version:</b><br>" + time.strftime("%Y-%m-%d", modDate)
+        except:
+            pass
+
+        self.showMessageBox("ECMan - Version", info)
 
 if __name__ == '__main__':
     '''

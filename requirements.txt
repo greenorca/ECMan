@@ -10,7 +10,7 @@ pyasn1==0.4.5
 pycparser==2.19
 PySide2==5.12.3
 pysmb==1.1.27
-pywinrm==0.3.0
+pywinrm==0.4.1 # used to be 0.3.0
 requests==2.21.0
 requests-ntlm==1.1.0
 shiboken2==5.12.3
