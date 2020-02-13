@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PySide2.QtGui import QIntValidator
 from PySide2.QtWidgets import QDialog, QApplication
-
+from PySide2 import QtCore
 from ui.configDialog import Ui_Dialog
 
 
@@ -62,6 +62,7 @@ class EcManConfigDialog(QDialog):
                 filesize = 42
 
             self.ui.lineEdit_MaxFileSize.setText(str(filesize))
+            self.ui.checkBox_advancedFeatures.setChecked(self.config.get("General","advanced_ui", fallback="False") == "True")
 
     def saveConfig(self):
         '''
@@ -101,7 +102,8 @@ class EcManConfigDialog(QDialog):
         except:
             filesize = 42
         self.config["Client"]["max_filesize"] = str(filesize)
-
+        advancedUi = self.ui.checkBox_advancedFeatures.checkState() == QtCore.Qt.CheckState.Checked
+        self.config["General"]["advanced_ui"] = str(advancedUi)
         self.config.write(open(self.configFile, 'w'))
 
 

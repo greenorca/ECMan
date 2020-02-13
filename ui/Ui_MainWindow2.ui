@@ -480,6 +480,7 @@
     </property>
     <addaction name="actionSortClientByCandidateName"/>
     <addaction name="actionSortClientByComputerName"/>
+    <addaction name="actionDisplayIPs"/>
    </widget>
    <addaction name="menuKonfiguration"/>
    <addaction name="menuBatch_Operationen"/>
@@ -553,6 +554,11 @@
   <action name="actionVersionInfo">
    <property name="text">
     <string>Versionsinfo</string>
+   </property>
+  </action>
+  <action name="actionDisplayIPs">
+   <property name="text">
+    <string>IP-Adressen anzeigen / verbergen</string>
    </property>
   </action>
  </widget>

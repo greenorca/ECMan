@@ -235,7 +235,7 @@ class Computer(object):
 
         return status_code
 
-    def getRemoteFileListing(self):
+    def getRemoteFileListing(self, doLogMe = False):
         """
         reads remote LB-Daten directory
         returns nicely formatted HTML list
@@ -287,8 +287,9 @@ class Computer(object):
                 self.remoteFileListing += "</ul>"
             else:
                 return std_err
+        if doLogMe:
+            self.logger.info(self.remoteFileListing)
 
-        self.logger.info(self.remoteFileListing)
         return self.remoteFileListing
 
     def parseFile(self, line):
@@ -572,8 +573,14 @@ class Computer(object):
             return False
 
         elif std_out.find("True") >= 0:
-            command = '$baseDir="C:\\Users\\$1$\\"; if (Test-Path $baseDir){ } else { try { New-Item -Path $baseDir -Force -ItemType directory; } catch { Write-Host "NOK" } }'.replace(
-                "$1$", self.remoteAdminUser)
+            '''
+            important: ensure the winrm - admin user folder exists, otherwise create it
+            '''
+            command = '''$baseDir="C:\\Users\\$1$\\"; 
+                if (Test-Path $baseDir){ } 
+                else { 
+                    try { New-Item -Path $baseDir -Force -ItemType directory; } 
+                    catch { Write-Host "NOK" } }'''.replace("$1$", self.remoteAdminUser)
             if self.debug: print("CheckUserConfig command: " + command)
             std_out, std_err, status = self.runPowerShellCommand(command)
 
@@ -586,7 +593,7 @@ class Computer(object):
             if std_out.find("NOK") >= 0:
                 if self.debug: print("Client remote admin folder does not exist.")
                 self.state = Computer.State.STATE_ADMIN_STORAGE_NOT_READY
-                self.logger.warn("WinRM User-verzeichnis nicht vorhanden")
+                self.logger.error("WinRM User-verzeichnis nicht vorhanden")
                 return False
 
             return True
@@ -854,6 +861,8 @@ class Computer(object):
                 self.lb_dataDirectory = self.lb_dataDirectory.split("/")[-1]
                 self.filepath = filepath
                 self.state = Computer.State.STATE_DEPLOYED
+                self.logger.info("Client erfolgreich für Prüfung konfiguriert. Folgende Dateien auf Desktop:")
+                self.getRemoteFileListing(True)  # get desktop file listing for log
                 return True
             else:
                 self.logger.error(error.decode("850"))
@@ -882,8 +891,11 @@ class Computer(object):
 
         lb_dataDirectory = self.lb_dataDirectory.split("#")[-1]
 
-        self.logger.info("Prüfungsdaten {} vom Client auf LBV-Share kopieren: {}".
+        self.logger.info("Prüfungsdaten {} vom Client auf LBV-Share kopieren: {}. Aktuell befinden sich folgende Daten auf dem Desktop: ".
                          format(lb_dataDirectory, filepath.replace("#", "/")))
+
+        self.getRemoteFileListing(True) # get desktop file listing for log
+
         self.configureFirewallService(enable=False)
         script = ""
         try:

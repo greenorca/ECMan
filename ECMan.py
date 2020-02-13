@@ -76,6 +76,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSortClientByCandidateName.triggered.connect(self.sortButtonsByCandidateName)
         self.actionSortClientByComputerName.triggered.connect(self.sortButtonsByComputerName)
         self.actionVersionInfo.triggered.connect(self.showVersionInfo)
+        self.actionDisplayIPs.triggered.connect(self.toggleClientIpDisplay)
+
         self.btnApplyCandidateNames.clicked.connect(self.applyCandidateNames)
         self.btnNameClients.clicked.connect(self.activateNameTab)
 
@@ -88,7 +90,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logger = Logger(self.textEditLog)
 
         self.lb_directory = None
-
+        self.advancedUi = False
         self.configure()
         self.show()
         if ui_demo is False:
@@ -119,6 +121,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
         clients = sorted(clients, key=lambda client: client.computer.getHostName())
         self.arrangeClientButtons(clients)
+
+    def toggleClientIpDisplay(self):
+        clients = [self.grid_layout.itemAt(i).widget() for i in range(self.grid_layout.count())]
+        for client in clients:
+            client.toggleShowIp()
 
     def arrangeClientButtons(self, clients):
         try:
@@ -343,6 +350,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.maxFileSize = int(
             self.config.get("Client", "max_filesize", fallback="1000")) * 1024 * 1024  # thats MB now...
 
+        self.advancedUi = self.config.get('General','advanced_ui',fallback="False") == "True"
+        pass
+
     def openConfigDialog(self):
         """
         opens configuration dialog
@@ -427,13 +437,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.result_directory == "" or item == "Ergebnispfad neu auswählen":
 
-            if self.server is None or self.server.connect() != True:
+            if self.server is None or self.server.connect() is not True:
                 self.server = self.getServerCredentialsByWizard()
                 if self.server is None:
                     return
 
             wizard = EcShareWizard(parent=self, server=self.server,
-                                   wizardType=EcShareWizard.TYPE_RESULT_DESTINATION)
+                                   wizardType=EcShareWizard.TYPE_RESULT_DESTINATION, advanced_Ui = self.advancedUi)
 
 
             wizard.setModal(True)
@@ -514,7 +524,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         try:
-            self.worker.abort()
+            self.worker.exit()
         except Exception as ex:
             print("crashed on stopping existing scanner thread: "+str(ex))
 
@@ -608,7 +618,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.server = self.getServerCredentialsByWizard()
 
         wizard = EcShareWizard(parent=self, server=self.server,
-                               wizardType=EcShareWizard.TYPE_LB_SELECTION)
+                               wizardType=EcShareWizard.TYPE_LB_SELECTION, advanced_Ui=self.advancedUi)
 
         wizard.setModal(True)
         result = wizard.exec_()
@@ -652,7 +662,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.server.conn.storeFile(sharename, destination + pdfFileName, file)
 
     def __runLocalPowerShellAsRoot(self, command):
+        """
+        maybe useful at some stage again
         # see https://docs.microsoft.com/en-us/windows/desktop/api/shellapi/nf-shellapi-shellexecutew#parameters
+        :param command:
+        :return:
+        """
+
         retval = ctypes.windll.shell32.ShellExecuteW(None, "runas",  # runas admin,
                                                      "C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",
                                                      # file to run

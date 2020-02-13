@@ -19,7 +19,7 @@ class EcShareWizard(QWizard):
     TYPE_RESULT_DESTINATION = 2
 
     def __init__(self, parent=None, server=None,
-                 wizardType=TYPE_LB_SELECTION):
+                 wizardType=TYPE_LB_SELECTION, advanced_Ui = False):
         '''
         Constructor
         '''
@@ -41,6 +41,12 @@ class EcShareWizard(QWizard):
         self.server = server
         self.defaultShare = server.defaultShare
         self.selectedPath = None
+        if advanced_Ui is not True:
+            if wizardType==EcShareWizard.TYPE_LB_SELECTION:
+                self.defaultShare = self.defaultShare + "/LB"
+            if wizardType == EcShareWizard.TYPE_RESULT_DESTINATION:
+                self.defaultShare = self.defaultShare + "/ERG"
+
 
     def connectServer(self):
         return self.server.connect()

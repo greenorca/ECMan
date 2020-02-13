@@ -30,6 +30,7 @@ class LbClient(QPushButton):
         self.log = LbClient.Log()
         self.isSelected = False
         self.lastUpdate = None
+        self.showIp = False;
         if test == True:
             self.computer.state = Computer.State.STATE_COPY_FAIL
             self.setLabel()
@@ -121,6 +122,10 @@ class LbClient(QPushButton):
             self.setLabel()
 
         self.log.append(msg=" Kandidat-Name gesetzt: " + candidateName)
+
+    def toggleShowIp(self):
+        self.showIp = not self.showIp
+        self.setLabel()
 
     def shutdownClient(self):
         self.log.append(msg=" herunterfahren")
@@ -281,9 +286,11 @@ class LbClient(QPushButton):
         
 
     def setLabel(self):
-        label = self.computer.ip
+        label = ""
+        if self.showIp==True:
+            label = self.computer.ip  + "\n"
         if self.computer.getHostName() != "":
-            label = label + "\n" + self.computer.getHostName()
+            label = label + self.computer.getHostName()
 
         label = label + "\n" + (self.computer.getCandidateName() or "-LEER-")
         label = label + "\n" + (self.computer.lb_dataDirectory)
