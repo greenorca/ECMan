@@ -3,8 +3,8 @@ Created on Jan 20, 2019
 
 @author: sven
 """
-
-from time import asctime, clock
+import time
+from time import asctime
 
 from PySide2 import QtCore
 from PySide2.QtCore import QThreadPool, QRunnable, QObject
@@ -132,10 +132,10 @@ class LbClient(QPushButton):
         QThreadPool.globalInstance().start(LbClient.ShutdownTask(self))
 
     def setOwnToolTip(self):
-        if self.lastUpdate != None and clock() - self.lastUpdate < 0.7:
+        if self.lastUpdate != None and time.process_time() - self.lastUpdate < 0.7:
             return
 
-        self.lastUpdate = clock()
+        self.lastUpdate = time.process_time()
         print("generating tooltip again")
         errorLog = ""
         if len(self.log.getLog()) > 0:
