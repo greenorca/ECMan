@@ -518,6 +518,8 @@ class Computer(object):
         sets given candidate name on remote machine
         by writing it to a file on the winrm user home directory
         """
+        if len(candidateName)>12: #odd hack to stay within Powershell line length limits...
+            candidateName = candidateName[0:12]
 
         command = '''
             $file = "C:\\Users\\$0$\\ecman.json";

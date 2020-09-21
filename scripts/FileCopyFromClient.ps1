@@ -32,8 +32,8 @@ Try{
 	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
 	
 	# use 7Zip if installed because it is faster and POSIX compatible
-	# 7z doesnt seem to work on network shares, therefore create archive locally first 
-	if (Test-Path 'C:\Programme\7-Zip\7z.exe'){ 
+	# 7z doesnt seem to work on network shares, therefore create archive locally first
+	if (Test-Path 'C:\Programme\7-Zip\7z.exe'){
 		$env:Path = "C:\Programme\7-Zip;$env:Path"
 		7z a -tzip "C:\desktop_$candidateName$.zip" $src
 		if ( $LASTEXITCODE -ne 0 ) { 
@@ -41,11 +41,13 @@ Try{
 		} 
 		Move-Item -Path "C:\desktop_$candidateName$.zip" -Destination "x:\$module$\$candidateName$" -Force
 	}
+
 	else {
-		Compress-Archive -DestinationPath x:\$module$\$candidateName$\desktop_$candidateName$.zip -Force -Path $src -ErrorAction Ignore
+		throw [System.IO.FileNotFoundException]::new("Crashed retrieving result files. Please install 7Zip")
 	}
 	#Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
-	
+
+
 	if ($Error[0].Exception.Messsage){ 
 	    	throw [System.IO.FileNotFoundException]::new("Crashed copying files back to server: "+$Error[0].Exception.Message)
 	    }
