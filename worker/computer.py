@@ -83,7 +83,7 @@ class Computer(object):
         :param fetchHostname: set to True to read hostname during constructor call
         '''
         self.debug = False
-        if socket.gethostname() == 'sven-V5-171' or 'sven-N13xWU':
+        if socket.gethostname() == 'sven-V5-171' or socket.gethostname() == 'sven-N13xWU':
             self.debug = True
         self.ip = ipAddress
         self.remoteAdminUser = remoteAdminUser
