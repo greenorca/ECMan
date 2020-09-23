@@ -18,6 +18,7 @@ Created on Dec 25, 2018
 @author: sven
 '''
 
+MAX_PS_LENGTH = 3200
 
 class File:
 
@@ -518,8 +519,8 @@ class Computer(object):
         sets given candidate name on remote machine
         by writing it to a file on the winrm user home directory
         """
-        if len(candidateName)>12: #odd hack to stay within Powershell line length limits...
-            candidateName = candidateName[0:12]
+        #if len(candidateName)>12: #odd hack to stay within Powershell line length limits...
+        #    candidateName = candidateName[0:12]
 
         command = '''
             $file = "C:\\Users\\$0$\\ecman.json";
@@ -850,6 +851,14 @@ class Computer(object):
         script = script.replace('$server_pwd$', server_passwd)
         script = script.replace('$domain$', domain)
 
+        if len(script)>MAX_PS_LENGTH:
+            self.state = Computer.State.STATE_COPY_FAIL
+            self.logger.info("generated Copy Script too long")
+            if self.debug:
+                print("generated Copy Script too long")
+            return
+
+
         if self.debug:
             print("***********************************")
             print(script)
@@ -918,6 +927,13 @@ class Computer(object):
         script = script.replace('$server_pwd$', server_passwd)
         script = script.replace('$domain$', domain)
 
+        if len(script)>MAX_PS_LENGTH:
+            self.state = Computer.State.STATE_RETRIVAL_FAIL
+            self.logger.info("generated Copy Script too long")
+            if self.debug:
+                print("generated Copy Script too long")
+            return
+
         if self.debug:
             self.logger.info(script)
             print("***********************************")
@@ -937,6 +953,7 @@ class Computer(object):
             self.state = Computer.State.STATE_RETRIVAL_FAIL
             self.logger.critical(
                 "Kopieren der Prüfungsleistungen auf Server nicht erfolgreich: {}".format(error.decode("850")))
+            print("Fehler beim Ergebnisse zum Server kopieren: "+error.decode("850"))
             return False
 
     def runCopyScript(self, script):
@@ -959,6 +976,7 @@ class Computer(object):
         if status != self.STATUS_OK or not (std_out.rstrip().endswith(b"SUCCESS")):
             self.logger.error("error running script on client - status_code: " + str(status))
             self.logger.error("error_code: " + str(std_err))
+            print(str(std_err))
             return -1, b"ERROR" + std_out.rstrip().split(b"ERROR")[-1]
 
         return status, std_out

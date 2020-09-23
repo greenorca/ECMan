@@ -1,12 +1,13 @@
 # copy local Desktop folder remote directory
 # first, map network share to drive x:, then copy from x to Desktop
-# actual network resource replaces $dst$ (triggered by python) 
 
 $src="$src$"
 $dst="$dst$"
 
 $server_user = "$server_user$"
 $server_pwd = "$server_pwd$"
+$candidate = "$candidateName$"
+$module ="$module$"
 $domain = "$domain$"
 
 $dst=$dst.replace('#', '\').replace('smb:','').replace('/','\').trim()
@@ -25,32 +26,37 @@ Try{
 
     if ($Error[0].Exception.Message)
     {
-        throw [System.IO.FileNotFoundException]::new("Cannot map network (copy back to server): "+$Error[0].Exception.Message)
+        $message = "Cannot map network (copy back to server): "
+        $message += $Error[0].Exception.Message
+        throw [System.IO.FileNotFoundException]::new($message)
     }
-	    
-	New-Item -Path x:\$module$ -ItemType directory -ErrorAction SilentlyContinue
-	New-Item -Path x:\$module$\$candidateName$ -ItemType directory -ErrorAction SilentlyContinue
+	$dirPath = "x:\"+$module+"\"
+	New-Item -Path $dirPath -ItemType directory -ErrorAction SilentlyContinue
+	$destDirectory = $dirPath+$candidate
+	New-Item -Path $destDirectory -ItemType directory -ErrorAction SilentlyContinue
 	
 	# use 7Zip if installed because it is faster and POSIX compatible
-	# 7z doesnt seem to work on network shares, therefore create archive locally first
 	if (Test-Path 'C:\Programme\7-Zip\7z.exe'){
 		$env:Path = "C:\Programme\7-Zip;$env:Path"
-		7z a -tzip "C:\desktop_$candidateName$.zip" $src
-		if ( $LASTEXITCODE -ne 0 ) { 
-			throw [System.IO.FileNotFoundException]::new("Crashed compressing result files")
-		} 
-		Move-Item -Path "C:\desktop_$candidateName$.zip" -Destination "x:\$module$\$candidateName$" -Force
+		$zipFile = "C:\desktop_"+$candidate+".zip"
+		7z a -tzip $zipFile $src
+		if ( $LASTEXITCODE -ne 0 ) {
+		    $message =  "Crashed compressing result files"
+			throw [System.IO.FileNotFoundException]::new($message)
+		}
+		$destDirectory += "\"
+		Move-Item -Path $zipFile -Destination $destDirectory -Force
 	}
 
 	else {
-		throw [System.IO.FileNotFoundException]::new("Crashed retrieving result files. Please install 7Zip")
+	    $message = "Crashed retrieving result files. Please install 7Zip";
+		throw [System.IO.FileNotFoundException]::new($message)
 	}
-	#Copy-Item -Path $src -Destination x:\$module$\$candidateName$ -Recurse -Force
 
-
-	if ($Error[0].Exception.Messsage){ 
-	    	throw [System.IO.FileNotFoundException]::new("Crashed copying files back to server: "+$Error[0].Exception.Message)
-	    }
+	if ($Error[0].Exception.Messsage){
+	    $message = "Crashed copying files back to server: "+$Error[0].Exception.Message
+        throw [System.IO.FileNotFoundException]::new($message)
+    }
 	    
 	net use * /delete /y
 	
