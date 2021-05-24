@@ -34,3 +34,6 @@ Get-Item -Path $path"Desktop\*" | Where { ($_.Name -notmatch ".lnk") } | Remove-
 # $pwd = ConvertTo-SecureString -String $passwd -AsPlainText -Force
 # $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user, $pwd
 # Start-Process powershell.exe -ArgumentList "-Noninteractive -ExecutionPolicy Bypass Clear-RecycleBin -Force" -Credential $cred
+
+$path = "C:\"
+Get-ChildItem $Path | Where{$_.Name -Match "<RegEx Pattern>"} | Remove-Item -recurse
