@@ -726,6 +726,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showVersionInfo(self):
         info = "<b>Offizielles Release:</b><br>" + version
         try:
+            # latest release - make sure to save this file before building :-)
             modDate = time.localtime(os.path.getmtime(__file__))
             info = info + "<br><br><b>Diese Version:</b><br>" + time.strftime("%Y-%m-%d", modDate)
         except:
