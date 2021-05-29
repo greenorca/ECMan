@@ -38,7 +38,7 @@ last revision: see github
 '''
 
 # this information is used for "Info", only adjust for official releases
-version = "2020-02-13"
+version = "2021-05-29"
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
