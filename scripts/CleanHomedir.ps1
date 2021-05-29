@@ -36,4 +36,4 @@ Get-Item -Path $path"Desktop\*" | Where { ($_.Name -notmatch ".lnk") } | Remove-
 # Start-Process powershell.exe -ArgumentList "-Noninteractive -ExecutionPolicy Bypass Clear-RecycleBin -Force" -Credential $cred
 
 $path = "C:\"
-Get-ChildItem $Path | Where{$_.Name -Match "<RegEx Pattern>"} | Remove-Item -recurse
+Get-ChildItem $path | Where{$_.Name -Match "workspace"} | Remove-Item -recurse
