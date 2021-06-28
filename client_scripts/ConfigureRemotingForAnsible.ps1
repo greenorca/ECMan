@@ -293,16 +293,11 @@ Write-Host "Fertig Installiert: imagemagick"
 # fix wierd SMB error (hopefully): "Eine angegebene Anmeldesitzung ist nicht vorhanden. Sie wurde gegebenenfalls bereits beendet"
 Set-ItemProperty -Name DisableDomainCreds -Path "HKLM:\\System\CurrentControlSet\Control\Lsa\" -Value 1
 
-# Addon Sven: deaktiviere Dienste: WindowsUpdates, Windows Search und "Intelligenter Hintergrundübertragungsdienst"
-
-Write-Host "Deaktiviere WindowsUpdate Service, Windows Search, und Background Intelligent Transfer Service"  
-Set-Service wuauserv -StartupType Disabled
-Set-Service wsearch -StartupType Disabled
-Set-Service BITS -StartupType Disabled
-
 # try to setup trashbin policy via GPO-logon scripts
+New-Item -Type Directory -Path C:\WINDOWS\System32\GroupPolicy\User\Scripts\Logon -ErrorAction Ignore
 echo "Clear-RecycleBin -Force" > C:\WINDOWS\System32\GroupPolicy\User\Scripts\Logon\clear_trash.ps1
 
+Write-Host "TODO: Bitte Logon-Skript in Group Policy aktivieren: C:\WINDOWS\System32\GroupPolicy\User\Scripts\Logon\clear_trash.ps1"
 
 Write-Host "Generiere und einrichten SSL Zertifikate... (dauert einen Moment)"
 
