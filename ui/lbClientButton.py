@@ -23,15 +23,15 @@ class LbClient(QPushButton):
         self.computer = Computer(ip,
                                  remoteAdminUser=remoteAdminUser, passwd=passwd,
                                  candidateLogin=candidateLogin,
-                                 fetchHostname=(test == False))
+                                 fetchHostname=(test is False))
         QPushButton.__init__(self, self.computer.ip)
         self.setAttribute(QtCore.Qt.WA_StyledBackground)
         self.parentApp = parentApp
         self.log = LbClient.Log()
         self.isSelected = False
         self.lastUpdate = None
-        self.showIp = False;
-        if test == True:
+        self.showIp = False
+        if test:
             self.computer.state = Computer.State.STATE_COPY_FAIL
             self.setLabel()
             self._colorizeWidgetByClientState()

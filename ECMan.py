@@ -255,6 +255,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def rebootAllClients(self):
         for i in range(self.grid_layout.count()):
             self.grid_layout.itemAt(i).widget().computer.reboot()
+            self.grid_layout.itemAt(i).widget().deleteLater()
+        # TODO TEST sven
+        #for i in range(self.grid_layout.count()):
+        #    self.grid_layout.removeItem(self.grid_layout.itemAt(i))
 
     def sendMessage(self):
 

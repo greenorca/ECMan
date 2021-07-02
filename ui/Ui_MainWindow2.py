@@ -3,24 +3,21 @@
 ################################################################################
 ## Form generated from reading UI file 'Ui_MainWindow2.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.14.1
+## Created by: Qt User Interface Compiler version 5.15.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QMetaObject, QObject, QPoint,
-    QRect, QSize, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QLinearGradient, QPalette, QPainter, QPixmap,
-    QRadialGradient)
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        if MainWindow.objectName():
+        if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(795, 587)
+        MainWindow.resize(849, 587)
         icon = QIcon()
         icon.addFile(u"../green_orca.png", QSize(), QIcon.Normal, QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -272,6 +269,7 @@ class Ui_MainWindow(object):
 
         self.checkBox_OverwriteExisitingNames = QCheckBox(self.tab_candidates)
         self.checkBox_OverwriteExisitingNames.setObjectName(u"checkBox_OverwriteExisitingNames")
+        self.checkBox_OverwriteExisitingNames.setChecked(True)
 
         self.gridLayout.addWidget(self.checkBox_OverwriteExisitingNames, 1, 1, 1, 1)
 
@@ -326,7 +324,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 795, 22))
+        self.menubar.setGeometry(QRect(0, 0, 849, 24))
         self.menuKonfiguration = QMenu(self.menubar)
         self.menuKonfiguration.setObjectName(u"menuKonfiguration")
         self.menuBatch_Operationen = QMenu(self.menubar)
