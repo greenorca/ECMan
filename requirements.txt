@@ -1,6 +1,6 @@
 asn1crypto==0.24.0
 certifi==2019.3.9
-cffi==1.14.5
+#cffi==1.14.6
 chardet==3.0.4
 #cryptography==2.6.1
 cryptography==3.3.2
@@ -14,7 +14,7 @@ pysmb==1.2.7 # used to be 1.1.27
 pywinrm==0.4.2 # used to be 0.4.1
 requests==2.27.1.0 # used to be 2.21
 requests-ntlm==1.1.0
-shiboken2==5.15.2 # used to be 5.12.3
+shiboken2==5.15.2.1 # used to be 5.12.3
 six==1.15.0
 urllib3==1.26.5
 xmltodict==0.12.0
