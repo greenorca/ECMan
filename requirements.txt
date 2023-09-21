@@ -3,7 +3,7 @@ certifi==2023.7.22
 #cffi==1.14.6
 chardet==3.0.4
 #cryptography==2.6.1
-cryptography==41.0.3
+cryptography==41.0.4
 idna==2.10
 ntlm-auth==1.3.0
 pdfkit==0.6.1
