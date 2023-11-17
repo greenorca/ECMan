@@ -16,5 +16,5 @@ requests==2.27.1.0 # used to be 2.21
 requests-ntlm==1.1.0
 shiboken2==5.15.2.1 # used to be 5.12.3
 six==1.15.0
-urllib3==1.26.5
+urllib3==1.26.18
 xmltodict==0.12.0
