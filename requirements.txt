@@ -12,7 +12,7 @@ pycparser==2.21 # used to be 2.20
 PySide2==5.15.2.1 # used to be 5.12.3
 pysmb==1.2.7 # used to be 1.1.27
 pywinrm==0.4.2 # used to be 0.4.1
-requests==2.27.1.0 # used to be 2.21
+requests==2.31.0 # used to be 2.21
 requests-ntlm==1.1.0
 shiboken2==5.15.2.1 # used to be 5.12.3
 six==1.15.0
